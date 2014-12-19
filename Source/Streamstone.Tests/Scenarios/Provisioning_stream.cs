@@ -62,11 +62,11 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_provisioning_along_with_custom_properties()
         {
-            var properties = StreamProperties.From(new
+            var properties = new
             {
                 Created = DateTimeOffset.UtcNow,
                 Active = true
-            });
+            };
 
             var stream = await Stream.ProvisionAsync(table, new Stream(partition, properties));
             var entity = table.RetrieveStreamEntity(partition);
@@ -74,7 +74,7 @@ namespace Streamstone.Scenarios
             var expectedStream = new Stream
             (
                 partition,
-                properties,
+                StreamProperties.From(properties),
                 entity.ETag,
                 start: 0,
                 count: 0,
@@ -86,7 +86,7 @@ namespace Streamstone.Scenarios
             var expectedEntity = new
             {
                 RowKey = ApiModel.StreamRowKey,
-                Properties = properties,
+                Properties = StreamProperties.From(properties),
                 Start = 0,
                 Count = 0,
                 Version = 0

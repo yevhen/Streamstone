@@ -11,20 +11,20 @@ namespace Streamstone
     /// </summary>
     public sealed class Event
     {
-        internal readonly EventProperties PropertiesInternal;
-
         /// <summary>
         /// The unique identifier representing this event
         /// </summary>
         public readonly string Id;
 
+        readonly EventProperties properties;
+        
         /// <summary>
-        /// The map of additional properties which this event contains.
+        /// The readonly map of additional properties which this event contains.
         /// Includes both meta and data properties.
         /// </summary>
         public IEnumerable<KeyValuePair<string, Property>> Properties 
         {
-            get { return PropertiesInternal; }
+            get { return properties; }
         }
 
         /// <summary>
@@ -89,7 +89,17 @@ namespace Streamstone
         Event(string id, EventProperties properties)
         {
             Id = id;
-            PropertiesInternal = properties;
+            this.properties = properties;
+        }
+
+        internal EventEntity Entity(string partition, int version)
+        {
+            return new EventEntity(partition, Id, version, properties);
+        }
+
+        internal StoredEvent Stored(int version)
+        {
+            return new StoredEvent(Id, version, properties);
         }
     }
 
@@ -106,7 +116,7 @@ namespace Streamstone
         public readonly string Id;
 
         /// <summary>
-        /// The map of additional properties which this event contains.
+        /// The readonly map of additional properties which this event contains.
         /// Includes both meta and data properties.
         /// </summary>
         public IEnumerable<KeyValuePair<string, Property>> Properties

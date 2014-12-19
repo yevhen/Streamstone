@@ -104,8 +104,8 @@ namespace Streamstone.Scenarios
             var storedEvents = result.Events;
             Assert.That(storedEvents.Length, Is.EqualTo(2));
 
-            AssertStoredEvent("e1", 1, events[0], storedEvents[0]);
-            AssertStoredEvent("e2", 2, events[0], storedEvents[1]);
+            AssertStoredEvent(1, events[0], storedEvents[0]);
+            AssertStoredEvent(2, events[1], storedEvents[1]);
 
             var eventEntities = table.RetrieveEventEntities(partition);
             Assert.That(eventEntities.Length, Is.EqualTo(2));
@@ -135,8 +135,8 @@ namespace Streamstone.Scenarios
             var storedEvents = result.Events;
             Assert.That(storedEvents.Length, Is.EqualTo(2));
 
-            AssertStoredEvent("e1", 1, events[0], storedEvents[0]);
-            AssertStoredEvent("e2", 2, events[0], storedEvents[1]);
+            AssertStoredEvent(1, events[0], storedEvents[0]);
+            AssertStoredEvent(2, events[1], storedEvents[1]);
 
             var eventEntities = table.RetrieveEventEntities(partition);
             Assert.That(eventEntities.Length, Is.EqualTo(2));
@@ -157,13 +157,9 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_writing_to_nonexisting_stream_along_with_stream_properties()
         {
-            var properties = StreamProperties.From(new Dictionary<string, EntityProperty>
-            {
-                {"p1", new EntityProperty(42)}, 
-                {"p2", new EntityProperty("doh!")}, 
-            });
-
-            Event[] events = { CreateEvent("e1"), CreateEvent("e2") };
+            var properties = new {p1 = 42, p2 = "doh!"};
+            
+            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(table, new Stream(partition, properties), events);
 
             AssertNewStream(result, start: 1, count: 2, version: 2, properties: properties);
@@ -172,8 +168,8 @@ namespace Streamstone.Scenarios
             var storedEvents = result.Events;
             Assert.That(storedEvents.Length, Is.EqualTo(2));
 
-            AssertStoredEvent("e1", 1, events[0], storedEvents[0]);
-            AssertStoredEvent("e2", 2, events[0], storedEvents[1]);
+            AssertStoredEvent(1, events[0], storedEvents[0]);
+            AssertStoredEvent(2, events[1], storedEvents[1]);
 
             var eventEntities = table.RetrieveEventEntities(partition);
             Assert.That(eventEntities.Length, Is.EqualTo(2));
@@ -191,7 +187,7 @@ namespace Streamstone.Scenarios
                 Is.EqualTo(eventEntities.Length + eventIdEntities.Length + 1));
         }
 
-        void AssertNewStream(StreamWriteResult actual, int start, int count, int version, StreamProperties properties = null)
+        void AssertNewStream(StreamWriteResult actual, int start, int count, int version, object properties = null)
         {
             var newStream = actual.Stream;
             var newStreamEntity = table.RetrieveStreamEntity(partition);
@@ -211,19 +207,25 @@ namespace Streamstone.Scenarios
             actualStream.ShouldEqual(expectedStream.ToExpectedObject());
         }
 
-        static Stream CreateStream(int start, int count, int version, string etag, StreamProperties properties = null)
+        static Stream CreateStream(int start, int count, int version, string etag, object properties = null)
         {
-            return new Stream(partition,properties ?? StreamProperties.None, etag, start, count, version);
+            return new Stream(partition, 
+                properties != null 
+                    ? StreamProperties.From(properties) 
+                    : StreamProperties.None, 
+                etag, start, count, version);
         }
 
-        void AssertStreamEntity(int start = 0, int count = 0, int version = 0, StreamProperties properties = null)
+        void AssertStreamEntity(int start = 0, int count = 0, int version = 0, object properties = null)
         {
             var newStreamEntity = table.RetrieveStreamEntity(partition);
 
             var expectedEntity = new
             {
                 RowKey = ApiModel.StreamRowKey,
-                Properties = properties ?? StreamProperties.None,
+                Properties = properties != null
+                    ? StreamProperties.From(properties)
+                    : StreamProperties.None,
                 Start = start,
                 Count = count,
                 Version = version,
@@ -232,9 +234,9 @@ namespace Streamstone.Scenarios
             newStreamEntity.ShouldMatch(expectedEntity.ToExpectedObject());
         }
 
-        static void AssertStoredEvent(string id, int version, Event original, StoredEvent actual)
+        static void AssertStoredEvent(int version, Event source, StoredEvent actual)
         {
-            var expected = new StoredEvent(id, version, original.PropertiesInternal);
+            var expected = source.Stored(version);
             actual.ShouldMatch(expected.ToExpectedObject());
         }
 

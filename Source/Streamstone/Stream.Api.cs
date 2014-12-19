@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -31,7 +32,27 @@ namespace Streamstone
             return new WriteOperation(table, stream, events, includes).ExecuteAsync();
         }
 
-        public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, StreamProperties properties)
+        public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, ITableEntity properties)
+        {
+            return SetPropertiesAsync(table, stream, StreamProperties.From(properties));
+        }
+
+        public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, object properties)
+        {
+            return SetPropertiesAsync(table, stream, StreamProperties.From(properties));
+        }
+
+        public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, IDictionary<string, Property> properties)
+        {
+            return SetPropertiesAsync(table, stream, StreamProperties.From(properties));
+        }
+
+        public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, IDictionary<string, EntityProperty> properties)
+        {
+            return SetPropertiesAsync(table, stream, StreamProperties.From(properties));
+        }
+
+        static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, StreamProperties properties)
         {
             return new SetPropertiesOperation(table, stream, properties).ExecuteAsync();
         }

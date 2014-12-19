@@ -157,7 +157,7 @@ namespace Streamstone
 
                 var storedStream = From(streamEntity);
                 var storedEvents = attempt.Events
-                    .Select(e => new StoredEvent(e.Id, e.Version, e.Properties))
+                    .Select(e => e.Stored())
                     .ToArray();
 
                 return new StreamWriteResult(storedStream, storedEvents);
@@ -182,7 +182,7 @@ namespace Streamstone
                 if (conflicting is EventIdEntity)
                 {
                     var duplicate = attempt.Events[(position - 1) / 2];
-                    throw new DuplicateEventException(table, stream.Partition, duplicate.Id);
+                    throw new DuplicateEventException(table, stream.Partition, duplicate.Source.Id);
                 }
                 
                 if (conflicting is EventEntity)
