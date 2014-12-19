@@ -27,23 +27,9 @@ namespace Streamstone
             return ProvisionAsync(table, new Stream(partition, properties));
         }
         
-        static async Task<Stream> ProvisionAsync(CloudTable table, Stream stream)
+        static Task<Stream> ProvisionAsync(CloudTable table, Stream stream)
         {
-            var operation = new ProvisionOperation(table, stream);
-
-            try
-            {
-                await operation.ExecuteAsync().Really();
-            }
-            catch (StorageException e)
-            {
-                if (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
-                    throw ConcurrencyConflictException.StreamChangedOrExists(table, stream.Partition);
-
-                throw;
-            }
-
-            return operation.Result();
+            return new ProvisionOperation(table, stream).ExecuteAsync();
         }
 
         public static Task<StreamWriteResult> WriteAsync(CloudTable table, string partition, Event[] events)
@@ -74,37 +60,9 @@ namespace Streamstone
             return WriteAsync(table, stream, events, NoIncludes);
         }
 
-        public static async Task<StreamWriteResult> WriteAsync(CloudTable table, Stream stream, Event[] events, Include[] includes)
+        public static Task<StreamWriteResult> WriteAsync(CloudTable table, Stream stream, Event[] events, Include[] includes)
         {
-            Requires.NotNull(table,  "table"); 
-            Requires.NotNull(stream, "stream");
-            Requires.NotNull(events, "events");
-            Requires.NotNull(events, "includes");
-            
-            if (events.Length == 0)
-                throw new ArgumentOutOfRangeException("events", "Events have 0 items");
-
-            const int maxBatchSize = 100;
-            const int entitiesPerEvent = 2;
-            const int streamEntityPerBatch = 1;
-            const int maxEntitiesPerBatch = (maxBatchSize / entitiesPerEvent) - streamEntityPerBatch;
-
-            if (events.Length + includes.Length > maxEntitiesPerBatch)
-                throw new ArgumentOutOfRangeException("events", 
-                    "Maximum number of events per batch is " + maxEntitiesPerBatch);
-
-            var operation = new WriteOperation(table, stream, events, includes);
-
-            try
-            {
-                await operation.ExecuteAsync().Really();
-            }
-            catch (StorageException e)
-            {               
-                operation.Handle(e);
-            }
-
-            return operation.Result();
+            return new WriteOperation(table, stream, events, includes).ExecuteAsync();
         }
 
         public static async Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, StreamProperties properties)

@@ -39,19 +39,19 @@ namespace Streamstone
     /// </summary>
     public sealed class StoredEvent
     {
-        /// <summary>
+        /// <summary> 
         /// The unique identifier representing this event
-        /// </summary>
+        ///  </summary>
         public readonly string Id;
 
-        /// <summary>
-        /// The named map of additional properties which this event contains.
-        /// Includes both meta and data properties.
+        /// <summary>  
+        /// The named map of additional properties which this event contains.  
         /// </summary>
+        /// <remarks> Includes both meta and data properties. </remarks>
         public readonly EventProperties Properties;
 
         /// <summary>
-        /// A sequence number assigned by stream to this event. 
+        /// A sequence number assigned by a stream to this event. 
         /// </summary>
         public readonly int Version;
 

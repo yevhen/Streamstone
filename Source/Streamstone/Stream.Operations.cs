@@ -24,17 +24,23 @@ namespace Streamstone
                 this.stream = stream;
             }
 
-            StreamEntity streamEntity;
-
-            public Task ExecuteAsync()
+            public async Task<Stream> ExecuteAsync()
             {
-                streamEntity = stream.Entity();
+                var streamEntity = stream.Entity();
                 var insert = TableOperation.Insert(streamEntity);
-                return table.ExecuteAsync(insert);
-            }
+                
+                try
+                {
+                    await table.ExecuteAsync(insert).Really();
+                }
+                catch (StorageException e)
+                {
+                    if (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
+                        throw ConcurrencyConflictException.StreamChangedOrExists(table, stream.Partition);
 
-            public Stream Result()
-            {
+                    throw;
+                }
+
                 return From(streamEntity);
             }
         }
@@ -42,7 +48,7 @@ namespace Streamstone
         class WriteOperation
         {
             readonly TableBatchOperation batch = new TableBatchOperation();
-            readonly List<ITableEntity> entities = new List<ITableEntity>(); 
+            readonly List<ITableEntity> items = new List<ITableEntity>(); 
             
             readonly CloudTable table;
             readonly Stream stream;
@@ -51,6 +57,23 @@ namespace Streamstone
 
             public WriteOperation(CloudTable table, Stream stream, Event[] events, Include[] includes)
             {
+                Requires.NotNull(table, "table");
+                Requires.NotNull(stream, "stream");
+                Requires.NotNull(events, "events");
+                Requires.NotNull(events, "includes");
+
+                if (events.Length == 0)
+                    throw new ArgumentOutOfRangeException("events", "Events have 0 items");
+
+                const int maxBatchSize = 100;
+                const int entitiesPerEvent = 2;
+                const int streamEntityPerBatch = 1;
+                const int maxEntitiesPerBatch = (maxBatchSize / entitiesPerEvent) - streamEntityPerBatch;
+
+                if (events.Length + includes.Length > maxEntitiesPerBatch)
+                    throw new ArgumentOutOfRangeException("events",
+                        "Maximum number of events per batch is " + maxEntitiesPerBatch);
+
                 this.table = table;
                 this.stream = stream;
                 this.includes = includes;
@@ -58,10 +81,20 @@ namespace Streamstone
                 attempt = this.stream.Write(events);
             }
 
-            public Task ExecuteAsync()
+            public async Task<StreamWriteResult> ExecuteAsync()
             {
                 PrepareBatch();
-                return ExecuteBatch();
+
+                try
+                {
+                    await ExecuteBatch().Really();
+                }
+                catch (StorageException e)
+                {
+                    Handle(e);
+                }
+
+                return Result();        
             }
 
             void PrepareBatch()
@@ -85,7 +118,7 @@ namespace Streamstone
                 else
                     batch.Replace(streamEntity);
 
-                entities.Add(streamEntity);
+                items.Add(streamEntity);
             }
 
             void WriteEvents()
@@ -98,8 +131,8 @@ namespace Streamstone
                     batch.Insert(eventEntity);
                     batch.Insert(eventIdEntity);
 
-                    entities.Add(eventEntity);
-                    entities.Add(eventIdEntity);
+                    items.Add(eventEntity);
+                    items.Add(eventIdEntity);
                 }
             }
 
@@ -108,13 +141,13 @@ namespace Streamstone
                 foreach (var include in includes)
                 {
                     batch.Add(include.Apply(stream.Partition));
-                    entities.Add(include.Entity);
+                    items.Add(include.Entity);
                 }
             }
 
             public StreamWriteResult Result()
             {
-                var streamEntity = entities.OfType<StreamEntity>().Single();
+                var streamEntity = items.OfType<StreamEntity>().Single();
 
                 var storedStream = From(streamEntity);
                 var storedEvents = attempt.Events
@@ -137,9 +170,9 @@ namespace Streamstone
                     throw UnexpectedStorageResponseException.ErrorCodeShouldBeEntityAlreadyExists(error);
 
                 var position = ParseConflictingEntityPosition(error);
-                Debug.Assert(position >= 0 && position < entities.Count);
+                Debug.Assert(position >= 0 && position < items.Count);
 
-                var conflicting = entities[position];
+                var conflicting = items[position];
                 if (conflicting is EventIdEntity)
                 {
                     var duplicate = attempt.Events[(position - 1) / 2];
