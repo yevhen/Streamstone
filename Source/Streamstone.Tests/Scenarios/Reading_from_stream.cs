@@ -43,7 +43,7 @@ namespace Streamstone.Scenarios
         public async void When_version_is_greater_than_current_version_of_stream()
         {
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
-            await Stream.WriteAsync(table, partition, events);
+            await Stream.WriteAsync(table, new Stream(partition), events);
 
             var slice = await Stream.ReadAsync<TestEventEntity>(table, partition, events.Length + 1);
             
@@ -55,7 +55,7 @@ namespace Streamstone.Scenarios
         public async void When_all_events_fit_to_single_slice()
         {
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
-            await Stream.WriteAsync(table, partition, events);
+            await Stream.WriteAsync(table, new Stream(partition), events);
 
             var slice = await Stream.ReadAsync<TestEventEntity>(table, partition, sliceSize: 2);
 
@@ -67,7 +67,7 @@ namespace Streamstone.Scenarios
         public async void When_all_events_do_not_fit_single_slice()
         {
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
-            await Stream.WriteAsync(table, partition, events);
+            await Stream.WriteAsync(table, new Stream(partition), events);
 
             var slice = await Stream.ReadAsync<TestStoredEventEntity>(table, partition, sliceSize: 1);
             

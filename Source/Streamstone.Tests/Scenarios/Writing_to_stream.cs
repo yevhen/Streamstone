@@ -127,7 +127,7 @@ namespace Streamstone.Scenarios
         public async void When_writing_to_nonexisting_stream()
         {
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
-            var result = await Stream.WriteAsync(table, partition, events);
+            var result = await Stream.WriteAsync(table, new Stream(partition), events);
 
             AssertNewStream(result, start: 1, count: 2, version: 2);
             AssertStreamEntity(start: 1, count: 2, version: 2);
@@ -164,7 +164,7 @@ namespace Streamstone.Scenarios
             });
 
             Event[] events = { CreateEvent("e1"), CreateEvent("e2") };
-            var result = await Stream.WriteAsync(table, partition, properties, events);
+            var result = await Stream.WriteAsync(table, new Stream(partition, properties), events);
 
             AssertNewStream(result, start: 1, count: 2, version: 2, properties: properties);
             AssertStreamEntity(start: 1, count: 2, version: 2, properties: properties);

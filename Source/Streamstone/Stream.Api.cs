@@ -26,26 +26,6 @@ namespace Streamstone
             return new ProvisionOperation(table, stream).ExecuteAsync();
         }
 
-        public static Task<StreamWriteResult> WriteAsync(CloudTable table, string partition, Event[] events)
-        {
-            return WriteAsync(table, partition, events, NoIncludes);
-        }
-
-        public static Task<StreamWriteResult> WriteAsync(CloudTable table, string partition, Event[] events, Include[] includes)
-        {
-            return WriteAsync(table, partition, StreamProperties.None, events, includes);
-        }
-
-        public static Task<StreamWriteResult> WriteAsync(CloudTable table, string partition, StreamProperties properties, Event[] events)
-        {
-            return WriteAsync(table, partition, properties, events, NoIncludes);
-        }
-
-        public static Task<StreamWriteResult> WriteAsync(CloudTable table, string partition, StreamProperties properties, Event[] events, Include[] includes)
-        {
-            return WriteAsync(table, new Stream(partition, properties), events, includes);
-        }
-
         public static Task<StreamWriteResult> WriteAsync(CloudTable table, Stream stream, Event[] events)
         {
             return WriteAsync(table, stream, events, NoIncludes);
@@ -82,8 +62,10 @@ namespace Streamstone
         }
 
         public static Task<StreamSlice<T>> ReadAsync<T>(
-            CloudTable table, string partition, 
-            int startVersion = 1, int sliceSize = DefaultSliceSize) 
+            CloudTable table, 
+            string partition, 
+            int startVersion = 1, 
+            int sliceSize = DefaultSliceSize) 
             where T : class, new()
         {
             return new ReadOperation<T>(table, partition, startVersion, sliceSize).ExecuteAsync();
