@@ -133,7 +133,7 @@ namespace Streamstone
             var version = Version + events.Count;
 
             var transient = events
-                .Select((e, i) => new StreamEvent(e, Version + i + 1, Partition))
+                .Select((e, i) => new TransientEvent(e, Version + i + 1, Partition))
                 .ToArray();
 
             return new WriteAttempt(new Stream(Partition, properties, Etag, start, count, version), transient);
@@ -167,22 +167,22 @@ namespace Streamstone
         class WriteAttempt
         {
             public readonly Stream Stream;
-            public readonly StreamEvent[] Events;
+            public readonly TransientEvent[] Events;
 
-            public WriteAttempt(Stream stream, StreamEvent[] events)
+            public WriteAttempt(Stream stream, TransientEvent[] events)
             {
                 Stream = stream;
                 Events = events;
             }
         }
 
-        class StreamEvent
+        class TransientEvent
         {
             public readonly Event Source;
             public readonly int Version;
             public readonly string Partition;
 
-            internal StreamEvent(Event source, int version, string partition)
+            internal TransientEvent(Event source, int version, string partition)
             {
                 Source = source;
                 Version = version;
