@@ -53,7 +53,7 @@ namespace Streamstone.Scenarios
                 p2 = "42"
             });
 
-            var stream = await Stream.ProvisionAsync(table, partition, properties);
+            var stream = await Stream.ProvisionAsync(table, new Stream(partition, properties));
 
             var newProperties = StreamProperties.From(new
             {

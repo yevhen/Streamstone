@@ -13,12 +13,7 @@ namespace Streamstone
 
         public static Task<Stream> ProvisionAsync(CloudTable table, string partition)
         {
-            return ProvisionAsync(table, partition, StreamProperties.None);
-        }
-
-        public static Task<Stream> ProvisionAsync(CloudTable table, string partition, StreamProperties properties)
-        {
-            return ProvisionAsync(table, new Stream(partition, properties));
+            return ProvisionAsync(table, new Stream(partition));
         }
 
         public static Task<Stream> ProvisionAsync(CloudTable table, Stream stream)
