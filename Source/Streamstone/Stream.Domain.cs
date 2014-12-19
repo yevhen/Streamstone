@@ -34,6 +34,7 @@ namespace Streamstone
             int start, 
             int count, 
             int version) 
+
         {
             Partition = partition;
             Properties = properties;
@@ -118,7 +119,7 @@ namespace Streamstone
             internal TransientEvent(Event e, int version, string partition)
             {
                 Id = e.Id;
-                Properties = e.Properties;
+                Properties = e.PropertiesInternal;
                 Version = version;
                 Partition = partition;
             }

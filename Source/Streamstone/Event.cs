@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
@@ -8,29 +11,85 @@ namespace Streamstone
     /// </summary>
     public sealed class Event
     {
+        internal readonly EventProperties PropertiesInternal;
+
         /// <summary>
         /// The unique identifier representing this event
         /// </summary>
         public readonly string Id;
 
         /// <summary>
-        /// The named map of additional properties which this event contains.
+        /// The map of additional properties which this event contains.
         /// Includes both meta and data properties.
         /// </summary>
-        public readonly EventProperties Properties;
+        public IEnumerable<KeyValuePair<string, Property>> Properties 
+        {
+            get { return PropertiesInternal; }
+        }
 
         /// <summary>
-        /// Constructs a new <see cref="Event"/> class.
+        /// Constructs a new <see cref="Event"/> instance which doesn't have any additional properties.
         /// </summary>
-        /// <param name="id">The unique identifier of the event (used for idempotent writes).</param>
-        /// <param name="properties">The properties of the event (includes both meta and data properties).</param>
-        public Event(string id, EventProperties properties)
-        {
-            Requires.NotNullOrWhitespace(id, "id");
-            Requires.NotNull(properties, "properties");
+        public Event(string id) 
+            : this(id, EventProperties.None)
+        {}
 
+        /// <summary>
+        /// Constructs a new <see cref="Event"/> instance using properties from given <see cref="ITableEntity"/>.
+        /// </summary>
+        /// <param name="id">
+        /// The unique identifier of the event (used for idempotent writes).
+        /// </param>
+        /// <param name="properties">
+        /// The instance of <see cref="ITableEntity"/> which contains properties for this event (includes both meta and data properties).
+        /// </param>
+        public Event(string id, ITableEntity properties)
+            : this(id, EventProperties.From(properties))
+        {}
+
+        /// <summary>
+        /// Constructs a new <see cref="Event"/> instance using properties from given object.
+        /// </summary>
+        /// <param name="id">
+        /// The unique identifier of the event (used for idempotent writes).
+        /// </param>
+        /// <param name="properties">
+        /// The object which contains properties for this event (includes both meta and data properties).
+        /// </param>
+        public Event(string id, object properties)
+            : this(id, EventProperties.From(properties))
+        {}
+
+        /// <summary>
+        /// Constructs a new <see cref="Event"/> instance using given properties.
+        /// </summary>
+        /// <param name="id">
+        /// The unique identifier of the event (used for idempotent writes).
+        /// </param>
+        /// <param name="properties">
+        /// The properties for this event (includes both meta and data properties).
+        /// </param>
+        public Event(string id, IDictionary<string, Property> properties)
+            : this(id, EventProperties.From(properties))
+        {}
+
+        /// <summary>
+        /// Constructs a new <see cref="Event"/> instance using given properties.
+        /// </summary>
+        /// <param name="id">
+        /// The unique identifier of the event (used for idempotent writes).
+        /// </param>
+        /// <param name="properties">
+        /// The properties for this event (includes both meta and data properties).
+        /// </param>
+        public Event(string id, IDictionary<string, EntityProperty> properties)
+            : this(id, EventProperties.From(properties))
+        {}
+
+        Event(string id, EventProperties properties)
+        {
             Id = id;
-            Properties = properties;
+            PropertiesInternal = properties;
         }
     }
 
@@ -39,16 +98,21 @@ namespace Streamstone
     /// </summary>
     public sealed class StoredEvent
     {
-        /// <summary> 
+        readonly EventProperties properties;
+
+        /// <summary>
         /// The unique identifier representing this event
-        ///  </summary>
+        /// </summary>
         public readonly string Id;
 
-        /// <summary>  
-        /// The named map of additional properties which this event contains.  
+        /// <summary>
+        /// The map of additional properties which this event contains.
+        /// Includes both meta and data properties.
         /// </summary>
-        /// <remarks> Includes both meta and data properties. </remarks>
-        public readonly EventProperties Properties;
+        public IEnumerable<KeyValuePair<string, Property>> Properties
+        {
+            get { return properties; }
+        }
 
         /// <summary>
         /// A sequence number assigned by a stream to this event. 
@@ -58,8 +122,8 @@ namespace Streamstone
         internal StoredEvent(string id, int version, EventProperties properties)
         {
             Id = id;
-            Properties = properties;
             Version = version;
+            this.properties = properties;
         }
     }
 }

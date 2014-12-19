@@ -234,7 +234,7 @@ namespace Streamstone.Scenarios
 
         static void AssertStoredEvent(string id, int version, Event original, StoredEvent actual)
         {
-            var expected = new StoredEvent(id, version, original.Properties);
+            var expected = new StoredEvent(id, version, original.PropertiesInternal);
             actual.ShouldMatch(expected.ToExpectedObject());
         }
 
@@ -275,7 +275,7 @@ namespace Streamstone.Scenarios
                 Data = "{}"
             };
 
-            return new Event(@event.Id, EventProperties.From(@event));
+            return new Event(@event.Id, @event);
         }
     }
 }
