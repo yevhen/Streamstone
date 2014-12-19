@@ -14,11 +14,15 @@ namespace Streamstone
         public readonly int Count;
         public readonly int Version;
 
-        Stream(string partition, StreamProperties properties)
+        public Stream(string partition, StreamProperties properties)
         {
             Partition = partition;
             Properties = properties;
         }
+
+        public Stream(string partition)
+            : this(partition, StreamProperties.None)
+        {}
 
         internal Stream(
             string partition, 
@@ -33,6 +37,16 @@ namespace Streamstone
             Start = start;
             Count = count;
             Version = version;
+        }
+
+        public bool IsTransient
+        {
+            get { return Etag == null; }
+        }
+
+        public bool IsStored
+        {
+            get { return !IsTransient; }
         }
 
         Stream SetProperties(StreamProperties properties)

@@ -26,9 +26,12 @@ namespace Streamstone
 
             return ProvisionAsync(table, new Stream(partition, properties));
         }
-        
-        static Task<Stream> ProvisionAsync(CloudTable table, Stream stream)
+
+        public static Task<Stream> ProvisionAsync(CloudTable table, Stream stream)
         {
+            if (stream.IsStored)
+                throw new ArgumentException("Can't provision already stored stream", "stream");
+
             return new ProvisionOperation(table, stream).ExecuteAsync();
         }
 
@@ -70,6 +73,9 @@ namespace Streamstone
             Requires.NotNull(table, "table");
             Requires.NotNull(stream, "stream");
             Requires.NotNull(properties, "properties");
+
+            if (stream.IsTransient)
+                throw new ArgumentException("Can't set properties on transient stream", "stream");
 
             var operation = new SetPropertiesOperation(table, stream, properties);
 

@@ -70,5 +70,20 @@ namespace Streamstone.Scenarios
 
             newProperties.ToExpectedObject().ShouldEqual(storedProperties);
         }
+
+        [Test]
+        public void When_trying_to_set_properties_on_transient_stream()
+        {
+            var stream = new Stream(partition);           
+            var properties = StreamProperties.From(new {p1 = 42, p2 = "42"});
+
+            table.CaptureContents(partition, contents =>
+            {
+                Assert.Throws<ArgumentException>(
+                    async () => await Stream.SetPropertiesAsync(table, stream, properties));
+
+                contents.AssertNothingChanged();
+            });
+        }
     }
 }

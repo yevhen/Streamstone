@@ -94,5 +94,19 @@ namespace Streamstone.Scenarios
 
             entity.ShouldMatch(expectedEntity.ToExpectedObject());
         }
+
+        [Test]
+        public async void When_trying_to_provision_already_stored_stream()
+        {
+            var stream = await Stream.ProvisionAsync(table, partition);
+
+            table.CaptureContents(partition, contents =>
+            {
+                Assert.Throws<ArgumentException>(
+                    async () => await Stream.ProvisionAsync(table, stream));
+
+                contents.AssertNothingChanged();
+            });
+        }
     }
 }
