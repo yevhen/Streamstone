@@ -2,8 +2,8 @@
 using System.Linq;
 
 using ExpectedObjects;
-
 using NUnit.Framework;
+
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone.Scenarios

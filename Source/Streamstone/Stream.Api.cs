@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
@@ -20,18 +18,11 @@ namespace Streamstone
 
         public static Task<Stream> ProvisionAsync(CloudTable table, string partition, StreamProperties properties)
         {
-            Requires.NotNull(table, "table");
-            Requires.NotNullOrEmpty(partition, "partition");
-            Requires.NotNull(properties, "properties");
-
             return ProvisionAsync(table, new Stream(partition, properties));
         }
 
         public static Task<Stream> ProvisionAsync(CloudTable table, Stream stream)
         {
-            if (stream.IsStored)
-                throw new ArgumentException("Can't provision already stored stream", "stream");
-
             return new ProvisionOperation(table, stream).ExecuteAsync();
         }
 
@@ -52,9 +43,6 @@ namespace Streamstone
 
         public static Task<StreamWriteResult> WriteAsync(CloudTable table, string partition, StreamProperties properties, Event[] events, Include[] includes)
         {
-            Requires.NotNullOrEmpty(partition, "partition");
-            Requires.NotNull(properties, "properties");
-
             return WriteAsync(table, new Stream(partition, properties), events, includes);
         }
 
@@ -68,57 +56,24 @@ namespace Streamstone
             return new WriteOperation(table, stream, events, includes).ExecuteAsync();
         }
 
-        public static async Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, StreamProperties properties)
+        public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, StreamProperties properties)
         {
-            Requires.NotNull(table, "table");
-            Requires.NotNull(stream, "stream");
-            Requires.NotNull(properties, "properties");
-
-            if (stream.IsTransient)
-                throw new ArgumentException("Can't set properties on transient stream", "stream");
-
-            var operation = new SetPropertiesOperation(table, stream, properties);
-
-            try
-            {
-                await operation.ExecuteAsync().Really();
-            }
-            catch (StorageException e)
-            {
-                if (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
-                    throw ConcurrencyConflictException.StreamChanged(table, stream.Partition);
-
-                throw;
-            }
-
-            return operation.Result();
+            return new SetPropertiesOperation(table, stream, properties).ExecuteAsync();
         }
 
         public static async Task<Stream> OpenAsync(CloudTable table, string partition)
         {
-            Requires.NotNull(table, "table");
-            Requires.NotNullOrEmpty(partition, "partition");
+            var result = await TryOpenAsync(table, partition).Really();
 
-            var operation = new OpenStreamOperation(table, partition);
-            var entity = await operation.ExecuteAsync().Really();
-
-            if (entity != null)
-                return From(entity);
+            if (result.Success)
+                return result.Stream;
 
             throw new StreamNotFoundException(table, partition);
         }
 
-        public static async Task<StreamOpenResult> TryOpenAsync(CloudTable table, string partition)
+        public static Task<StreamOpenResult> TryOpenAsync(CloudTable table, string partition)
         {
-            Requires.NotNull(table, "table");
-            Requires.NotNullOrEmpty(partition, "partition");
-
-            var operation = new OpenStreamOperation(table, partition);
-            var entity = await operation.ExecuteAsync().Really();
-            
-            return entity != null
-                    ? new StreamOpenResult(true, From(entity)) 
-                    : StreamOpenResult.NotFound;
+            return new OpenStreamOperation(table, partition).ExecuteAsync();
         }
 
         public static async Task<bool> ExistsAsync(CloudTable table, string partition)
@@ -126,13 +81,11 @@ namespace Streamstone
             return (await TryOpenAsync(table, partition).Really()).Success;
         }
 
-        public static Task<StreamSlice<T>> ReadAsync<T>(CloudTable table, string partition, int startVersion = 1, int sliceSize = DefaultSliceSize)
+        public static Task<StreamSlice<T>> ReadAsync<T>(
+            CloudTable table, string partition, 
+            int startVersion = 1, int sliceSize = DefaultSliceSize) 
             where T : class, new()
         {
-            Requires.NotNull(table, "table");
-            Requires.NotNullOrEmpty(partition, "partition");
-            Requires.GreaterThanOrEqualToOne(startVersion, "startVersion");
-
             return new ReadOperation<T>(table, partition, startVersion, sliceSize).ExecuteAsync();
         }
     }

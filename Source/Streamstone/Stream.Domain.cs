@@ -16,6 +16,9 @@ namespace Streamstone
 
         public Stream(string partition, StreamProperties properties)
         {
+            Requires.NotNullOrEmpty(partition, "partition");
+            Requires.NotNull(properties, "properties");
+
             Partition = partition;
             Properties = properties;
         }
@@ -31,8 +34,9 @@ namespace Streamstone
             int start, 
             int count, 
             int version) 
-            : this(partition, properties)
         {
+            Partition = partition;
+            Properties = properties;
             Etag = etag;
             Start = start;
             Count = count;

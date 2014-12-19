@@ -20,6 +20,12 @@ namespace Streamstone
 
             public ProvisionOperation(CloudTable table, Stream stream)
             {
+                Requires.NotNull(table, "table");
+                Requires.NotNull(stream, "stream");
+
+                if (stream.IsStored)
+                    throw new ArgumentException("Can't provision already stored stream", "stream");
+
                 this.table = table;
                 this.stream = stream;
             }
@@ -216,24 +222,35 @@ namespace Streamstone
 
             public SetPropertiesOperation(CloudTable table, Stream stream, StreamProperties properties)
             {
+                Requires.NotNull(table, "table");
+                Requires.NotNull(stream, "stream");
+                Requires.NotNull(properties, "properties");
+
+                if (stream.IsTransient)
+                    throw new ArgumentException("Can't set properties on transient stream", "stream");
+
                 this.table = table;
                 this.stream = stream;
                 this.properties = properties;
             }
 
-            StreamEntity newStreamEntity;
-
-            public Task ExecuteAsync()
+            public async Task<Stream> ExecuteAsync()
             {
                 var newStream = stream.SetProperties(properties);
-                newStreamEntity = newStream.Entity();
+                var newStreamEntity = newStream.Entity();
 
-                var merge = TableOperation.Replace(newStreamEntity);
-                return table.ExecuteAsync(merge);
-            }
+                try
+                {
+                    await table.ExecuteAsync(TableOperation.Replace(newStreamEntity));
+                }
+                catch (StorageException e)
+                {
+                    if (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
+                        throw ConcurrencyConflictException.StreamChanged(table, stream.Partition);
 
-            public Stream Result()
-            {
+                    throw;
+                }
+
                 return From(newStreamEntity);
             }
         }
@@ -245,15 +262,23 @@ namespace Streamstone
 
             public OpenStreamOperation(CloudTable table, string partition)
             {
+                Requires.NotNull(table, "table");
+                Requires.NotNullOrEmpty(partition, "partition");
+
                 this.table = table;
                 this.partition = partition;
             }
 
-            public async Task<StreamEntity> ExecuteAsync()
+            public async Task<StreamOpenResult> ExecuteAsync()
             {
-                var retrieve = TableOperation.Retrieve<StreamEntity>(partition, StreamEntity.FixedRowKey);
+                var retrieve = TableOperation.Retrieve<StreamEntity>(
+                    partition, StreamEntity.FixedRowKey);
+
                 var entity = (await table.ExecuteAsync(retrieve).Really()).Result;
-                return entity != null ? (StreamEntity) entity : null;
+
+                return entity != null
+                        ? new StreamOpenResult(true, From(((StreamEntity)entity)))
+                        : StreamOpenResult.NotFound;
             }
         }
 
@@ -266,6 +291,11 @@ namespace Streamstone
 
             public ReadOperation(CloudTable table, string partition, int startVersion, int sliceSize)
             {
+                Requires.NotNull(table, "table");
+                Requires.NotNullOrEmpty(partition, "partition");
+                Requires.GreaterThanOrEqualToOne(startVersion, "startVersion");
+                Requires.GreaterThanOrEqualToOne(sliceSize, "sliceSize");
+
                 this.table = table;
                 this.partition = partition;
                 this.startVersion = startVersion;
