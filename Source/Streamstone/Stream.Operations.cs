@@ -30,23 +30,52 @@ namespace Streamstone
                 this.stream = stream;
             }
 
-            public async Task<Stream> ExecuteAsync()
+            public Stream Execute()
             {
-                var streamEntity = stream.Entity();
-                var insert = TableOperation.Insert(streamEntity);
-                
                 try
                 {
-                    await table.ExecuteAsync(insert).Really();
+                    table.Execute(Prepare());
                 }
                 catch (StorageException e)
                 {
-                    if (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
-                        throw ConcurrencyConflictException.StreamChangedOrExists(table, stream.Partition);
-
-                    throw;
+                    Handle(e);
                 }
 
+                return Result();
+            }
+
+            public async Task<Stream> ExecuteAsync()
+            {
+                try
+                {
+                    await table.ExecuteAsync(Prepare());
+                }
+                catch (StorageException e)
+                {
+                    Handle(e);
+                }
+
+                return Result();
+            }
+
+            StreamEntity streamEntity;
+
+            TableOperation Prepare()
+            {
+                streamEntity = stream.Entity();
+                return TableOperation.Insert(streamEntity);
+            }
+
+            void Handle(StorageException e)
+            {
+                if (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
+                    throw ConcurrencyConflictException.StreamChangedOrExists(table, stream.Partition);
+
+                throw e.PreserveStackTrace();
+            }
+
+            Stream Result()
+            {
                 return From(streamEntity);
             }
         }
