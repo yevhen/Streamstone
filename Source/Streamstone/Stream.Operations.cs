@@ -16,8 +16,7 @@ namespace Streamstone
         class ProvisionOperation
         {
             readonly CloudTable table;
-            readonly string partition;
-            readonly StreamEntity streamEntity;
+            readonly Stream stream;
 
             public ProvisionOperation(CloudTable table, Stream stream)
             {
@@ -28,54 +27,67 @@ namespace Streamstone
                     throw new ArgumentException("Can't provision already stored stream", "stream");
 
                 this.table  = table;
-                this.partition = stream.Partition;
-                this.streamEntity = stream.Entity();
+                this.stream = stream;
             }
 
             public Stream Execute()
             {
+                var insert = new Insert(stream);
+
                 try
                 {
-                    table.Execute(Prepare());
+                    table.Execute(insert.Prepare());
                 }
                 catch (StorageException e)
                 {
-                    Handle(e);
+                    insert.Handle(table, e);
                 }
 
-                return Result();
+                return insert.Result();
             }
 
             public async Task<Stream> ExecuteAsync()
             {
+                var insert = new Insert(stream);
+
                 try
                 {
-                    await table.ExecuteAsync(Prepare()).Really();
+                    await table.ExecuteAsync(insert.Prepare()).Really();
                 }
                 catch (StorageException e)
                 {
-                    Handle(e);
+                    insert.Handle(table, e);
                 }
 
-                return Result();
+                return insert.Result();
             }
 
-            TableOperation Prepare()
+            class Insert
             {
-                return TableOperation.Insert(streamEntity);
-            }
+                readonly StreamEntity entity;
 
-            void Handle(StorageException e)
-            {
-                if (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
-                    throw ConcurrencyConflictException.StreamChangedOrExists(table, partition);
+                public Insert(Stream stream)
+                {
+                    entity = stream.Entity();
+                }
 
-                throw e.PreserveStackTrace();
-            }
+                public TableOperation Prepare()
+                {
+                    return TableOperation.Insert(entity);
+                }
 
-            Stream Result()
-            {
-                return From(streamEntity);
+                internal void Handle(CloudTable table, StorageException e)
+                {
+                    if (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
+                        throw ConcurrencyConflictException.StreamChangedOrExists(table, entity.PartitionKey);
+
+                    throw e.PreserveStackTrace();
+                }
+
+                internal Stream Result()
+                {
+                    return From(entity);
+                }
             }
         }
 
