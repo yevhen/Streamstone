@@ -104,8 +104,8 @@ namespace Streamstone.Scenarios
             var storedEvents = result.Events;
             Assert.That(storedEvents.Length, Is.EqualTo(2));
 
-            AssertStoredEvent(1, events[0], storedEvents[0]);
-            AssertStoredEvent(2, events[1], storedEvents[1]);
+            AssertRecordedEvent(1, events[0], storedEvents[0]);
+            AssertRecordedEvent(2, events[1], storedEvents[1]);
 
             var eventEntities = table.RetrieveEventEntities(partition);
             Assert.That(eventEntities.Length, Is.EqualTo(2));
@@ -135,8 +135,8 @@ namespace Streamstone.Scenarios
             var storedEvents = result.Events;
             Assert.That(storedEvents.Length, Is.EqualTo(2));
 
-            AssertStoredEvent(1, events[0], storedEvents[0]);
-            AssertStoredEvent(2, events[1], storedEvents[1]);
+            AssertRecordedEvent(1, events[0], storedEvents[0]);
+            AssertRecordedEvent(2, events[1], storedEvents[1]);
 
             var eventEntities = table.RetrieveEventEntities(partition);
             Assert.That(eventEntities.Length, Is.EqualTo(2));
@@ -168,8 +168,8 @@ namespace Streamstone.Scenarios
             var storedEvents = result.Events;
             Assert.That(storedEvents.Length, Is.EqualTo(2));
 
-            AssertStoredEvent(1, events[0], storedEvents[0]);
-            AssertStoredEvent(2, events[1], storedEvents[1]);
+            AssertRecordedEvent(1, events[0], storedEvents[0]);
+            AssertRecordedEvent(2, events[1], storedEvents[1]);
 
             var eventEntities = table.RetrieveEventEntities(partition);
             Assert.That(eventEntities.Length, Is.EqualTo(2));
@@ -234,9 +234,9 @@ namespace Streamstone.Scenarios
             newStreamEntity.ShouldMatch(expectedEntity.ToExpectedObject());
         }
 
-        static void AssertStoredEvent(int version, Event source, StoredEvent actual)
+        static void AssertRecordedEvent(int version, Event source, RecordedEvent actual)
         {
-            var expected = source.Stored(version);
+            var expected = source.Record(version);
             actual.ShouldMatch(expected.ToExpectedObject());
         }
 

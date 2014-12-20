@@ -92,21 +92,16 @@ namespace Streamstone
             this.properties = properties;
         }
 
-        internal EventEntity Entity(string partition, int version)
+        internal RecordedEvent Record(int version)
         {
-            return new EventEntity(partition, Id, version, properties);
-        }
-
-        internal StoredEvent Stored(int version)
-        {
-            return new StoredEvent(Id, version, properties);
+            return new RecordedEvent(Id, version, properties);
         }
     }
 
     /// <summary>
     /// Represents a previously written (stored) event
     /// </summary>
-    public sealed class StoredEvent
+    public sealed class RecordedEvent
     {
         readonly EventProperties properties;
 
@@ -129,11 +124,21 @@ namespace Streamstone
         /// </summary>
         public readonly int Version;
 
-        internal StoredEvent(string id, int version, EventProperties properties)
+        internal RecordedEvent(string id, int version, EventProperties properties)
         {
             Id = id;
             Version = version;
             this.properties = properties;
+        }
+
+        internal EventEntity EventEntity(string partition)
+        {
+            return new EventEntity(partition, Id, Version, properties);
+        }
+
+        internal EventIdEntity IdEntity(string partition)
+        {
+            return new EventIdEntity(partition, Id, Version);
         }
     }
 }

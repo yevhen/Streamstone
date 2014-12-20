@@ -83,11 +83,7 @@ namespace Streamstone
         {
             readonly CloudTable table;
             readonly string partition;
-
-            readonly TableBatchOperation batch = new TableBatchOperation();
-            readonly List<ITableEntity> items = new List<ITableEntity>();
-
-            readonly WriteTransaction transaction;
+            readonly Batch batch;
             
             public WriteOperation(CloudTable table, Stream stream, Event[] events, Include[] includes)
             {
@@ -108,14 +104,14 @@ namespace Streamstone
                     throw new ArgumentOutOfRangeException("events",
                         "Maximum number of events per batch is " + maxEntitiesPerBatch);
 
-                this.table       = table;
-                this.partition   = stream.Partition;
-                this.transaction = WriteTransaction.Create(stream, events, includes);
+                this.table = table;
+                this.partition = stream.Partition;
+                this.batch = Batch.Create(stream, events, includes);
             }
 
             public StreamWriteResult Execute()
             {
-                Prepare();
+                batch.Prepare();
 
                 try
                 {
@@ -126,12 +122,12 @@ namespace Streamstone
                     Handle(e);
                 }
 
-                return Result();
+                return batch.Result();
             }
 
             public async Task<StreamWriteResult> ExecuteAsync()
             {
-                Prepare();
+                batch.Prepare();
 
                 try
                 {
@@ -142,63 +138,97 @@ namespace Streamstone
                     Handle(e);
                 }
 
-                return Result();        
+                return batch.Result();        
             }
 
-            void Prepare()
+            class Batch
             {
-                WriteStream();
-                WriteEvents();
-                WriteIncludes();
-            }
+                readonly TableBatchOperation batch = new TableBatchOperation();
+                internal readonly List<ITableEntity> Items = new List<ITableEntity>();
 
-            void WriteStream()
-            {
-                var streamEntity = transaction.Stream.Entity();
+                readonly Stream stream;
+                internal readonly RecordedEvent[] Events;
+                internal readonly Include[] Includes;
 
-                if (streamEntity.ETag == null)
-                    batch.Insert(streamEntity);
-                else
-                    batch.Replace(streamEntity);
-
-                items.Add(streamEntity);
-            }
-
-            void WriteEvents()
-            {
-                foreach (var e in transaction.Events)
+                Batch(Stream stream, RecordedEvent[] events, Include[] includes)
                 {
-                    var eventEntity = e.EventEntity();
-                    var eventIdEntity = e.IdEntity();
+                    this.stream = stream;
+                    Events = events;
+                    Includes = includes;
+                }
 
-                    batch.Insert(eventEntity);
-                    batch.Insert(eventIdEntity);
+                static internal Batch Create(Stream stream, ICollection<Event> events, Include[] includes)
+                {
+                    var start = stream.Start == 0
+                        ? (events.Count != 0 ? 1 : 0)
+                        : stream.Start;
 
-                    items.Add(eventEntity);
-                    items.Add(eventIdEntity);
+                    var count = stream.Count + events.Count;
+                    var version = stream.Version + events.Count;
+
+                    var transient = events
+                        .Select((e, i) => e.Record(stream.Version + i + 1))
+                        .ToArray();
+
+                    return new Batch(new Stream(stream.Partition, stream.properties, stream.ETag, start, count, version), transient, includes);
+                }
+
+                internal void Prepare()
+                {
+                    WriteStream();
+                    WriteEvents();
+                    WriteIncludes();
+                }
+
+                void WriteStream()
+                {
+                    var streamEntity = stream.Entity();
+
+                    if (streamEntity.ETag == null)
+                        batch.Insert(streamEntity);
+                    else
+                        batch.Replace(streamEntity);
+
+                    Items.Add(streamEntity);
+                }
+
+                void WriteEvents()
+                {
+                    foreach (var e in Events)
+                    {
+                        var eventEntity = e.EventEntity(stream.Partition);
+                        var eventIdEntity = e.IdEntity(stream.Partition);
+
+                        batch.Insert(eventEntity);
+                        batch.Insert(eventIdEntity);
+
+                        Items.Add(eventEntity);
+                        Items.Add(eventIdEntity);
+                    }
+                }
+
+                void WriteIncludes()
+                {
+                    foreach (var include in Includes)
+                    {
+                        batch.Add(include.Apply(stream.Partition));
+                        Items.Add(include.Entity);
+                    }
+                }
+
+                public StreamWriteResult Result()
+                {
+                    var storedStream = From((StreamEntity)Items.First());
+
+                    return new StreamWriteResult(storedStream, Events);
+                }
+
+                public static implicit operator TableBatchOperation(Batch arg)
+                {
+                    return arg.batch;
                 }
             }
-
-            void WriteIncludes()
-            {
-                foreach (var include in transaction.Includes)
-                {
-                    batch.Add(include.Apply(partition));
-                    items.Add(include.Entity);
-                }
-            }
-
-            StreamWriteResult Result()
-            {
-                var storedStream = From((StreamEntity)items.First());
-                
-                var storedEvents = transaction.Events
-                    .Select(e => e.Stored())
-                    .ToArray();
-
-                return new StreamWriteResult(storedStream, storedEvents);
-            }
-
+            
             void Handle(StorageException exception)
             {
                 if (exception.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
@@ -212,20 +242,20 @@ namespace Streamstone
                     throw UnexpectedStorageResponseException.ErrorCodeShouldBeEntityAlreadyExists(error);
 
                 var position = ParseConflictingEntityPosition(error);
-                Debug.Assert(position >= 0 && position < items.Count);
+                Debug.Assert(position >= 0 && position < batch.Items.Count);
 
-                var conflicting = items[position];
+                var conflicting = batch.Items[position];
                 if (conflicting is EventIdEntity)
                 {
-                    var duplicate = transaction.Events[(position - 1) / 2];
-                    throw new DuplicateEventException(table, partition, duplicate.Source.Id);
+                    var duplicate = batch.Events[(position - 1) / 2];
+                    throw new DuplicateEventException(table, partition, duplicate.Id);
                 }
                 
                 if (conflicting is EventEntity)
                     throw ConcurrencyConflictException.EventVersionExists(
                         table, partition, new EventVersion(conflicting.RowKey));
 
-                var include = Array.Find(transaction.Includes, x => x.Entity == conflicting);
+                var include = Array.Find(batch.Includes, x => x.Entity == conflicting);
                 if (include != null)
                     throw new IncludedOperationConflictException(table, partition, include);
 

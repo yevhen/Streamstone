@@ -4,6 +4,8 @@ using System.Linq;
 
 using Microsoft.WindowsAzure.Storage.Table;
 
+using Streamstone.Schema;
+
 namespace Streamstone
 {
     public sealed partial class Stream
@@ -149,6 +151,65 @@ namespace Streamstone
                 Count,
                 Version
             );
+        }
+
+        class WriteTransaction
+        {
+            public readonly Stream Stream;
+            public readonly TransientEvent[] Events;
+            public readonly Include[] Includes;
+
+            WriteTransaction(Stream stream, TransientEvent[] events, Include[] includes)
+            {
+                Stream = stream;
+                Events = events;
+                Includes = includes;
+            }
+
+            public static WriteTransaction Create(Stream stream, ICollection<Event> events, Include[] includes)
+            {
+                var start = stream.Start == 0 
+                    ? (events.Count != 0 ? 1 : 0) 
+                    : stream.Start;
+
+                var count = stream.Count + events.Count;
+                var version = stream.Version + events.Count;
+
+                var transient = events
+                    .Select((e, i) => new TransientEvent(e, stream.Version + i + 1, stream.Partition))
+                    .ToArray();
+
+                return new WriteTransaction(new Stream(stream.Partition, stream.properties, stream.ETag, start, count, version), transient, includes);
+            }
+        }
+
+        class TransientEvent
+        {
+            public readonly Event Source;
+            public readonly int Version;
+            public readonly string Partition;
+
+            internal TransientEvent(Event source, int version, string partition)
+            {
+                Source = source;
+                Version = version;
+                Partition = partition;
+            }
+
+            internal EventEntity EventEntity()
+            {
+                return Source.Entity(Partition, Version);
+            }
+
+            internal EventIdEntity IdEntity()
+            {
+                return new EventIdEntity(Partition, Source.Id, Version);
+            }
+
+            public StoredEvent Stored()
+            {
+                return Source.Stored(Version);
+            }
         }
     }
 }
