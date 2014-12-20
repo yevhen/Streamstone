@@ -7,19 +7,19 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
-    public abstract class PropertyMap : IEnumerable<KeyValuePair<string, Property>>
+    public abstract class PropertyMap : IEnumerable<KeyValuePair<string, EntityProperty>>
     {
-        readonly IDictionary<string, Property> properties = new Dictionary<string, Property>();
+        readonly IDictionary<string, EntityProperty> properties = new Dictionary<string, EntityProperty>();
 
         protected PropertyMap()
         {}
 
-        protected PropertyMap(IDictionary<string, Property> properties)
+        protected PropertyMap(IDictionary<string, EntityProperty> properties)
         {
             this.properties = properties;
         }
 
-        public IEnumerator<KeyValuePair<string, Property>> GetEnumerator()
+        public IEnumerator<KeyValuePair<string, EntityProperty>> GetEnumerator()
         {
             return properties.GetEnumerator();
         }
@@ -32,7 +32,7 @@ namespace Streamstone
         internal void WriteTo(IDictionary<string, EntityProperty> target)
         {
             foreach (var property in properties)
-                target.Add(property.Value.PairWith(property.Key));
+                target.Add(property.Key, property.Value);
         }
     }
 }

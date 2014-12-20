@@ -42,11 +42,6 @@ namespace Streamstone
             return SetPropertiesAsync(table, stream, StreamProperties.From(properties));
         }
 
-        public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, IDictionary<string, Property> properties)
-        {
-            return SetPropertiesAsync(table, stream, StreamProperties.From(properties));
-        }
-
         public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, IDictionary<string, EntityProperty> properties)
         {
             return SetPropertiesAsync(table, stream, StreamProperties.From(properties));

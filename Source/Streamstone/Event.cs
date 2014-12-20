@@ -22,7 +22,7 @@ namespace Streamstone
         /// The readonly map of additional properties which this event contains.
         /// Includes both meta and data properties.
         /// </summary>
-        public IEnumerable<KeyValuePair<string, Property>> Properties 
+        public IEnumerable<KeyValuePair<string, EntityProperty>> Properties 
         {
             get { return properties; }
         }
@@ -69,19 +69,6 @@ namespace Streamstone
         /// <param name="properties">
         /// The properties for this event (includes both meta and data properties).
         /// </param>
-        public Event(string id, IDictionary<string, Property> properties)
-            : this(id, EventProperties.From(properties))
-        {}
-
-        /// <summary>
-        /// Constructs a new <see cref="Event"/> instance using given properties.
-        /// </summary>
-        /// <param name="id">
-        /// The unique identifier of the event (used for idempotent writes).
-        /// </param>
-        /// <param name="properties">
-        /// The properties for this event (includes both meta and data properties).
-        /// </param>
         public Event(string id, IDictionary<string, EntityProperty> properties)
             : this(id, EventProperties.From(properties))
         {}
@@ -114,7 +101,7 @@ namespace Streamstone
         /// The readonly map of additional properties which this event contains.
         /// Includes both meta and data properties.
         /// </summary>
-        public IEnumerable<KeyValuePair<string, Property>> Properties
+        public IEnumerable<KeyValuePair<string, EntityProperty>> Properties
         {
             get { return properties; }
         }

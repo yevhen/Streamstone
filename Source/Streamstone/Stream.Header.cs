@@ -19,7 +19,7 @@ namespace Streamstone
         /// <summary>
         /// The readonly map of additional properties which this stream has.
         /// </summary>
-        public IEnumerable<KeyValuePair<string, Property>> Properties
+        public IEnumerable<KeyValuePair<string, EntityProperty>> Properties
         {
             get { return properties; }
         }
@@ -57,19 +57,6 @@ namespace Streamstone
         /// The object which contains additional properties for this stream.
         /// </param>
         public Stream(string partition, object properties)
-            : this(partition, StreamProperties.From(properties))
-        {}
-
-        /// <summary>
-        /// Constructs a new <see cref="Stream"/> instance with the given additional properties.
-        /// </summary>
-        /// <param name="partition">
-        /// The partition key in which this stream will reside. 
-        /// </param>
-        /// <param name="properties">
-        /// The additional properties for this stream.
-        /// </param>
-        public Stream(string partition, IDictionary<string, Property> properties)
             : this(partition, StreamProperties.From(properties))
         {}
 
