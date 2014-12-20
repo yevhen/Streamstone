@@ -23,8 +23,8 @@ namespace Streamstone
                 Requires.NotNull(table, "table");
                 Requires.NotNull(stream, "stream");
 
-                if (stream.IsStored)
-                    throw new ArgumentException("Can't provision already stored stream", "stream");
+                if (stream.IsPersistent)
+                    throw new ArgumentException("Can't provision already persistent stream", "stream");
 
                 this.table  = table;
                 this.stream = stream;

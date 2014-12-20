@@ -116,7 +116,7 @@ namespace Streamstone
             get { return ETag == null; }
         }
 
-        bool IsStored
+        bool IsPersistent
         {
             get { return !IsTransient; }
         }
