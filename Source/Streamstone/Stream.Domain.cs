@@ -126,19 +126,6 @@ namespace Streamstone
             return new Stream(Partition, properties, ETag, Start, Count, Version);
         }
 
-        WriteTransaction Write(ICollection<Event> events, Include[] includes)
-        {
-            var start = Start == 0 ? (events.Count != 0 ? 1 : 0) : Start;
-            var count = Count + events.Count;
-            var version = Version + events.Count;
-
-            var transient = events
-                .Select((e, i) => new TransientEvent(e, Version + i + 1, Partition))
-                .ToArray();
-
-            return new WriteTransaction(new Stream(Partition, properties, ETag, start, count, version), transient, includes);
-        }
-
         static Stream From(StreamEntity entity)
         {
             return new Stream(
@@ -170,11 +157,27 @@ namespace Streamstone
             public readonly TransientEvent[] Events;
             public readonly Include[] Includes;
 
-            public WriteTransaction(Stream stream, TransientEvent[] events, Include[] includes)
+            WriteTransaction(Stream stream, TransientEvent[] events, Include[] includes)
             {
                 Stream = stream;
                 Events = events;
                 Includes = includes;
+            }
+
+            public static WriteTransaction Create(Stream stream, ICollection<Event> events, Include[] includes)
+            {
+                var start = stream.Start == 0 
+                    ? (events.Count != 0 ? 1 : 0) 
+                    : stream.Start;
+
+                var count = stream.Count + events.Count;
+                var version = stream.Version + events.Count;
+
+                var transient = events
+                    .Select((e, i) => new TransientEvent(e, stream.Version + i + 1, stream.Partition))
+                    .ToArray();
+
+                return new WriteTransaction(new Stream(stream.Partition, stream.properties, stream.ETag, start, count, version), transient, includes);
             }
         }
 

@@ -110,7 +110,7 @@ namespace Streamstone
 
                 this.table       = table;
                 this.partition   = stream.Partition;
-                this.transaction = stream.Write(events, includes);
+                this.transaction = WriteTransaction.Create(stream, events, includes);
             }
 
             public StreamWriteResult Execute()
