@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Streamstone
 {
-    public struct EventKey
+    struct EventKey
     {
         readonly string key;
 

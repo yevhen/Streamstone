@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Streamstone
 {
-    public struct EventVersion
+    struct EventVersion
     {
         const int PrefixLength = 6;
         const int VersionLength = 10;
