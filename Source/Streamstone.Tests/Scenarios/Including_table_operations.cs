@@ -47,7 +47,7 @@ namespace Streamstone.Scenarios
         {
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
             
-            var entity = new TestEntity(partition, "INV-0001");
+            var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
             var stream = await Stream.ProvisionAsync(table, partition);
@@ -62,14 +62,14 @@ namespace Streamstone.Scenarios
         {
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
             
-            var entity = new TestEntity(partition, "INV-0001");
+            var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
             var stream = await Stream.ProvisionAsync(table, partition);
             var result = await Stream.WriteAsync(table, stream, events, new[]{include});
 
             events = new[] {CreateEvent("e3")};
-            entity = new TestEntity(partition, "INV-0001");
+            entity = new TestEntity("INV-0001");
             include = Include.Insert(entity);
 
             Assert.Throws<IncludedOperationConflictException>(
@@ -81,14 +81,14 @@ namespace Streamstone.Scenarios
         {
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
 
-            var entity = new TestEntity(partition, "INV-0001");
+            var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
             var stream = await Stream.ProvisionAsync(table, partition);
             var result = await Stream.WriteAsync(table, stream, events, new[] { include });
 
             events = new[] {CreateEvent("e1")};
-            entity = new TestEntity(partition, "INV-0001");
+            entity = new TestEntity("INV-0001");
             include = Include.Insert(entity);
 
             Assert.Throws<DuplicateEventException>(
@@ -100,20 +100,32 @@ namespace Streamstone.Scenarios
         {
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
 
-            var entity = new TestEntity(partition, "INV-0001");
+            var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
             var stream = await Stream.ProvisionAsync(table, partition);
             var result = await Stream.WriteAsync(table, stream, events, new[] { include });
 
             events = new[] {CreateEvent("e3")};
-            entity = new TestEntity(partition, "INV-0001");
+            entity = new TestEntity("INV-0001");
             include = Include.Insert(entity);
 
             table.UpdateStreamEntity(partition, count: 10);
             
             Assert.Throws<ConcurrencyConflictException>(
                 async () => await Stream.WriteAsync(table, result.Stream, events, new[] { include }));
+        }        
+        
+        [Test]
+        public async void When_included_entity_implements_versioned_entity()
+        {
+            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+
+            var entity  = new TestVersionedEntity("INV-0001");
+            var include = Include.Insert(entity);
+
+            var result = await Stream.WriteAsync(table, new Stream(partition), events, new[] {include});
+            Assert.That(entity.Version, Is.EqualTo(result.Stream.Version));
         }
 
         TestEntity RetrieveTestEntity(string rowKey)
@@ -143,13 +155,22 @@ namespace Streamstone.Scenarios
             public TestEntity()
             {}
 
-            public TestEntity(string partitionKey, string rowKey) 
-                : base(partitionKey, rowKey)
+            public TestEntity(string rowKey)
             {
+                RowKey = rowKey;
                 Data = DateTime.UtcNow.ToString();
             }
 
-            public string Data { get; set; }
+            public string Data { get; set; }            
+        }
+
+        class TestVersionedEntity : TestEntity, IVersionedEntity
+        {
+            public TestVersionedEntity(string rowKey)
+                : base(rowKey)
+            {}
+
+            public int Version { get; set; }
         }
     }
 }

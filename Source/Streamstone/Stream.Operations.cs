@@ -225,7 +225,7 @@ namespace Streamstone
                 {
                     foreach (var include in includes)
                     {
-                        batch.Add(include.Apply(Partition));
+                        batch.Add(include.Apply(Partition, stream.Version));
                         items.Add(include.Entity);
                     }
                 }

@@ -26,9 +26,14 @@ namespace Streamstone
             this.operation = operation;            
         }
 
-        internal TableOperation Apply(string partition)
+        internal TableOperation Apply(string partition, int version)
         {
             Entity.PartitionKey = partition;
+
+            var versioned = Entity as IVersionedEntity;
+            if (versioned != null)
+                versioned.Version = version;
+
             return operation;
         }
 
