@@ -16,7 +16,8 @@ namespace Streamstone
         class ProvisionOperation
         {
             readonly CloudTable table;
-            readonly Stream stream;
+            readonly string partition;
+            readonly StreamEntity streamEntity;
 
             public ProvisionOperation(CloudTable table, Stream stream)
             {
@@ -26,8 +27,9 @@ namespace Streamstone
                 if (stream.IsStored)
                     throw new ArgumentException("Can't provision already stored stream", "stream");
 
-                this.table = table;
-                this.stream = stream;
+                this.table  = table;
+                this.partition = stream.Partition;
+                this.streamEntity = stream.Entity();
             }
 
             public Stream Execute()
@@ -48,7 +50,7 @@ namespace Streamstone
             {
                 try
                 {
-                    await table.ExecuteAsync(Prepare());
+                    await table.ExecuteAsync(Prepare()).Really();
                 }
                 catch (StorageException e)
                 {
@@ -58,18 +60,15 @@ namespace Streamstone
                 return Result();
             }
 
-            StreamEntity streamEntity;
-
             TableOperation Prepare()
             {
-                streamEntity = stream.Entity();
                 return TableOperation.Insert(streamEntity);
             }
 
             void Handle(StorageException e)
             {
                 if (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
-                    throw ConcurrencyConflictException.StreamChangedOrExists(table, stream.Partition);
+                    throw ConcurrencyConflictException.StreamChangedOrExists(table, partition);
 
                 throw e.PreserveStackTrace();
             }
@@ -82,14 +81,14 @@ namespace Streamstone
 
         class WriteOperation
         {
-            readonly TableBatchOperation batch = new TableBatchOperation();
-            readonly List<ITableEntity> items = new List<ITableEntity>(); 
-            
             readonly CloudTable table;
-            readonly Stream stream;
-            readonly Include[] includes;
-            readonly WriteAttempt attempt;
+            readonly string partition;
 
+            readonly TableBatchOperation batch = new TableBatchOperation();
+            readonly List<ITableEntity> items = new List<ITableEntity>();
+
+            readonly WriteTransaction transaction;
+            
             public WriteOperation(CloudTable table, Stream stream, Event[] events, Include[] includes)
             {
                 Requires.NotNull(table, "table");
@@ -109,20 +108,34 @@ namespace Streamstone
                     throw new ArgumentOutOfRangeException("events",
                         "Maximum number of events per batch is " + maxEntitiesPerBatch);
 
-                this.table = table;
-                this.stream = stream;
-                this.includes = includes;
+                this.table       = table;
+                this.partition   = stream.Partition;
+                this.transaction = stream.Write(events, includes);
+            }
 
-                attempt = this.stream.Write(events);
+            public StreamWriteResult Execute()
+            {
+                Prepare();
+
+                try
+                {
+                    table.ExecuteBatch(batch);
+                }
+                catch (StorageException e)
+                {
+                    Handle(e);
+                }
+
+                return Result();
             }
 
             public async Task<StreamWriteResult> ExecuteAsync()
             {
-                PrepareBatch();
+                Prepare();
 
                 try
                 {
-                    await ExecuteBatch().Really();
+                    await table.ExecuteBatchAsync(batch).Really();
                 }
                 catch (StorageException e)
                 {
@@ -132,23 +145,18 @@ namespace Streamstone
                 return Result();        
             }
 
-            void PrepareBatch()
+            void Prepare()
             {
                 WriteStream();
                 WriteEvents();
                 WriteIncludes();
             }
 
-            Task ExecuteBatch()
-            {
-                return table.ExecuteBatchAsync(batch);
-            }
-
             void WriteStream()
             {
-                var streamEntity = attempt.Stream.Entity();
+                var streamEntity = transaction.Stream.Entity();
 
-                if (stream.Etag == null)
+                if (streamEntity.ETag == null)
                     batch.Insert(streamEntity);
                 else
                     batch.Replace(streamEntity);
@@ -158,7 +166,7 @@ namespace Streamstone
 
             void WriteEvents()
             {
-                foreach (var e in attempt.Events)
+                foreach (var e in transaction.Events)
                 {
                     var eventEntity = e.EventEntity();
                     var eventIdEntity = e.IdEntity();
@@ -173,29 +181,28 @@ namespace Streamstone
 
             void WriteIncludes()
             {
-                foreach (var include in includes)
+                foreach (var include in transaction.Includes)
                 {
-                    batch.Add(include.Apply(stream.Partition));
+                    batch.Add(include.Apply(partition));
                     items.Add(include.Entity);
                 }
             }
 
-            public StreamWriteResult Result()
+            StreamWriteResult Result()
             {
-                var streamEntity = items.OfType<StreamEntity>().Single();
-
-                var storedStream = From(streamEntity);
-                var storedEvents = attempt.Events
+                var storedStream = From((StreamEntity)items.First());
+                
+                var storedEvents = transaction.Events
                     .Select(e => e.Stored())
                     .ToArray();
 
                 return new StreamWriteResult(storedStream, storedEvents);
             }
 
-            public void Handle(StorageException exception)
+            void Handle(StorageException exception)
             {
                 if (exception.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
-                    throw ConcurrencyConflictException.StreamChangedOrExists(table, stream.Partition);
+                    throw ConcurrencyConflictException.StreamChangedOrExists(table, partition);
 
                 if (exception.RequestInformation.HttpStatusCode != (int)HttpStatusCode.Conflict)
                     throw exception.PreserveStackTrace();
@@ -210,17 +217,17 @@ namespace Streamstone
                 var conflicting = items[position];
                 if (conflicting is EventIdEntity)
                 {
-                    var duplicate = attempt.Events[(position - 1) / 2];
-                    throw new DuplicateEventException(table, stream.Partition, duplicate.Source.Id);
+                    var duplicate = transaction.Events[(position - 1) / 2];
+                    throw new DuplicateEventException(table, partition, duplicate.Source.Id);
                 }
                 
                 if (conflicting is EventEntity)
                     throw ConcurrencyConflictException.EventVersionExists(
-                        table, stream.Partition, new EventVersion(conflicting.RowKey));
+                        table, partition, new EventVersion(conflicting.RowKey));
 
-                var include = Array.Find(includes, x => x.Entity == conflicting);
+                var include = Array.Find(transaction.Includes, x => x.Entity == conflicting);
                 if (include != null)
-                    throw new IncludedOperationConflictException(table, stream.Partition, include);
+                    throw new IncludedOperationConflictException(table, partition, include);
 
                 throw new WarningException("How did this happen? We've got conflict on entity which is neither event nor id or include");
             }
@@ -246,8 +253,8 @@ namespace Streamstone
         class SetPropertiesOperation
         {
             readonly CloudTable table;
-            readonly Stream stream;
-            readonly StreamProperties properties;
+            readonly string partition;
+            readonly StreamEntity streamEntity;
 
             public SetPropertiesOperation(CloudTable table, Stream stream, StreamProperties properties)
             {
@@ -259,28 +266,54 @@ namespace Streamstone
                     throw new ArgumentException("Can't set properties on transient stream", "stream");
 
                 this.table = table;
-                this.stream = stream;
-                this.properties = properties;
+                this.partition = stream.Partition;
+                this.streamEntity = stream.SetProperties(properties).Entity();
+            }
+
+            public Stream Execute()
+            {
+                try
+                {
+                    table.Execute(Prepare());
+                }
+                catch (StorageException e)
+                {
+                    Handle(e);
+                }
+
+                return Result();
             }
 
             public async Task<Stream> ExecuteAsync()
             {
-                var newStream = stream.SetProperties(properties);
-                var newStreamEntity = newStream.Entity();
-
                 try
                 {
-                    await table.ExecuteAsync(TableOperation.Replace(newStreamEntity));
+                    await table.ExecuteAsync(Prepare()).Really();
                 }
                 catch (StorageException e)
                 {
-                    if (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
-                        throw ConcurrencyConflictException.StreamChanged(table, stream.Partition);
-
-                    throw;
+                    Handle(e);
                 }
 
-                return From(newStreamEntity);
+                return Result();
+            }
+
+            TableOperation Prepare()
+            {
+                return TableOperation.Replace(streamEntity);
+            }
+
+            void Handle(StorageException e)
+            {
+                if (e.RequestInformation.HttpStatusCode == (int) HttpStatusCode.PreconditionFailed)
+                    throw ConcurrencyConflictException.StreamChanged(table, partition);
+
+                throw e.PreserveStackTrace();
+            }
+
+            Stream Result()
+            {
+                return From(streamEntity);
             }
         }
 
@@ -298,16 +331,28 @@ namespace Streamstone
                 this.partition = partition;
             }
 
+            public StreamOpenResult Execute()
+            {
+                return Result(table.Execute(Prepare()));
+            }
+
             public async Task<StreamOpenResult> ExecuteAsync()
             {
-                var retrieve = TableOperation.Retrieve<StreamEntity>(
-                    partition, StreamEntity.FixedRowKey);
+                return Result(await table.ExecuteAsync(Prepare()));
+            }
 
-                var entity = (await table.ExecuteAsync(retrieve).Really()).Result;
+            TableOperation Prepare()
+            {
+                return TableOperation.Retrieve<StreamEntity>(partition, StreamEntity.FixedRowKey);
+            }
+
+            static StreamOpenResult Result(TableResult result)
+            {
+                var entity = result.Result;
 
                 return entity != null
-                        ? new StreamOpenResult(true, From(((StreamEntity)entity)))
-                        : StreamOpenResult.NotFound;
+                           ? new StreamOpenResult(true, From(((StreamEntity)entity)))
+                           : StreamOpenResult.NotFound;
             }
         }
 

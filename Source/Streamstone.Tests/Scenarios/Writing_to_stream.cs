@@ -201,7 +201,7 @@ namespace Streamstone.Scenarios
             var actualStream = actual.Stream;
             var actualStreamEntity = table.RetrieveStreamEntity(partition);
 
-            Assert.That(actualStream.Etag, Is.Not.EqualTo(previous.Etag));
+            Assert.That(actualStream.ETag, Is.Not.EqualTo(previous.ETag));
             
             var expectedStream = CreateStream(start, count, version, actualStreamEntity.ETag);
             actualStream.ShouldEqual(expectedStream.ToExpectedObject());

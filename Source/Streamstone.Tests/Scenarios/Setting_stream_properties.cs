@@ -28,7 +28,7 @@ namespace Streamstone.Scenarios
             var previous = await Stream.ProvisionAsync(table, partition);
             var current  = await Stream.SetPropertiesAsync(table, previous, properties);
             
-            Assert.That(current.Etag, Is.Not.EqualTo(previous.Etag));
+            Assert.That(current.ETag, Is.Not.EqualTo(previous.ETag));
             StreamProperties.From(properties).ToExpectedObject().ShouldEqual(current.Properties);
         } 
 

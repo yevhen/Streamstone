@@ -9,7 +9,7 @@ namespace Streamstone
     public sealed partial class Stream
     {
         public readonly string Partition;
-        public readonly string Etag;
+        public readonly string ETag;
         public readonly int Start;
         public readonly int Count;
         public readonly int Version;
@@ -105,7 +105,7 @@ namespace Streamstone
         {
             Partition = partition;
             this.properties = properties;
-            Etag = etag;
+            ETag = etag;
             Start = start;
             Count = count;
             Version = version;
@@ -113,7 +113,7 @@ namespace Streamstone
         
         bool IsTransient
         {
-            get { return Etag == null; }
+            get { return ETag == null; }
         }
 
         bool IsStored
@@ -123,10 +123,10 @@ namespace Streamstone
 
         Stream SetProperties(StreamProperties properties)
         {
-            return new Stream(Partition, properties, Etag, Start, Count, Version);
+            return new Stream(Partition, properties, ETag, Start, Count, Version);
         }
 
-        WriteAttempt Write(ICollection<Event> events)
+        WriteTransaction Write(ICollection<Event> events, Include[] includes)
         {
             var start = Start == 0 ? (events.Count != 0 ? 1 : 0) : Start;
             var count = Count + events.Count;
@@ -136,7 +136,7 @@ namespace Streamstone
                 .Select((e, i) => new TransientEvent(e, Version + i + 1, Partition))
                 .ToArray();
 
-            return new WriteAttempt(new Stream(Partition, properties, Etag, start, count, version), transient);
+            return new WriteTransaction(new Stream(Partition, properties, ETag, start, count, version), transient, includes);
         }
 
         static Stream From(StreamEntity entity)
@@ -157,22 +157,24 @@ namespace Streamstone
             (
                 Partition,
                 properties,
-                Etag,
+                ETag,
                 Start,
                 Count,
                 Version
             );
         }
 
-        class WriteAttempt
+        class WriteTransaction
         {
             public readonly Stream Stream;
             public readonly TransientEvent[] Events;
+            public readonly Include[] Includes;
 
-            public WriteAttempt(Stream stream, TransientEvent[] events)
+            public WriteTransaction(Stream stream, TransientEvent[] events, Include[] includes)
             {
                 Stream = stream;
                 Events = events;
+                Includes = includes;
             }
         }
 
