@@ -376,37 +376,28 @@ namespace Streamstone
                 this.sliceSize = sliceSize;
             }
 
-            public async Task<StreamSlice<T>> ExecuteAsync()
+            public StreamSlice<T> Execute()
             {
-                var result = await QueryAsync();
-
-                var stream = BuildStream(result.Stream);
-                var events = BuildEvents(result.Events);
-                
-                return new StreamSlice<T>(stream, events, startVersion, sliceSize);
+                return Result(ExecuteQuery(PrepareQuery()));
             }
 
-            async Task<QueryResult> QueryAsync()
+            public async Task<StreamSlice<T>> ExecuteAsync()
             {
-                var entities = await ExecuteQuery(BuildQuery());
+                return Result(await ExecuteQueryAsync(PrepareQuery()));
+            }
 
+            StreamSlice<T> Result(ICollection<DynamicTableEntity> entities)
+            {
                 var streamEntity = FindStreamEntity(entities);
                 entities.Remove(streamEntity);
 
-                return new QueryResult
-                {
-                    Stream = streamEntity,
-                    Events = entities.ToArray()
-                };
+                var stream = BuildStream(streamEntity);
+                var events = BuildEvents(entities);
+
+                return new StreamSlice<T>(stream, events, startVersion, sliceSize);
             }
 
-            class QueryResult
-            {
-                public DynamicTableEntity Stream;
-                public DynamicTableEntity[] Events;
-            }
-
-            TableQuery<DynamicTableEntity> BuildQuery()
+            TableQuery<DynamicTableEntity> PrepareQuery()
             {
                 var rowKeyStart = new EventKey(startVersion);
                 var rowKeyEnd = new EventKey(startVersion + sliceSize - 1);
@@ -422,7 +413,23 @@ namespace Streamstone
                 return (TableQuery<DynamicTableEntity>) query;
             }
 
-            async Task<List<DynamicTableEntity>> ExecuteQuery(TableQuery<DynamicTableEntity> query)
+            List<DynamicTableEntity> ExecuteQuery(TableQuery<DynamicTableEntity> query)
+            {
+                var result = new List<DynamicTableEntity>();
+                TableContinuationToken token = null;
+
+                do
+                {
+                    var segment = table.ExecuteQuerySegmented(query, token);
+                    token = segment.ContinuationToken;
+                    result.AddRange(segment.Results);
+                }
+                while (token != null);
+
+                return result;
+            }
+
+            async Task<List<DynamicTableEntity>> ExecuteQueryAsync(TableQuery<DynamicTableEntity> query)
             {
                 var result = new List<DynamicTableEntity>();
                 TableContinuationToken token = null;
