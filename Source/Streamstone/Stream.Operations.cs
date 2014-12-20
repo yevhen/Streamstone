@@ -295,8 +295,8 @@ namespace Streamstone
         class SetPropertiesOperation
         {
             readonly CloudTable table;
-            readonly string partition;
-            readonly StreamEntity streamEntity;
+            readonly Stream stream;
+            readonly StreamProperties properties;
 
             public SetPropertiesOperation(CloudTable table, Stream stream, StreamProperties properties)
             {
@@ -308,54 +308,69 @@ namespace Streamstone
                     throw new ArgumentException("Can't set properties on transient stream", "stream");
 
                 this.table = table;
-                this.partition = stream.Partition;
-                this.streamEntity = stream.SetProperties(properties).Entity();
+                this.stream = stream;
+                this.properties = properties;                
             }
 
             public Stream Execute()
             {
+                var replace = new Replace(stream, properties);
+
                 try
                 {
-                    table.Execute(Prepare());
+                    table.Execute(replace.Prepare());
                 }
                 catch (StorageException e)
                 {
-                    Handle(e);
+                    replace.Handle(table, e);
                 }
 
-                return Result();
+                return replace.Result();
             }
 
             public async Task<Stream> ExecuteAsync()
             {
+                var replace = new Replace(stream, properties);
+
                 try
                 {
-                    await table.ExecuteAsync(Prepare()).Really();
+                    await table.ExecuteAsync(replace.Prepare()).Really();
                 }
                 catch (StorageException e)
                 {
-                    Handle(e);
+                    replace.Handle(table, e);
                 }
 
-                return Result();
+                return replace.Result();
             }
 
-            TableOperation Prepare()
+            class Replace
             {
-                return TableOperation.Replace(streamEntity);
-            }
+                readonly StreamEntity entity;
 
-            void Handle(StorageException e)
-            {
-                if (e.RequestInformation.HttpStatusCode == (int) HttpStatusCode.PreconditionFailed)
-                    throw ConcurrencyConflictException.StreamChanged(table, partition);
+                public Replace(Stream stream, StreamProperties properties)
+                {
+                    entity = stream.Entity();
+                    entity.Properties = properties;
+                }
 
-                throw e.PreserveStackTrace();
-            }
+                internal TableOperation Prepare()
+                {                    
+                    return TableOperation.Replace(entity);
+                }
 
-            Stream Result()
-            {
-                return From(streamEntity);
+                internal void Handle(CloudTable table, StorageException e)
+                {
+                    if (e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
+                        throw ConcurrencyConflictException.StreamChanged(table, entity.PartitionKey);
+
+                    throw e.PreserveStackTrace();
+                }
+
+                internal Stream Result()
+                {
+                    return From(entity);
+                }
             }
         }
 

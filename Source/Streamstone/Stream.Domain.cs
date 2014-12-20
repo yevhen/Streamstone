@@ -121,11 +121,6 @@ namespace Streamstone
             get { return !IsTransient; }
         }
 
-        Stream SetProperties(StreamProperties properties)
-        {
-            return new Stream(Partition, properties, ETag, Start, Count, Version);
-        }
-
         static Stream From(StreamEntity entity)
         {
             return new Stream(
