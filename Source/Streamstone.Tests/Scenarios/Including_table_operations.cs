@@ -19,10 +19,8 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_writing_number_of_events_plus_includes_is_over_max_batch_size_limit()
+        public void When_writing_number_of_events_plus_includes_is_over_max_batch_size_limit()
         {
-            var stream = await Stream.ProvisionAsync(table, partition);
-
             var events = Enumerable
                 .Range(1, (ApiModel.MaxEntitiesPerBatch / 2) + 1)
                 .Select(i => CreateEvent("e" + i))
@@ -36,7 +34,7 @@ namespace Streamstone.Scenarios
             table.CaptureContents(partition, contents =>
             {
                 Assert.Throws<ArgumentOutOfRangeException>(
-                    async () => await Stream.WriteAsync(table, stream, events, includes));
+                    async () => await Stream.WriteAsync(table, new Stream(partition), events, includes));
 
                 contents.AssertNothingChanged();
             });
@@ -45,13 +43,12 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_operation_has_no_conflicts()
         {
-            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
             
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
-            var stream = await Stream.ProvisionAsync(table, partition);
-            await Stream.WriteAsync(table, stream, events, new[]{include});
+            await Stream.WriteAsync(table, new Stream(partition), events, new[]{include});
             
             var actual = RetrieveTestEntity(entity.RowKey);
             Assert.That(actual, Is.Not.Null);
@@ -60,13 +57,12 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_operation_has_conflict()
         {
-            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
             
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
-            var stream = await Stream.ProvisionAsync(table, partition);
-            var result = await Stream.WriteAsync(table, stream, events, new[]{include});
+            var result = await Stream.WriteAsync(table, new Stream(partition), events, new[]{include});
 
             events = new[] {CreateEvent("e3")};
             entity = new TestEntity("INV-0001");
@@ -79,32 +75,30 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_operation_has_conflict_and_also_duplicate_event_conflict()
         {
-            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
 
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
-            var stream = await Stream.ProvisionAsync(table, partition);
-            var result = await Stream.WriteAsync(table, stream, events, new[] { include });
+            var result = await Stream.WriteAsync(table, new Stream(partition), events, new[]{include});
 
             events = new[] {CreateEvent("e1")};
             entity = new TestEntity("INV-0001");
             include = Include.Insert(entity);
 
             Assert.Throws<DuplicateEventException>(
-                async () => await Stream.WriteAsync(table, result.Stream, events, new[] { include }));
+                async () => await Stream.WriteAsync(table, result.Stream, events, new[]{include}));
         }
 
         [Test]
         public async void When_operation_has_conflict_and_also_stream_header_has_changed_since_last_read()
         {
-            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
 
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
-            var stream = await Stream.ProvisionAsync(table, partition);
-            var result = await Stream.WriteAsync(table, stream, events, new[] { include });
+            var result = await Stream.WriteAsync(table, new Stream(partition), events, new[]{include});
 
             events = new[] {CreateEvent("e3")};
             entity = new TestEntity("INV-0001");
@@ -113,18 +107,18 @@ namespace Streamstone.Scenarios
             table.UpdateStreamEntity(partition, count: 10);
             
             Assert.Throws<ConcurrencyConflictException>(
-                async () => await Stream.WriteAsync(table, result.Stream, events, new[] { include }));
+                async () => await Stream.WriteAsync(table, result.Stream, events, new[]{include}));
         }        
         
         [Test]
         public async void When_included_entity_implements_versioned_entity()
         {
-            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
 
             var entity  = new TestVersionedEntity("INV-0001");
             var include = Include.Insert(entity);
 
-            var result = await Stream.WriteAsync(table, new Stream(partition), events, new[] {include});
+            var result = await Stream.WriteAsync(table, new Stream(partition), events, new[]{include});
             Assert.That(entity.Version, Is.EqualTo(result.Stream.Version));
         }
 
@@ -138,9 +132,9 @@ namespace Streamstone.Scenarios
                         .SingleOrDefault();
         }
 
-        static EventData CreateEvent(string id)
+        static Event CreateEvent(string id)
         {
-            return new EventData(id, new TestEventEntity
+            return new Event(id, new TestEventEntity
             {
                 Id = id,
                 Type = "StreamChanged",

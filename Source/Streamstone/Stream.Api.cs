@@ -22,12 +22,12 @@ namespace Streamstone
             return new ProvisionOperation(table, stream).ExecuteAsync();
         }
 
-        public static Task<StreamWriteResult> WriteAsync(CloudTable table, Stream stream, EventData[] events)
+        public static Task<StreamWriteResult> WriteAsync(CloudTable table, Stream stream, Event[] events)
         {
             return WriteAsync(table, stream, events, NoIncludes);
         }
 
-        public static Task<StreamWriteResult> WriteAsync(CloudTable table, Stream stream, EventData[] events, Include[] includes)
+        public static Task<StreamWriteResult> WriteAsync(CloudTable table, Stream stream, Event[] events, Include[] includes)
         {
             return new WriteOperation(table, stream, events, includes).ExecuteAsync();
         }

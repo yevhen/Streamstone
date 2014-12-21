@@ -95,10 +95,10 @@ namespace Streamstone
         {
             readonly CloudTable table;
             readonly Stream stream;
-            readonly EventData[] events;
+            readonly Event[] events;
             readonly Include[] includes;
 
-            public WriteOperation(CloudTable table, Stream stream, EventData[] events, Include[] includes)
+            public WriteOperation(CloudTable table, Stream stream, Event[] events, Include[] includes)
             {
                 Requires.NotNull(table, "table");
                 Requires.NotNull(stream, "stream");
@@ -164,7 +164,7 @@ namespace Streamstone
                 readonly RecordedEvent[] events;
                 readonly Include[] includes;
 
-                internal Batch(Stream stream, ICollection<EventData> events, Include[] includes)
+                internal Batch(Stream stream, ICollection<Event> events, Include[] includes)
                 {
                     this.stream = stream.Entity();
                     
