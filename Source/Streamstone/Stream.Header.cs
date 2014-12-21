@@ -10,8 +10,6 @@ namespace Streamstone
     {
         public readonly string Partition;
         public readonly string ETag;
-        public readonly int Start;
-        public readonly int Count;
         public readonly int Version;
 
         readonly StreamProperties properties;
@@ -82,20 +80,12 @@ namespace Streamstone
             this.properties = properties;
         }
 
-        internal Stream(
-            string partition,
-            StreamProperties properties,
-            string etag,
-            int start,
-            int count,
-            int version)
+        internal Stream(string partition, string etag, int version, StreamProperties properties)
         {
             Partition = partition;
-            this.properties = properties;
             ETag = etag;
-            Start = start;
-            Count = count;
             Version = version;
+            this.properties = properties;
         }
         
         bool IsTransient
@@ -110,27 +100,12 @@ namespace Streamstone
 
         static Stream From(StreamEntity entity)
         {
-            return new Stream(
-                entity.PartitionKey, 
-                entity.Properties,
-                entity.ETag,
-                entity.Start,
-                entity.Count,
-                entity.Version
-            );
+            return new Stream(entity.PartitionKey, entity.ETag, entity.Version, entity.Properties);
         }
 
         StreamEntity Entity()
         {
-            return new StreamEntity
-            (
-                Partition,
-                properties,
-                ETag,
-                Start,
-                Count,
-                Version
-            );
+            return new StreamEntity(Partition, ETag, Version, properties);
         }
     }
 }

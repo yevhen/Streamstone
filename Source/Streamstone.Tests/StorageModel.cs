@@ -63,14 +63,12 @@ namespace Streamstone
                     : CloudStorageAccount.DevelopmentStorageAccount;
         }
 
-        public static StreamEntity InsertStreamEntity(this CloudTable table, string partition, int start = 0, int count = 0, int version = 0)
+        public static StreamEntity InsertStreamEntity(this CloudTable table, string partition, int version = 0)
         {
             var entity = new StreamEntity
             {
                 PartitionKey = partition,
                 RowKey = ApiModel.StreamRowKey,
-                Start = start,
-                Count = count,
                 Version = version
             };
 
@@ -78,18 +76,10 @@ namespace Streamstone
             return entity;
         }
 
-        public static StreamEntity UpdateStreamEntity(this CloudTable table, string partition, int? start = 0, int? count = 0, int? version = 0)
+        public static StreamEntity UpdateStreamEntity(this CloudTable table, string partition, int version = 0)
         {
             var entity = RetrieveStreamEntity(table, partition);
-
-            if (start != null) 
-                entity.Start = start.Value;
-
-            if (count != null) 
-                entity.Count = count.Value;
-
-            if (version != null) 
-                entity.Version = version.Value;
+            entity.Version = version;
 
             table.Execute(TableOperation.Replace(entity));
             return entity;

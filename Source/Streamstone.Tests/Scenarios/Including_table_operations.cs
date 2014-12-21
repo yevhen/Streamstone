@@ -104,7 +104,7 @@ namespace Streamstone.Scenarios
             entity = new TestEntity("INV-0001");
             include = Include.Insert(entity);
 
-            table.UpdateStreamEntity(partition, count: 10);
+            table.UpdateStreamEntity(partition);
             
             Assert.Throws<ConcurrencyConflictException>(
                 async () => await Stream.WriteAsync(table, result.Stream, events, new[]{include}));

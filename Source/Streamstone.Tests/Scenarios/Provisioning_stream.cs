@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using NUnit.Framework;
@@ -39,20 +38,14 @@ namespace Streamstone.Scenarios
             var expectedStream = new Stream
             (
                 partition,
-                StreamProperties.None,
                 entity.ETag,
-                start: 0,
-                count: 0,
-                version: 0
-            );
+                version: 0, properties: StreamProperties.None);
 
             stream.ShouldEqual(expectedStream.ToExpectedObject());
 
             var expectedEntity = new
             {
                 RowKey = ApiModel.StreamRowKey,
-                Start = 0,
-                Count = 0,
                 Version = 0
             };
 
@@ -74,12 +67,8 @@ namespace Streamstone.Scenarios
             var expectedStream = new Stream
             (
                 partition,
-                StreamProperties.From(properties),
                 entity.ETag,
-                start: 0,
-                count: 0,
-                version: 0
-            );
+                version: 0, properties: StreamProperties.From(properties));
 
             stream.ShouldEqual(expectedStream.ToExpectedObject());
 
@@ -87,8 +76,6 @@ namespace Streamstone.Scenarios
             {
                 RowKey = ApiModel.StreamRowKey,
                 Properties = StreamProperties.From(properties),
-                Start = 0,
-                Count = 0,
                 Version = 0
             };
 

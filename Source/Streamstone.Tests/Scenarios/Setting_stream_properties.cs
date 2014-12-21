@@ -36,7 +36,7 @@ namespace Streamstone.Scenarios
         public async void When_concurrency_conflict()
         {
             var stream = await Stream.ProvisionAsync(table, partition);
-            table.UpdateStreamEntity(partition, start: 1);
+            table.UpdateStreamEntity(partition);
 
             Assert.Throws<ConcurrencyConflictException>(
                 async ()=> await Stream.SetPropertiesAsync(table, stream, new{}));

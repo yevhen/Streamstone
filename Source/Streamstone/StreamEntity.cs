@@ -16,19 +16,15 @@ namespace Streamstone
             Properties = StreamProperties.None;
         }
 
-        internal StreamEntity(string partition, StreamProperties properties, string etag, int start, int count, int version)
+        internal StreamEntity(string partition, string etag, int version, StreamProperties properties)
         {
             PartitionKey = partition;
             RowKey = FixedRowKey;
-            Properties = properties;
             ETag = etag;
-            Start = start;
-            Count = count;
             Version = version;
+            Properties = properties;
         }
 
-        public int Start                    { get; set; }
-        public int Count                    { get; set; }
         public int Version                  { get; set; }
         public StreamProperties Properties  { get; set; }
 
@@ -53,8 +49,6 @@ namespace Streamstone
                 RowKey = entity.RowKey,
                 ETag = entity.ETag,
                 Timestamp = entity.Timestamp,
-                Start = (int)entity["Start"].PropertyAsObject,
-                Count = (int)entity["Count"].PropertyAsObject,
                 Version = (int)entity["Version"].PropertyAsObject,
                 Properties = StreamProperties.From(entity)
             };

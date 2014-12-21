@@ -33,7 +33,7 @@ namespace Streamstone.Scenarios
             var stream = await Stream.ProvisionAsync(table, partition);
 
             if (streamHeaderChanged)
-                table.UpdateStreamEntity(partition, count: 42);
+                table.UpdateStreamEntity(partition);
 
             if (eventEntityExists)
                 table.InsertEventEntities(partition, "e123");
@@ -98,8 +98,8 @@ namespace Streamstone.Scenarios
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(table, stream, events);
 
-            AssertModifiedStream(stream, result, start: 1, count: 2, version: 2);
-            AssertStreamEntity(start: 1, count: 2, version: 2);
+            AssertModifiedStream(stream, result, version: 2);
+            AssertStreamEntity(version: 2);
 
             var storedEvents = result.Events;
             Assert.That(storedEvents.Length, Is.EqualTo(2));
@@ -129,8 +129,8 @@ namespace Streamstone.Scenarios
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(table, new Stream(partition), events);
 
-            AssertNewStream(result, start: 1, count: 2, version: 2);
-            AssertStreamEntity(start: 1, count: 2, version: 2);
+            AssertNewStream(result, version: 2);
+            AssertStreamEntity(version: 2);
 
             var storedEvents = result.Events;
             Assert.That(storedEvents.Length, Is.EqualTo(2));
@@ -162,8 +162,8 @@ namespace Streamstone.Scenarios
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(table, new Stream(partition, properties), events);
 
-            AssertNewStream(result, start: 1, count: 2, version: 2, properties: properties);
-            AssertStreamEntity(start: 1, count: 2, version: 2, properties: properties);
+            AssertNewStream(result, version: 2, properties: properties);
+            AssertStreamEntity(version: 2, properties: properties);
             
             var storedEvents = result.Events;
             Assert.That(storedEvents.Length, Is.EqualTo(2));
@@ -187,36 +187,34 @@ namespace Streamstone.Scenarios
                 Is.EqualTo(eventEntities.Length + eventIdEntities.Length + 1));
         }
 
-        void AssertNewStream(StreamWriteResult actual, int start, int count, int version, object properties = null)
+        void AssertNewStream(StreamWriteResult actual, int version, object properties = null)
         {
             var newStream = actual.Stream;
             var newStreamEntity = table.RetrieveStreamEntity(partition);
 
-            var expectedStream = CreateStream(start, count, version, newStreamEntity.ETag, properties);
+            var expectedStream = CreateStream(version, newStreamEntity.ETag, properties);
             newStream.ShouldEqual(expectedStream.ToExpectedObject());
         }
 
-        void AssertModifiedStream(Stream previous, StreamWriteResult actual, int start, int count, int version)
+        void AssertModifiedStream(Stream previous, StreamWriteResult actual, int version)
         {
             var actualStream = actual.Stream;
             var actualStreamEntity = table.RetrieveStreamEntity(partition);
 
             Assert.That(actualStream.ETag, Is.Not.EqualTo(previous.ETag));
             
-            var expectedStream = CreateStream(start, count, version, actualStreamEntity.ETag);
+            var expectedStream = CreateStream(version, actualStreamEntity.ETag);
             actualStream.ShouldEqual(expectedStream.ToExpectedObject());
         }
 
-        static Stream CreateStream(int start, int count, int version, string etag, object properties = null)
+        static Stream CreateStream(int version, string etag, object properties = null)
         {
-            return new Stream(partition, 
-                properties != null 
-                    ? StreamProperties.From(properties) 
-                    : StreamProperties.None, 
-                etag, start, count, version);
+            return new Stream(partition, etag, version, properties != null 
+                                                            ? StreamProperties.From(properties) 
+                                                            : StreamProperties.None);
         }
 
-        void AssertStreamEntity(int start = 0, int count = 0, int version = 0, object properties = null)
+        void AssertStreamEntity(int version = 0, object properties = null)
         {
             var newStreamEntity = table.RetrieveStreamEntity(partition);
 
@@ -226,8 +224,6 @@ namespace Streamstone.Scenarios
                 Properties = properties != null
                     ? StreamProperties.From(properties)
                     : StreamProperties.None,
-                Start = start,
-                Count = count,
                 Version = version,
             };
 

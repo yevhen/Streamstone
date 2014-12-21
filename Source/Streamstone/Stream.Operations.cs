@@ -167,12 +167,6 @@ namespace Streamstone
                 internal Batch(Stream stream, ICollection<Event> events, Include[] includes)
                 {
                     this.stream = stream.Entity();
-                    
-                    this.stream.Start = stream.Start == 0
-                        ? (events.Count != 0 ? 1 : 0)
-                        : stream.Start;
-                    
-                    this.stream.Count = stream.Count + events.Count;
                     this.stream.Version = stream.Version + events.Count;
 
                     this.events = events
