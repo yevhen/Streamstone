@@ -1,0 +1,19 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Streamstone</id>
+    <version>$version$</version>
+    <authors>Yevhen Bobrov</authors>
+    <owners>Yevhen Bobrov</owners>
+    <licenseUrl>http://github.com/yevhen/Streamstone/blob/master/LICENSE</licenseUrl>
+    <projectUrl>http://github.com/yevhen/Streamstone</projectUrl>
+    <iconUrl>https://github.com/yevhen/Streamstone/raw/master/Logo.png</iconUrl>
+    <description>Streamstone is a lightweight library which implements a low-level mechanics of Event Store on top of Windows Azure Table Storage. Handles concurrency conflicts via optimistic locking. Supports custom event and stream metadata. Optimized for batch processing.</description>
+    <tags>event store eventstore eventsourcing event-sourcing CQRS azure table storage stream</tags>
+  </metadata>
+  <files>
+    <file src="Output\Package\Release\Streamstone.dll" target="lib/net45" />
+    <file src="Output\Package\Release\Streamstone.xml" target="lib/net45" />
+    <file src="Output\Package\Release\Streamstone.pdb" target="lib/net45" />    
+  </files>
+</package>
