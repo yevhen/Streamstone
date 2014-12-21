@@ -45,7 +45,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_operation_has_no_conflicts()
         {
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
@@ -60,7 +60,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_operation_has_conflict()
         {
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
@@ -79,7 +79,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_operation_has_conflict_and_also_duplicate_event_conflict()
         {
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
 
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
@@ -98,7 +98,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_operation_has_conflict_and_also_stream_header_has_changed_since_last_read()
         {
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
 
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
@@ -119,7 +119,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_included_entity_implements_versioned_entity()
         {
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
 
             var entity  = new TestVersionedEntity("INV-0001");
             var include = Include.Insert(entity);
@@ -138,16 +138,14 @@ namespace Streamstone.Scenarios
                         .SingleOrDefault();
         }
 
-        static Event CreateEvent(string id)
+        static EventData CreateEvent(string id)
         {
-            var @event = new TestEventEntity
+            return new EventData(id, new TestEventEntity
             {
                 Id = id,
                 Type = "StreamChanged",
                 Data = "{}"
-            };
-
-            return new Event(@event.Id, @event);
+            });
         }
 
         class TestEntity : TableEntity

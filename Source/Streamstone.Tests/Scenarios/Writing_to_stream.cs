@@ -95,7 +95,7 @@ namespace Streamstone.Scenarios
         {
             var stream = await Stream.ProvisionAsync(table, partition);
 
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(table, stream, events);
 
             AssertModifiedStream(stream, result, start: 1, count: 2, version: 2);
@@ -126,7 +126,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_writing_to_nonexisting_stream()
         {
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(table, new Stream(partition), events);
 
             AssertNewStream(result, start: 1, count: 2, version: 2);
@@ -159,7 +159,7 @@ namespace Streamstone.Scenarios
         {
             var properties = new {p1 = 42, p2 = "doh!"};
             
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(table, new Stream(partition, properties), events);
 
             AssertNewStream(result, start: 1, count: 2, version: 2, properties: properties);
@@ -234,7 +234,7 @@ namespace Streamstone.Scenarios
             newStreamEntity.ShouldMatch(expectedEntity.ToExpectedObject());
         }
 
-        static void AssertRecordedEvent(int version, Event source, RecordedEvent actual)
+        static void AssertRecordedEvent(int version, EventData source, RecordedEvent actual)
         {
             var expected = source.Record(version);
             actual.ShouldMatch(expected.ToExpectedObject());
@@ -268,16 +268,14 @@ namespace Streamstone.Scenarios
             actual.ShouldMatch(expected.ToExpectedObject());
         }
 
-        static Event CreateEvent(string id)
+        static EventData CreateEvent(string id)
         {
-            var @event = new TestEventEntity
+            return new EventData(id, new TestEventEntity
             {
                 Id   = id,
                 Type = "StreamChanged",
                 Data = "{}"
-            };
-
-            return new Event(@event.Id, @event);
+            });
         }
     }
 }

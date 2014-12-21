@@ -9,7 +9,7 @@ namespace Streamstone
     /// <summary>
     /// Represents an event to be written.
     /// </summary>
-    public sealed class Event
+    public sealed class EventData
     {
         /// <summary>
         /// The unique identifier representing this event
@@ -28,14 +28,14 @@ namespace Streamstone
         }
 
         /// <summary>
-        /// Constructs a new <see cref="Event"/> instance which doesn't have any additional properties.
+        /// Constructs a new <see cref="EventData"/> instance which doesn't have any additional properties.
         /// </summary>
-        public Event(string id) 
+        public EventData(string id) 
             : this(id, EventProperties.None)
         {}
 
         /// <summary>
-        /// Constructs a new <see cref="Event"/> instance using properties from given <see cref="ITableEntity"/>.
+        /// Constructs a new <see cref="EventData"/> instance using properties from given <see cref="ITableEntity"/>.
         /// </summary>
         /// <param name="id">
         /// The unique identifier of the event (used for idempotent writes).
@@ -43,12 +43,12 @@ namespace Streamstone
         /// <param name="properties">
         /// The instance of <see cref="ITableEntity"/> which contains properties for this event (includes both meta and data properties).
         /// </param>
-        public Event(string id, ITableEntity properties)
+        public EventData(string id, ITableEntity properties)
             : this(id, EventProperties.From(properties))
         {}
 
         /// <summary>
-        /// Constructs a new <see cref="Event"/> instance using properties from given object.
+        /// Constructs a new <see cref="EventData"/> instance using properties from given object.
         /// </summary>
         /// <param name="id">
         /// The unique identifier of the event (used for idempotent writes).
@@ -56,12 +56,12 @@ namespace Streamstone
         /// <param name="properties">
         /// The object which contains properties for this event (includes both meta and data properties).
         /// </param>
-        public Event(string id, object properties)
+        public EventData(string id, object properties)
             : this(id, EventProperties.From(properties))
         {}
 
         /// <summary>
-        /// Constructs a new <see cref="Event"/> instance using given properties.
+        /// Constructs a new <see cref="EventData"/> instance using given properties.
         /// </summary>
         /// <param name="id">
         /// The unique identifier of the event (used for idempotent writes).
@@ -69,11 +69,11 @@ namespace Streamstone
         /// <param name="properties">
         /// The properties for this event (includes both meta and data properties).
         /// </param>
-        public Event(string id, IDictionary<string, EntityProperty> properties)
+        public EventData(string id, IDictionary<string, EntityProperty> properties)
             : this(id, EventProperties.From(properties))
         {}
 
-        Event(string id, EventProperties properties)
+        EventData(string id, EventProperties properties)
         {
             Id = id;
             this.properties = properties;
@@ -86,7 +86,7 @@ namespace Streamstone
     }
 
     /// <summary>
-    /// Represents a previously written (stored) event
+    /// Represents a previously written event
     /// </summary>
     public sealed class RecordedEvent
     {

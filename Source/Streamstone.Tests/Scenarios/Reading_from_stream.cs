@@ -42,7 +42,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_version_is_greater_than_current_version_of_stream()
         {
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             await Stream.WriteAsync(table, new Stream(partition), events);
 
             var slice = await Stream.ReadAsync<TestEventEntity>(table, partition, events.Length + 1);
@@ -54,7 +54,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_all_events_fit_to_single_slice()
         {
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             await Stream.WriteAsync(table, new Stream(partition), events);
 
             var slice = await Stream.ReadAsync<TestEventEntity>(table, partition, sliceSize: 2);
@@ -66,7 +66,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_all_events_do_not_fit_single_slice()
         {
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             await Stream.WriteAsync(table, new Stream(partition), events);
 
             var slice = await Stream.ReadAsync<TestStoredEventEntity>(table, partition, sliceSize: 1);
@@ -94,7 +94,7 @@ namespace Streamstone.Scenarios
 
             foreach (var batch in Enumerable.Range(1, numberOfWriteBatches))
             {
-                Event[] events = Enumerable
+                EventData[] events = Enumerable
                     .Range(1, sizeOverTheAzureLimit / numberOfWriteBatches)
                     .Select(i => CreateEvent(batch + "e" + i))
                     .ToArray();
@@ -109,16 +109,14 @@ namespace Streamstone.Scenarios
             Assert.That(slice.Events.Length, Is.EqualTo(1500));
         }
 
-        static Event CreateEvent(string id)
+        static EventData CreateEvent(string id)
         {
-            var @event = new TestEventEntity
+            return new EventData(id, new TestEventEntity
             {
                 Id = id,
                 Type = "StreamChanged",
                 Data = "{}"
-            };
-
-            return new Event(@event.Id, @event);
+            });
         }
     }
 }
