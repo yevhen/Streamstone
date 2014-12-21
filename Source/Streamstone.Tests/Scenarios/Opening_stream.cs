@@ -39,7 +39,7 @@ namespace Streamstone.Scenarios
             
             var result = await Stream.TryOpenAsync(table, partition);
             
-            Assert.That(result.Success, Is.True);
+            Assert.That(result.Found, Is.True);
             Assert.That(result.Stream, Is.Not.Null);
         }
         
@@ -48,7 +48,7 @@ namespace Streamstone.Scenarios
         {
             var result = await Stream.TryOpenAsync(table, partition);
             
-            Assert.That(result.Success, Is.False);
+            Assert.That(result.Found, Is.False);
             Assert.That(result.Stream, Is.Null);
         }
     }

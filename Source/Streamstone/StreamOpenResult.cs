@@ -7,12 +7,12 @@ namespace Streamstone
     {
         internal static readonly StreamOpenResult NotFound = new StreamOpenResult(false, null);
 
-        public readonly bool Success;
+        public readonly bool Found;
         public readonly Stream Stream;
 
-        internal StreamOpenResult(bool success, Stream stream)
+        internal StreamOpenResult(bool found, Stream stream)
         {
-            Success = success;
+            Found = found;
             Stream = stream;
         }
     }

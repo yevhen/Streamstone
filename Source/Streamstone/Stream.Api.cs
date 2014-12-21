@@ -95,7 +95,7 @@ namespace Streamstone
         {
             var result = TryOpen(table, partition);
 
-            if (result.Success)
+            if (result.Found)
                 return result.Stream;
 
             throw new StreamNotFoundException(table, partition);
@@ -110,7 +110,7 @@ namespace Streamstone
         {
             var result = await TryOpenAsync(table, partition).Really();
 
-            if (result.Success)
+            if (result.Found)
                 return result.Stream;
 
             throw new StreamNotFoundException(table, partition);
@@ -123,12 +123,12 @@ namespace Streamstone
 
         public static bool Exists(CloudTable table, string partition)
         {
-            return TryOpen(table, partition).Success;
+            return TryOpen(table, partition).Found;
         }
         
         public static async Task<bool> ExistsAsync(CloudTable table, string partition)
         {
-            return (await TryOpenAsync(table, partition).Really()).Success;
+            return (await TryOpenAsync(table, partition).Really()).Found;
         }
 
         const int DefaultSliceSize = 500;
