@@ -1,16 +1,16 @@
 ## Streamstone
 
-Streamstone is a small library focused around building highly scalable event-sourced solutions on top of Windows Azure Table Storage. The API is specifically tailored for ease of consumption from within DDD/CQRS style applications.   
+Streamstone is a small library focused around building scalable event-sourced solutions on top of Windows Azure Table Storage. The API is specifically tailored for ease of consumption from within DDD/CQRS style applications.
 
 ## Main features
 
-+ Fully consistent
-+ All operations are idempotent
-+ Batching support for writes
++ All stream operations are fully consistent
++ Duplicate event detection (based on unique id of an event)
 + Supports custom event and stream metadata
++ Batching support for writes
 + Allows to include custom table operations within writes 
-+ Serialization and identity generation is a client prerogative
-+ Easy-to-use immutable API
++ Serialization and identity is a client prerogative
++ Easy-to-use, functional style immutable API
 
 ## Design
 
