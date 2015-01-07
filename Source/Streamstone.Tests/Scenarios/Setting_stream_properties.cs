@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using ExpectedObjects;
@@ -23,7 +24,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_property_map_is_empty()
         {
-            var properties = new{};
+            var properties = new Dictionary<string, EntityProperty>();
 
             var previous = await Stream.ProvisionAsync(table, partition);
             var current  = await Stream.SetPropertiesAsync(table, previous, properties);
@@ -39,24 +40,33 @@ namespace Streamstone.Scenarios
             table.UpdateStreamEntity(partition);
 
             Assert.Throws<ConcurrencyConflictException>(
-                async ()=> await Stream.SetPropertiesAsync(table, stream, new{}));
+                async ()=> await Stream.SetPropertiesAsync(table, stream, new Dictionary<string, EntityProperty>()));
         }
 
         [Test]
         public async void When_set_successfully()
         {
-            var properties = new {p1 = 42, p2 = "42"};
+            var properties = new Dictionary<string, EntityProperty>
+            {
+                {"P1", new EntityProperty(42)},
+                {"P2", new EntityProperty("42")}
+            };
+
             var stream = await Stream.ProvisionAsync(table, new Stream(partition, properties));
 
-            var newProperties = new {p1 = 56, p3 = "56"};
-            var newStream = await Stream.SetPropertiesAsync(table, stream, newProperties);
+            var newProperties = new Dictionary<string, EntityProperty>
+            {
+                {"P1", new EntityProperty(56)},
+                {"P2", new EntityProperty("56")}
+            };
 
-            StreamProperties.From(properties).ToExpectedObject().ShouldEqual(newStream.Properties);
+            var newStream = await Stream.SetPropertiesAsync(table, stream, newProperties);
+            StreamProperties.From(newProperties).ToExpectedObject().ShouldEqual(newStream.Properties);
 
             var storedEntity = table.RetrieveStreamEntity(partition);
             var storedProperties = storedEntity.Properties;
 
-            StreamProperties.From(properties).ToExpectedObject().ShouldEqual(storedProperties);
+            StreamProperties.From(newProperties).ToExpectedObject().ShouldEqual(storedProperties);
         }
 
         [Test]
@@ -67,7 +77,7 @@ namespace Streamstone.Scenarios
             table.CaptureContents(partition, contents =>
             {
                 Assert.Throws<ArgumentException>(
-                    async () => await Stream.SetPropertiesAsync(table, stream, new{}));
+                    async ()=> await Stream.SetPropertiesAsync(table, stream, new Dictionary<string, EntityProperty>()));
 
                 contents.AssertNothingChanged();
             });

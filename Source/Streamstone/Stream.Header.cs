@@ -33,32 +33,6 @@ namespace Streamstone
         {}
 
         /// <summary>
-        /// Constructs a new <see cref="Stream"/> instance with additional properties from given <see cref="ITableEntity"/>.
-        /// </summary>
-        /// <param name="partition">
-        /// The partition key in which this stream will reside. 
-        /// </param>
-        /// <param name="properties">
-        /// The instance of <see cref="ITableEntity"/> which contains additional properties for this stream.
-        /// </param>
-        public Stream(string partition, ITableEntity properties)
-            : this(partition, StreamProperties.From(properties))
-        {}
-
-        /// <summary>
-        /// Constructs a new <see cref="Stream"/> instance with additional properties from given object.
-        /// </summary>
-        /// <param name="partition">
-        /// The partition key in which this stream will reside. 
-        /// </param>
-        /// <param name="properties">
-        /// The object which contains additional properties for this stream.
-        /// </param>
-        public Stream(string partition, object properties)
-            : this(partition, StreamProperties.From(properties))
-        {}
-
-        /// <summary>
         /// Constructs a new <see cref="Stream"/> instance with the given additional properties.
         /// </summary>
         /// <param name="partition">

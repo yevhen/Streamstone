@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using NUnit.Framework;
@@ -55,10 +56,10 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_provisioning_along_with_custom_properties()
         {
-            var properties = new
+            var properties = new Dictionary<string, EntityProperty>
             {
-                Created = DateTimeOffset.UtcNow,
-                Active = true
+                {"Created", new EntityProperty(DateTimeOffset.Now)},
+                {"Active",  new EntityProperty(true)}
             };
 
             var stream = await Stream.ProvisionAsync(table, new Stream(partition, properties));
@@ -67,8 +68,9 @@ namespace Streamstone.Scenarios
             var expectedStream = new Stream
             (
                 partition,
-                entity.ETag,
-                version: 0, properties: StreamProperties.From(properties));
+                entity.ETag, 0, 
+                StreamProperties.From(properties)
+            );
 
             stream.ShouldEqual(expectedStream.ToExpectedObject());
 

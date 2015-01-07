@@ -35,32 +35,6 @@ namespace Streamstone
         {}
 
         /// <summary>
-        /// Constructs a new <see cref="Event"/> instance using properties from given <see cref="ITableEntity"/>.
-        /// </summary>
-        /// <param name="id">
-        /// The unique identifier of the event (used for idempotent writes).
-        /// </param>
-        /// <param name="properties">
-        /// The instance of <see cref="ITableEntity"/> which contains properties for this event (includes both meta and data properties).
-        /// </param>
-        public Event(string id, ITableEntity properties)
-            : this(id, EventProperties.From(properties))
-        {}
-
-        /// <summary>
-        /// Constructs a new <see cref="Event"/> instance using properties from given object.
-        /// </summary>
-        /// <param name="id">
-        /// The unique identifier of the event (used for idempotent writes).
-        /// </param>
-        /// <param name="properties">
-        /// The object which contains properties for this event (includes both meta and data properties).
-        /// </param>
-        public Event(string id, object properties)
-            : this(id, EventProperties.From(properties))
-        {}
-
-        /// <summary>
         /// Constructs a new <see cref="Event"/> instance using given properties.
         /// </summary>
         /// <param name="id">

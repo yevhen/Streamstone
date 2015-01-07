@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using NUnit.Framework;
@@ -111,11 +112,11 @@ namespace Streamstone.Scenarios
 
         static Event CreateEvent(string id)
         {
-            return new Event(id, new TestEventEntity
+            return new Event(id, new Dictionary<string, EntityProperty>
             {
-                Id = id,
-                Type = "StreamChanged",
-                Data = "{}"
+                {"Id",   new EntityProperty(id)},
+                {"Type", new EntityProperty("StreamChanged")},
+                {"Data", new EntityProperty("{}")}
             });
         }
     }

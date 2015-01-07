@@ -30,12 +30,6 @@ namespace Streamstone
             return Build(entity.WriteEntity(new OperationContext()));
         }
 
-        public static EventProperties From(object obj)
-        {
-            Requires.NotNull(obj, "obj");
-            return Build(TableEntity.WriteUserObject(obj, new OperationContext()));
-        }
-
         public static EventProperties From(IDictionary<string, EntityProperty> properties)
         {
             Requires.NotNull(properties, "properties");

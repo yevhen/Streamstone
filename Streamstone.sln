@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Streamstone", "Source\Strea
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Streamstone.Tests", "Source\Streamstone.Tests\Streamstone.Tests.csproj", "{5BC7C6F2-B8CD-4EE8-B751-533BDC20AF9A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Source\Example\Example.csproj", "{C75CFE26-E263-470A-A494-AEB3CE9E8187}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{5BC7C6F2-B8CD-4EE8-B751-533BDC20AF9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5BC7C6F2-B8CD-4EE8-B751-533BDC20AF9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5BC7C6F2-B8CD-4EE8-B751-533BDC20AF9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C75CFE26-E263-470A-A494-AEB3CE9E8187}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C75CFE26-E263-470A-A494-AEB3CE9E8187}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C75CFE26-E263-470A-A494-AEB3CE9E8187}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C75CFE26-E263-470A-A494-AEB3CE9E8187}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -157,13 +157,17 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_writing_to_nonexisting_stream_along_with_stream_properties()
         {
-            var properties = new {p1 = 42, p2 = "doh!"};
+            var properties = new Dictionary<string, EntityProperty>
+            {
+                {"Created", new EntityProperty(DateTimeOffset.Now)},
+                {"Active",  new EntityProperty(true)}
+            };
             
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(table, new Stream(partition, properties), events);
 
-            AssertNewStream(result, version: 2, properties: properties);
-            AssertStreamEntity(version: 2, properties: properties);
+            AssertNewStream(result, 2, properties);
+            AssertStreamEntity(2, properties);
             
             var storedEvents = result.Events;
             Assert.That(storedEvents.Length, Is.EqualTo(2));
@@ -187,7 +191,7 @@ namespace Streamstone.Scenarios
                 Is.EqualTo(eventEntities.Length + eventIdEntities.Length + 1));
         }
 
-        void AssertNewStream(StreamWriteResult actual, int version, object properties = null)
+        void AssertNewStream(StreamWriteResult actual, int version, Dictionary<string, EntityProperty> properties = null)
         {
             var newStream = actual.Stream;
             var newStreamEntity = table.RetrieveStreamEntity(partition);
@@ -207,14 +211,14 @@ namespace Streamstone.Scenarios
             actualStream.ShouldEqual(expectedStream.ToExpectedObject());
         }
 
-        static Stream CreateStream(int version, string etag, object properties = null)
+        static Stream CreateStream(int version, string etag, IDictionary<string, EntityProperty> properties = null)
         {
             return new Stream(partition, etag, version, properties != null 
                                                             ? StreamProperties.From(properties) 
                                                             : StreamProperties.None);
         }
 
-        void AssertStreamEntity(int version = 0, object properties = null)
+        void AssertStreamEntity(int version = 0, Dictionary<string, EntityProperty> properties = null)
         {
             var newStreamEntity = table.RetrieveStreamEntity(partition);
 
@@ -266,11 +270,11 @@ namespace Streamstone.Scenarios
 
         static Event CreateEvent(string id)
         {
-            return new Event(id, new TestEventEntity
+            return new Event(id, new Dictionary<string, EntityProperty>
             {
-                Id   = id,
-                Type = "StreamChanged",
-                Data = "{}"
+                {"Id",   new EntityProperty(id)},
+                {"Type", new EntityProperty("StreamChanged")},
+                {"Data", new EntityProperty("{}")}
             });
         }
     }

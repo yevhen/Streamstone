@@ -56,11 +56,6 @@ namespace Streamstone
             return SetProperties(table, stream, StreamProperties.From(properties));
         }
 
-        public static Stream SetProperties(CloudTable table, Stream stream, object properties)
-        {
-            return SetProperties(table, stream, StreamProperties.From(properties));
-        }
-
         public static Stream SetProperties(CloudTable table, Stream stream, IDictionary<string, EntityProperty> properties)
         {
             return SetProperties(table, stream, StreamProperties.From(properties));
@@ -72,11 +67,6 @@ namespace Streamstone
         }
 
         public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, ITableEntity properties)
-        {
-            return SetPropertiesAsync(table, stream, StreamProperties.From(properties));
-        }
-
-        public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, object properties)
         {
             return SetPropertiesAsync(table, stream, StreamProperties.From(properties));
         }
