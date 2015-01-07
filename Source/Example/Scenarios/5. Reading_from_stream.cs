@@ -11,19 +11,41 @@ namespace Example.Scenarios
     {
         public override void Run()
         {
-            Stream.Write(Table, new Stream(Partition), new[]
-            {
-                CreateEvent("e1", "Created", "{\"foo\"=\"bar\"}"),
-                CreateEvent("e2", "Changed", "{\"foo\"=\"baz\"}")
-            });
+            Prepare();
 
-            // read slice from existing stream
+            ReadSingleSlice();
+            ReadAllEvents();
+        }
+
+        void Prepare()
+        {
+            var events = Enumerable
+                .Range(1, 10)
+                .Select(Payload)
+                .ToArray();
+
+            Stream.Write(Table, new Stream(Partition), events);
+        }
+
+        void ReadSingleSlice()
+        {
+            Console.WriteLine("Reading single slice from specified start version and using specified slice size");
+
             var slice = Stream.Read<EventEntity>(Table, Partition, startVersion: 2, sliceSize: 2);
             foreach (var @event in slice.Events)
                 Console.WriteLine("{0}: {1}-{2}", @event.Version, @event.Type, @event.Data);
 
-            // read all events in a stream
+            Console.WriteLine();
+        }
+
+        void ReadAllEvents()
+        {
+            Console.WriteLine("Reading all events in a stream");
+            Console.WriteLine("If slice size is larger than WATS limit, continiuation token will be managed automatically");
+
+            StreamSlice<EventEntity> slice;
             int nextSliceStart = 1;
+
             do
             {
                 slice = Stream.Read<EventEntity>(Table, Partition, nextSliceStart, sliceSize: 1);
@@ -36,17 +58,18 @@ namespace Example.Scenarios
             while (!slice.IsEndOfStream);
         }
 
-        static Event CreateEvent(string id, string type, string data)
+        static Event Payload(int id)
         {
-            return new Event(id, new Dictionary<string, EntityProperty>
+            return new Event(id.ToString(), new Dictionary<string, EntityProperty>
             {
                 {"Id",   new EntityProperty(id)},
-                {"Type", new EntityProperty(type)},
-                {"Data", new EntityProperty(data)}
+                {"Type", new EntityProperty("<type>")},
+                {"Data", new EntityProperty("{some}")}
             });
         }
 
-        class EventEntity : TableEntity
+        /// define entity that will hold event properties
+        class EventEntity : TableEntity     
         {
             public string Type { get; set; }
             public string Data { get; set; }
