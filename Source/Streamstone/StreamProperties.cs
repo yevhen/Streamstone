@@ -9,7 +9,7 @@ namespace Streamstone
 {
     sealed class StreamProperties : PropertyMap
     {
-        public static readonly StreamProperties None = new StreamProperties();
+        internal static readonly StreamProperties None = new StreamProperties();
 
         StreamProperties()
         {}
@@ -24,13 +24,13 @@ namespace Streamstone
             return Build(properties);
         }
 
-        public static StreamProperties From(ITableEntity entity)
+        internal static StreamProperties From(ITableEntity entity)
         {
             Requires.NotNull(entity, "entity");
             return Build(entity.WriteEntity(new OperationContext()));
         }
-        
-        public static StreamProperties From(IDictionary<string, EntityProperty> properties)
+
+        internal static StreamProperties From(IDictionary<string, EntityProperty> properties)
         {
             Requires.NotNull(properties, "properties");
             return Build(properties.Clone());

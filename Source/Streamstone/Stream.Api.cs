@@ -51,34 +51,14 @@ namespace Streamstone
             return new WriteOperation(table, stream, events, includes).ExecuteAsync();
         }
 
-        public static Stream SetProperties(CloudTable table, Stream stream, ITableEntity properties)
-        {
-            return SetProperties(table, stream, StreamProperties.From(properties));
-        }
-
         public static Stream SetProperties(CloudTable table, Stream stream, IDictionary<string, EntityProperty> properties)
         {
-            return SetProperties(table, stream, StreamProperties.From(properties));
-        }
-
-        static Stream SetProperties(CloudTable table, Stream stream, StreamProperties properties)
-        {
-            return new SetPropertiesOperation(table, stream, properties).Execute();
-        }
-
-        public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, ITableEntity properties)
-        {
-            return SetPropertiesAsync(table, stream, StreamProperties.From(properties));
+            return new SetPropertiesOperation(table, stream, StreamProperties.From(properties)).Execute();
         }
 
         public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, IDictionary<string, EntityProperty> properties)
         {
-            return SetPropertiesAsync(table, stream, StreamProperties.From(properties));
-        }
-
-        static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, StreamProperties properties)
-        {
-            return new SetPropertiesOperation(table, stream, properties).ExecuteAsync();
+            return new SetPropertiesOperation(table, stream, StreamProperties.From(properties)).ExecuteAsync();
         }
 
         public static Stream Open(CloudTable table, string partition)

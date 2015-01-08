@@ -2,14 +2,13 @@
 using System.Linq;
 using System.Collections.Generic;
 
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
     sealed class EventProperties : PropertyMap
     {
-        public static readonly EventProperties None = new EventProperties();
+        internal static readonly EventProperties None = new EventProperties();
 
         EventProperties()
         {}
@@ -24,13 +23,7 @@ namespace Streamstone
             return Build(properties);
         }
 
-        public static EventProperties From(ITableEntity entity)
-        {
-            Requires.NotNull(entity, "entity");
-            return Build(entity.WriteEntity(new OperationContext()));
-        }
-
-        public static EventProperties From(IDictionary<string, EntityProperty> properties)
+        internal static EventProperties From(IDictionary<string, EntityProperty> properties)
         {
             Requires.NotNull(properties, "properties");
             return Build(properties.Clone());
