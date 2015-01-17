@@ -10,7 +10,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Example.Scenarios
 {
-    public class Writing_to_stream : Scenario
+    public class S4_Write_to_stream : Scenario
     {
         public override void Run()
         {
@@ -30,8 +30,8 @@ namespace Example.Scenarios
 
             var result = Stream.Write(Table, stream, new[]
             {
-                Payload(new InventoryItemCreated("INV-004", "iPhone6")),
-                Payload(new InventoryItemCheckedIn("INV-004", 100)),
+                Payload(new InventoryItemCreated(Partition, "iPhone6")),
+                Payload(new InventoryItemCheckedIn(Partition, 100)),
             });
 
             Console.WriteLine("Succesfully written to new stream.\r\nEtag: {0}, Version: {1}", 
@@ -49,7 +49,7 @@ namespace Example.Scenarios
             {
                 var result = Stream.Write(Table, stream, new[]
                 {
-                    Payload(new InventoryItemCheckedIn("INV-004", i*100)),
+                    Payload(new InventoryItemCheckedIn(Partition, i*100)),
                 });
 
                 Console.WriteLine("Succesfully written event '{0}' under version '{1}'", 

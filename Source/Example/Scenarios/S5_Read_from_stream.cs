@@ -7,7 +7,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Example.Scenarios
 {
-    public class Reading_from_stream : Scenario
+    public class S5_Read_from_stream : Scenario
     {
         public override void Run()
         {
@@ -41,7 +41,7 @@ namespace Example.Scenarios
         void ReadAllEvents()
         {
             Console.WriteLine("Reading all events in a stream");
-            Console.WriteLine("If slice size is larger than WATS limit, continiuation token will be managed automatically");
+            Console.WriteLine("If slice size is > than WATS limit, continuation token will be managed automatically");
 
             StreamSlice<EventEntity> slice;
             int nextSliceStart = 1;

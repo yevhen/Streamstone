@@ -5,7 +5,7 @@ using Streamstone;
 
 namespace Example.Scenarios
 {
-    public class Opening_stream_for_writing : Scenario
+    public class S2_Open_stream_for_writing : Scenario
     {
         public override void Run()
         {
@@ -28,12 +28,12 @@ namespace Example.Scenarios
         void OpenExistingStream()
         {
             Stream.Provision(Table, Partition);
-            
+
             var stream = Stream.Open(Table, Partition);
 
             Console.WriteLine("Opened existing (empty) stream in partition '{0}'", stream.Partition);
-            Console.WriteLine("Etag: {0}",      stream.ETag);
-            Console.WriteLine("Version: {0}",   stream.Version);
+            Console.WriteLine("Etag: {0}", stream.ETag);
+            Console.WriteLine("Version: {0}", stream.Version);
         }
     }
 }

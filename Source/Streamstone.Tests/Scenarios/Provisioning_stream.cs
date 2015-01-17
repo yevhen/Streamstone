@@ -36,12 +36,7 @@ namespace Streamstone.Scenarios
             var stream = await Stream.ProvisionAsync(table, partition);
             var entity = table.RetrieveStreamEntity(partition);
             
-            var expectedStream = new Stream
-            (
-                partition,
-                entity.ETag,
-                version: 0, properties: StreamProperties.None);
-
+            var expectedStream = new Stream(partition, entity.ETag, 0, StreamProperties.None);
             stream.ShouldEqual(expectedStream.ToExpectedObject());
 
             var expectedEntity = new
