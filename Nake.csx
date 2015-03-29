@@ -47,7 +47,8 @@ var AppVeyor = Var["APPVEYOR"] == "True";
     Build("Debug", outDir);
 
     var tests = new FileSet{@"{outDir}\*.Tests.dll"}.ToString(" ");
-
+    var results = @"{outDir}\nunit-test-results.xml";
+    
     Cmd(@"Packages\NUnit.Runners.2.6.3\tools\nunit-console.exe " + 
         @"/xml:{results} /framework:net-4.0 /noshadow /nologo {tests}");
 
