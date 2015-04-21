@@ -7,7 +7,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
-    public abstract class PropertyMap : IEnumerable<KeyValuePair<string, EntityProperty>>
+    abstract class PropertyMap : IEnumerable<KeyValuePair<string, EntityProperty>>
     {
         readonly IDictionary<string, EntityProperty> properties = new Dictionary<string, EntityProperty>();
 

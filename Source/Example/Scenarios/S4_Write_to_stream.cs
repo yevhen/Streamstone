@@ -30,8 +30,8 @@ namespace Example.Scenarios
 
             var result = Stream.Write(Table, stream, new[]
             {
-                Payload(new InventoryItemCreated(Partition, "iPhone6")),
-                Payload(new InventoryItemCheckedIn(Partition, 100)),
+                Event(new InventoryItemCreated(Partition, "iPhone6")),
+                Event(new InventoryItemCheckedIn(Partition, 100)),
             });
 
             Console.WriteLine("Succesfully written to new stream.\r\nEtag: {0}, Version: {1}", 
@@ -49,7 +49,7 @@ namespace Example.Scenarios
             {
                 var result = Stream.Write(Table, stream, new[]
                 {
-                    Payload(new InventoryItemCheckedIn(Partition, i*100)),
+                    Event(new InventoryItemCheckedIn(Partition, i*100)),
                 });
 
                 Console.WriteLine("Succesfully written event '{0}' under version '{1}'", 
@@ -62,7 +62,7 @@ namespace Example.Scenarios
             }
         }
 
-        static Event Payload(object e)
+        static Event Event(object e)
         {
             var id = Guid.NewGuid();
 

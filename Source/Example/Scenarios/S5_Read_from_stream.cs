@@ -13,21 +13,21 @@ namespace Example.Scenarios
         {
             Prepare();
 
-            ReadSingleSlice();
-            ReadAllEvents();
+            ReadSlice();
+            ReadAll();
         }
 
         void Prepare()
         {
             var events = Enumerable
                 .Range(1, 10)
-                .Select(Payload)
+                .Select(Event)
                 .ToArray();
 
             Stream.Write(Table, new Stream(Partition), events);
         }
 
-        void ReadSingleSlice()
+        void ReadSlice()
         {
             Console.WriteLine("Reading single slice from specified start version and using specified slice size");
 
@@ -38,7 +38,7 @@ namespace Example.Scenarios
             Console.WriteLine();
         }
 
-        void ReadAllEvents()
+        void ReadAll()
         {
             Console.WriteLine("Reading all events in a stream");
             Console.WriteLine("If slice size is > than WATS limit, continuation token will be managed automatically");
@@ -58,7 +58,7 @@ namespace Example.Scenarios
             while (!slice.IsEndOfStream);
         }
 
-        static Event Payload(int id)
+        static Event Event(int id)
         {
             return new Event(id.ToString(), new Dictionary<string, EntityProperty>
             {

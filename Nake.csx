@@ -22,6 +22,7 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 /// Builds sources in Debug mode
 [Task] void Default()
 {
+	Install();
     Build();
 }
 
