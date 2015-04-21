@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Streamstone;
@@ -60,17 +59,20 @@ namespace Example.Scenarios
 
         static Event Event(int id)
         {
-            return new Event(id.ToString(), new Dictionary<string, EntityProperty>
+            var data = new
             {
-                {"Id",   new EntityProperty(id)},
-                {"Type", new EntityProperty("<type>")},
-                {"Data", new EntityProperty("{some}")}
-            });
+                Id = id,
+                Type = "<type>",
+                Data = "{some}"
+            };
+
+            return new Event(id.ToString(), data.Props());
         }
 
         /// define entity that will hold event properties
         class EventEntity : TableEntity     
         {
+            public string Id   { get; set; }
             public string Type { get; set; }
             public string Data { get; set; }
             public int Version { get; set; }

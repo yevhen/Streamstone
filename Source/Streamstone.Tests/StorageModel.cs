@@ -102,8 +102,7 @@ namespace Streamstone
                 var e = new EventEntity
                 {
                     PartitionKey = partition,
-                    RowKey = (i+1).FormatEventRowKey(),
-                    Id = ids[i],
+                    RowKey = (i+1).FormatEventRowKey()
                 };
 
                 table.Execute(TableOperation.Insert(e));

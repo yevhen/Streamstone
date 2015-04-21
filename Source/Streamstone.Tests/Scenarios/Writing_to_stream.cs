@@ -110,8 +110,8 @@ namespace Streamstone.Scenarios
             var eventEntities = table.RetrieveEventEntities(partition);
             Assert.That(eventEntities.Length, Is.EqualTo(2));
             
-            AssertEventEntity("e1", 1, eventEntities[0]);
-            AssertEventEntity("e2", 2, eventEntities[1]);
+            AssertEventEntity(1, eventEntities[0]);
+            AssertEventEntity(2, eventEntities[1]);
 
             var eventIdEntities = table.RetrieveEventIdEntities(partition);
             Assert.That(eventIdEntities.Length, Is.EqualTo(2));
@@ -141,8 +141,8 @@ namespace Streamstone.Scenarios
             var eventEntities = table.RetrieveEventEntities(partition);
             Assert.That(eventEntities.Length, Is.EqualTo(2));
 
-            AssertEventEntity("e1", 1, eventEntities[0]);
-            AssertEventEntity("e2", 2, eventEntities[1]);
+            AssertEventEntity(1, eventEntities[0]);
+            AssertEventEntity(2, eventEntities[1]);
 
             var eventIdEntities = table.RetrieveEventIdEntities(partition);
             Assert.That(eventIdEntities.Length, Is.EqualTo(2));
@@ -178,8 +178,8 @@ namespace Streamstone.Scenarios
             var eventEntities = table.RetrieveEventEntities(partition);
             Assert.That(eventEntities.Length, Is.EqualTo(2));
 
-            AssertEventEntity("e1", 1, eventEntities[0]);
-            AssertEventEntity("e2", 2, eventEntities[1]);
+            AssertEventEntity(1, eventEntities[0]);
+            AssertEventEntity(2, eventEntities[1]);
 
             var eventIdEntities = table.RetrieveEventIdEntities(partition);
             Assert.That(eventIdEntities.Length, Is.EqualTo(2));
@@ -240,11 +240,10 @@ namespace Streamstone.Scenarios
             actual.ShouldMatch(expected.ToExpectedObject());
         }
 
-        static void AssertEventEntity(string id, int version, EventEntity actual)
+        static void AssertEventEntity(int version, EventEntity actual)
         {
             var expected = new
             {
-                Id = id,
                 RowKey = version.FormatEventRowKey(),
                 Properties = EventProperties.From(new Dictionary<string, EntityProperty>
                 {
@@ -272,7 +271,6 @@ namespace Streamstone.Scenarios
         {
             return new Event(id, new Dictionary<string, EntityProperty>
             {
-                {"Id",   new EntityProperty(id)},
                 {"Type", new EntityProperty("StreamChanged")},
                 {"Data", new EntityProperty("{}")}
             });

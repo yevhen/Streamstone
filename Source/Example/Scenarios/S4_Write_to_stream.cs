@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
 
 using Streamstone;
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Example.Scenarios
 {
@@ -66,13 +64,15 @@ namespace Example.Scenarios
         {
             var id = Guid.NewGuid();
 
-            return new Event(id.ToString("D"), new Dictionary<string, EntityProperty>
+            var data = new
             {
-                {"Id",          new EntityProperty(id)},
-                {"Type",        new EntityProperty(e.GetType().Name)}, // you can include any number of custom properties along with event
-                {"Data",        new EntityProperty(JSON(e))},          // you're free to choose any name you like for data property
-                {"Data_Binary", new EntityProperty(BSON(e))}           // and any storage format: binary, string, whatever (any EdmType)
-            });
+                Id = id,                 // id that you specify for Event ctor is used only for idempotency
+                Type = e.GetType().Name, // you can include any number of custom properties along with event
+                Data = JSON(e),          // you're free to choose any name you like for data property
+                Bin = BSON(e)            // and any storage format: binary, string, whatever (any EdmType)
+            };
+
+            return new Event(id.ToString("D"), data.Props());
         }
 
         static string JSON(object data)
@@ -82,15 +82,15 @@ namespace Example.Scenarios
 
         static byte[] BSON(object data)
         {
-            var ms = new System.IO.MemoryStream();
+            var stream = new System.IO.MemoryStream();
             
-            using (var writer = new BsonWriter(ms))
+            using (var writer = new BsonWriter(stream))
             {
                 var serializer = new JsonSerializer();
                 serializer.Serialize(writer, data);
             }
 
-            return ms.ToArray();
+            return stream.ToArray();
         }
     }
 }

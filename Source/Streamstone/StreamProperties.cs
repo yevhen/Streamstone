@@ -27,7 +27,7 @@ namespace Streamstone
         internal static StreamProperties From(ITableEntity entity)
         {
             Requires.NotNull(entity, "entity");
-            return Build(entity.WriteEntity(new OperationContext()));
+            return Build(entity.Props());
         }
 
         internal static StreamProperties From(IDictionary<string, EntityProperty> properties)
@@ -49,8 +49,6 @@ namespace Streamstone
                 case "RowKey":
                 case "ETag":
                 case "Timestamp":
-                case "Start":
-                case "Count":
                 case "Version":
                     return true;
                 default:

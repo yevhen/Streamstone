@@ -42,7 +42,6 @@ namespace Streamstone
                 case "RowKey":
                 case "ETag":
                 case "Timestamp":
-                case "Id":
                 case "Version":
                     return true;
                 default:
