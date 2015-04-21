@@ -5,7 +5,7 @@ using Streamstone;
 
 namespace Example.Scenarios
 {
-    public class S9_Handling_duplicates : Scenario
+    public class S09_Handling_duplicates : Scenario
     {
         public override void Run()
         {

@@ -7,7 +7,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Example.Scenarios
 {
-    public class S8_Concurrency_conflicts : Scenario
+    public class S08_Concurrency_conflicts : Scenario
     {
         public override void Run()
         {

@@ -8,7 +8,7 @@ using Streamstone;
 
 namespace Example.Scenarios
 {
-    public class S4_Write_to_stream : Scenario
+    public class S04_Write_to_stream : Scenario
     {
         public override void Run()
         {

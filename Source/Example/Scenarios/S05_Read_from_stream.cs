@@ -6,7 +6,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Example.Scenarios
 {
-    public class S5_Read_from_stream : Scenario
+    public class S05_Read_from_stream : Scenario
     {
         public override void Run()
         {

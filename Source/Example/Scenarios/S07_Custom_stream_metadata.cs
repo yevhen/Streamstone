@@ -7,7 +7,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Example.Scenarios
 {
-    public class S7_Custom_stream_metadata : Scenario
+    public class S07_Custom_stream_metadata : Scenario
     {
         public override void Run()
         {

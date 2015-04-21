@@ -5,7 +5,7 @@ using Streamstone;
 
 namespace Example.Scenarios
 {
-    public class S2_Open_stream_for_writing : Scenario
+    public class S02_Open_stream_for_writing : Scenario
     {
         public override void Run()
         {

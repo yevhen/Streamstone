@@ -69,15 +69,17 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scenario.cs" />
-    <Compile Include="Scenarios\S1_Provision_new_stream.cs" />
-    <Compile Include="Scenarios\S2_Open_stream_for_writing.cs" />
-    <Compile Include="Scenarios\S3_Try_open_stream_for_writing.cs" />
-    <Compile Include="Scenarios\S4_Write_to_stream.cs" />
-    <Compile Include="Scenarios\S9_Handling_duplicates.cs" />
-    <Compile Include="Scenarios\S8_Concurrency_conflicts.cs" />
-    <Compile Include="Scenarios\S7_Custom_stream_metadata.cs" />
-    <Compile Include="Scenarios\S6_Include_additional_entities.cs" />
-    <Compile Include="Scenarios\S5_Read_from_stream.cs" />
+    <Compile Include="Scenarios\S01_Provision_new_stream.cs" />
+    <Compile Include="Scenarios\S02_Open_stream_for_writing.cs" />
+    <Compile Include="Scenarios\S03_Try_open_stream_for_writing.cs" />
+    <Compile Include="Scenarios\S04_Write_to_stream.cs" />
+    <Compile Include="Scenarios\S11_Creating_projections.cs" />
+    <Compile Include="Scenarios\S10_Using_snapshots.cs" />
+    <Compile Include="Scenarios\S09_Handling_duplicates.cs" />
+    <Compile Include="Scenarios\S08_Concurrency_conflicts.cs" />
+    <Compile Include="Scenarios\S07_Custom_stream_metadata.cs" />
+    <Compile Include="Scenarios\S06_Include_additional_entities.cs" />
+    <Compile Include="Scenarios\S05_Read_from_stream.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
