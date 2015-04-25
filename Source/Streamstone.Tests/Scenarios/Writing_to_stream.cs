@@ -75,19 +75,38 @@ namespace Streamstone.Scenarios
         public async void When_writing_number_of_events_over_max_batch_size_limit()
         {
             var stream = await Stream.ProvisionAsync(table, partition);
+            var eventsCount = ApiModel.MaxEntitiesPerBatch + 1;
 
             var events = Enumerable
-                .Range(1, ApiModel.MaxEntitiesPerBatch + 1)
+                .Range(1, eventsCount)
                 .Select(i => CreateEvent("e" + i))
                 .ToArray();
 
-            table.CaptureContents(partition, contents =>
-            {
-                Assert.Throws<ArgumentOutOfRangeException>(
-                    async () => await Stream.WriteAsync(table, stream, events));
+            var result = await Stream.WriteAsync(table, stream, events);
 
-                contents.AssertNothingChanged();  
-            });
+            AssertNewStream(result, version: eventsCount);
+            AssertStreamEntity(version: eventsCount);
+
+            var storedEvents = result.Events;
+            Assert.That(storedEvents.Length, Is.EqualTo(eventsCount));
+
+            for (var i = 0; i < eventsCount; ++i)
+                AssertRecordedEvent(i+1, events[i], storedEvents[i]);
+
+            var eventEntities = table.RetrieveEventEntities(partition);
+            Assert.That(eventEntities.Length, Is.EqualTo(eventsCount));
+
+            for (var i = 0; i < eventsCount; ++i)
+                AssertEventEntity(i+1, eventEntities[i]);
+
+            var eventIdEntities = table.RetrieveEventIdEntities(partition);
+            Assert.That(eventIdEntities.Length, Is.EqualTo(eventsCount));
+
+            for (var i = 0; i < eventsCount; ++i)
+                AssertEventIdEntity("e" + (i+1), i+1, eventIdEntities[i]);
+
+            Assert.That(table.RetrieveAll(partition).Count,
+                Is.EqualTo(eventEntities.Length + eventIdEntities.Length + 1));
         }
 
         [Test]
