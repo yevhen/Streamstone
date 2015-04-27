@@ -61,11 +61,12 @@ Optimistic concurrency is implemented by making version be a part of a RowKey id
 
 ## Limitations
 
-+ The maximum batch size is 99 entities (100 entities WATS batch size limit - 1 stream header entity) 
-+ With idempotency enabled, the maximum batch size is 49 events (100/2 - 1 stream header entity) 
-+ The maximum slice size when reading events is 1000 (WATS limitation)
+The write batch size limit, imposed by Azure Table Storage, is 100 entities, therefore:
 
-Plus, all of the limitations of the underlying Azure Table Storage API:
++ The maximum write batch size is 99 entities (100 - 1 stream header entity) 
++ With idempotency enabled, maximum write batch size is 49 events (100/2 - 1 stream header entity) 
+
+Other limitations of the underlying Azure Table Storage API:
 
 + Maximum size of batch is 4MB
 + Maximum size of entity is 1 MB
@@ -73,8 +74,7 @@ Plus, all of the limitations of the underlying Azure Table Storage API:
 + Maximum length of property name is 255 chars
 + An entity can have up to 255 custom properties
 
-> 
- [WATS limitations on MSDN](http://msdn.microsoft.com/en-us/library/azure/dd179338.aspx) 
+> [WATS limitations on MSDN](http://msdn.microsoft.com/en-us/library/azure/dd179338.aspx) 
 
 ## Community
 
