@@ -45,18 +45,18 @@ Optimistic concurrency is implemented by making version be a part of a RowKey id
 ## Usage
 
 ##### Essentials
-+ Provisioning stream [[see]()]
-+ Opening stream [[see]()]
-+ Writing to stream [[see]()]
-+ Reading from stream [[see]()]
-+ Optimistic concurrency [[see]()]
-+ Idempotent processing [[see]()]
++ Provisioning stream [[see](/Source/Example/Scenarios/S01_Provision_new_stream.cs)]
++ Opening stream [[see](Source/Example/Scenarios/S02_Open_stream_for_writing.cs)]
++ Writing to stream [[see](Source/Example/Scenarios/S04_Write_to_stream.cs)]
++ Reading from stream [[see](Source/Example/Scenarios/S05_Read_from_stream.cs)]
++ Optimistic concurrency [[see](Source/Example/Scenarios/S08_Concurrency_conflicts.cs)]
++ Idempotent processing [[see](Source/Example/Scenarios/S09_Handling_duplicates.cs)]
++ Custom stream metadata [[see](Source/Example/Scenarios/S07_Custom_stream_metadata.cs)]
 + Virtual partitions [[see]()]
 
 ##### Application
 + Using snapshots [[see]()]
 + Creating projections [[see]()]
-+ Custom stream metadata [[see]()]
 + Querying events [[see]()]
 
 ## Limitations
