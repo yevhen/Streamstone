@@ -63,8 +63,8 @@ Optimistic concurrency is implemented by making version be a part of a RowKey id
 
 The write batch size limit, imposed by Azure Table Storage, is 100 entities, therefore:
 
-+ The maximum write batch size is 99 entities (100 - 1 stream header entity) 
-+ With idempotency enabled, maximum write batch size is 49 events (100/2 - 1 stream header entity) 
++ The maximum write batch size is 99 entities (100 - 1 header entity) 
++ With idempotency enabled, maximum write batch size is 49 events (100/2 - 1 header entity) 
 
 Other limitations of the underlying Azure Table Storage API:
 
