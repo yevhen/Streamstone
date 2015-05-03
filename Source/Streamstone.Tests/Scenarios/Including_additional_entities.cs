@@ -8,7 +8,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 namespace Streamstone.Scenarios
 {
     [TestFixture]
-    public class Including_table_operations
+    public class Including_additional_entities
     {
         const string partition = "test";
         CloudTable table;
@@ -42,7 +42,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_operation_has_no_conflicts()
+        public async void When_include_has_no_conflicts()
         {
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
             
@@ -56,7 +56,7 @@ namespace Streamstone.Scenarios
         }
         
         [Test]
-        public async void When_operation_has_conflict()
+        public async void When_include_has_conflict()
         {
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
             
@@ -74,7 +74,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_operation_has_conflict_and_also_duplicate_event_conflict()
+        public async void When_include_has_conflict_and_also_duplicate_event_conflict()
         {
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
 
@@ -92,7 +92,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_operation_has_conflict_and_also_stream_header_has_changed_since_last_read()
+        public async void When_include_has_conflict_and_also_stream_header_has_changed_since_last_read()
         {
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
 
