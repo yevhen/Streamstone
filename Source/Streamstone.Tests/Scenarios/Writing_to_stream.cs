@@ -18,7 +18,7 @@ namespace Streamstone.Scenarios
         [SetUp]
         public void SetUp()
         {
-            table = StorageModel.SetUp();
+            table = Storage.SetUp();
         }
 
         [Test]
@@ -77,7 +77,7 @@ namespace Streamstone.Scenarios
             var stream = await Stream.ProvisionAsync(table, partition);
 
             var events = Enumerable
-                .Range(1, ApiModel.MaxEntitiesPerBatch + 1)
+                .Range(1, Api.MaxEntitiesPerBatch + 1)
                 .Select(i => CreateEvent("e" + i))
                 .ToArray();
 
@@ -224,7 +224,7 @@ namespace Streamstone.Scenarios
 
             var expectedEntity = new
             {
-                RowKey = ApiModel.StreamRowKey,
+                RowKey = Api.StreamRowKey,
                 Properties = properties != null
                     ? StreamProperties.From(properties)
                     : StreamProperties.None,

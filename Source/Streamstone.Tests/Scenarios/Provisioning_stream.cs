@@ -18,7 +18,7 @@ namespace Streamstone.Scenarios
         [SetUp]
         public void SetUp()
         {
-            table = StorageModel.SetUp();
+            table = Storage.SetUp();
         }
 
         [Test]
@@ -41,7 +41,7 @@ namespace Streamstone.Scenarios
 
             var expectedEntity = new
             {
-                RowKey = ApiModel.StreamRowKey,
+                RowKey = Api.StreamRowKey,
                 Version = 0
             };
 
@@ -71,7 +71,7 @@ namespace Streamstone.Scenarios
 
             var expectedEntity = new
             {
-                RowKey = ApiModel.StreamRowKey,
+                RowKey = Api.StreamRowKey,
                 Properties = StreamProperties.From(properties),
                 Version = 0
             };

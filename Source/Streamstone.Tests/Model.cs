@@ -18,7 +18,7 @@ namespace Streamstone
         public string Data { get; set; }
     }
 
-    class TestStoredEventEntity : TestEventEntity
+    class TestRecordedEventEntity : TestEventEntity
     {
         public int Version { get; set; }
     }

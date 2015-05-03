@@ -18,7 +18,7 @@ namespace Streamstone.Scenarios
         [SetUp]
         public void SetUp()
         {
-            table = StorageModel.SetUp();
+            table = Storage.SetUp();
         }
 
         [Test]

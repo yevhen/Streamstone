@@ -70,7 +70,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApiModel.cs" />
+    <Compile Include="Api.cs" />
     <Compile Include="Scenarios\Custom_stream_properties.cs" />
     <Compile Include="Scenarios\Custom_event_properties.cs" />
     <Compile Include="Scenarios\Checking_stream_exists.cs" />
@@ -78,11 +78,11 @@
     <Compile Include="Scenarios\Reading_from_stream.cs" />
     <Compile Include="Scenarios\Opening_stream.cs" />
     <Compile Include="Scenarios\Setting_stream_properties.cs" />
-    <Compile Include="StorageModel.cs" />
+    <Compile Include="Storage.cs" />
     <Compile Include="Scenarios\Writing_to_stream.cs" />
     <Compile Include="Scenarios\Provisioning_stream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestingModel.cs" />
+    <Compile Include="Model.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Packages.config" />

@@ -10,7 +10,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
-    static class StorageModel
+    static class Storage
     {
         const string TableName = "Streams";
 
@@ -68,7 +68,7 @@ namespace Streamstone
             var entity = new StreamEntity
             {
                 PartitionKey = partition,
-                RowKey = ApiModel.StreamRowKey,
+                RowKey = Api.StreamRowKey,
                 Version = version
             };
 
@@ -90,7 +90,7 @@ namespace Streamstone
             return table.CreateQuery<StreamEntity>()
                         .Where(x =>
                                x.PartitionKey == partition &&
-                               x.RowKey == ApiModel.StreamRowKey)
+                               x.RowKey == Api.StreamRowKey)
                         .ToList()
                         .SingleOrDefault();
         }
@@ -113,7 +113,7 @@ namespace Streamstone
         {
             return table.CreateQuery<EventEntity>()
                         .Where(x => x.PartitionKey == partition)
-                        .Where(RowKeyPrefix.Range<EventEntity>(ApiModel.EventRowKeyPrefix))
+                        .Where(RowKeyPrefix.Range<EventEntity>(Api.EventRowKeyPrefix))
                         .ToArray();
         }
 
@@ -135,7 +135,7 @@ namespace Streamstone
         {
             return table.CreateQuery<EventIdEntity>()
                         .Where(x => x.PartitionKey == partition)
-                        .Where(RowKeyPrefix.Range<EventIdEntity>(ApiModel.EventIdRowKeyPrefix))
+                        .Where(RowKeyPrefix.Range<EventIdEntity>(Api.EventIdRowKeyPrefix))
                         .ToArray();
         }
 

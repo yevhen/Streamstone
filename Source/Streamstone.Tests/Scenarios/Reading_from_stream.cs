@@ -16,7 +16,7 @@ namespace Streamstone.Scenarios
         [SetUp]
         public void SetUp()
         {
-            table = StorageModel.SetUp();
+            table = Storage.SetUp();
         }
 
         [Test]
@@ -70,13 +70,13 @@ namespace Streamstone.Scenarios
             Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
             await Stream.WriteAsync(table, new Stream(partition), events);
 
-            var slice = await Stream.ReadAsync<TestStoredEventEntity>(table, partition, sliceSize: 1);
+            var slice = await Stream.ReadAsync<TestRecordedEventEntity>(table, partition, sliceSize: 1);
             
             Assert.That(slice.IsEndOfStream, Is.False);
             Assert.That(slice.Events.Length, Is.EqualTo(1));
             Assert.That(slice.Events[0].Version, Is.EqualTo(1));
 
-            slice = await Stream.ReadAsync<TestStoredEventEntity>(table, partition, slice.NextEventNumber);
+            slice = await Stream.ReadAsync<TestRecordedEventEntity>(table, partition, slice.NextEventNumber);
 
             Assert.That(slice.IsEndOfStream, Is.True);
             Assert.That(slice.Events.Length, Is.EqualTo(1));
@@ -102,7 +102,7 @@ namespace Streamstone.Scenarios
                 stream = result.Stream;
             }
 
-            var slice = await Stream.ReadAsync<TestStoredEventEntity>(table, partition, sliceSize: 1500);
+            var slice = await Stream.ReadAsync<TestRecordedEventEntity>(table, partition, sliceSize: 1500);
 
             Assert.That(slice.IsEndOfStream, Is.True);
             Assert.That(slice.Events.Length, Is.EqualTo(1500));

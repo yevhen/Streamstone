@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Streamstone
 {
-    public static class ApiModel
+    public static class Api
     {
         public const int MaxBatchSize = 100;
         public const int EntitiesPerEvent = 2;
