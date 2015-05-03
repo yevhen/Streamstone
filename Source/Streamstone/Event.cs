@@ -92,12 +92,12 @@ namespace Streamstone
             this.properties = properties;
         }
 
-        internal EventEntity EventEntity(string partition)
+        internal EventEntity EventEntity(Partition partition)
         {
             return new EventEntity(partition, Version, properties);
         }
 
-        internal EventIdEntity IdEntity(string partition)
+        internal EventIdEntity IdEntity(Partition partition)
         {
             return new EventIdEntity(partition, Id, Version);
         }

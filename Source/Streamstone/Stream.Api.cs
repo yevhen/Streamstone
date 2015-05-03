@@ -9,7 +9,7 @@ namespace Streamstone
 {
     public sealed partial class Stream
     {
-        public static Stream Provision(CloudTable table, string partition)
+        public static Stream Provision(CloudTable table, Partition partition)
         {
             return Provision(table, new Stream(partition));
         }
@@ -19,7 +19,7 @@ namespace Streamstone
             return new ProvisionOperation(table, stream).Execute();
         }
 
-        public static Task<Stream> ProvisionAsync(CloudTable table, string partition)
+        public static Task<Stream> ProvisionAsync(CloudTable table, Partition partition)
         {
             return ProvisionAsync(table, new Stream(partition));
         }
@@ -61,7 +61,7 @@ namespace Streamstone
             return new SetPropertiesOperation(table, stream, StreamProperties.From(properties)).ExecuteAsync();
         }
 
-        public static Stream Open(CloudTable table, string partition)
+        public static Stream Open(CloudTable table, Partition partition)
         {
             var result = TryOpen(table, partition);
 
@@ -71,12 +71,12 @@ namespace Streamstone
             throw new StreamNotFoundException(table, partition);
         }
 
-        public static StreamOpenResult TryOpen(CloudTable table, string partition)
+        public static StreamOpenResult TryOpen(CloudTable table, Partition partition)
         {
             return new OpenStreamOperation(table, partition).Execute();
         }
 
-        public static async Task<Stream> OpenAsync(CloudTable table, string partition)
+        public static async Task<Stream> OpenAsync(CloudTable table, Partition partition)
         {
             var result = await TryOpenAsync(table, partition).Really();
 
@@ -86,17 +86,17 @@ namespace Streamstone
             throw new StreamNotFoundException(table, partition);
         }
 
-        public static Task<StreamOpenResult> TryOpenAsync(CloudTable table, string partition)
+        public static Task<StreamOpenResult> TryOpenAsync(CloudTable table, Partition partition)
         {
             return new OpenStreamOperation(table, partition).ExecuteAsync();
         }
 
-        public static bool Exists(CloudTable table, string partition)
+        public static bool Exists(CloudTable table, Partition partition)
         {
             return TryOpen(table, partition).Found;
         }
-        
-        public static async Task<bool> ExistsAsync(CloudTable table, string partition)
+
+        public static async Task<bool> ExistsAsync(CloudTable table, Partition partition)
         {
             return (await TryOpenAsync(table, partition).Really()).Found;
         }
@@ -104,8 +104,8 @@ namespace Streamstone
         const int DefaultSliceSize = 500;
 
         public static StreamSlice<T> Read<T>(
-            CloudTable table, 
-            string partition, 
+            CloudTable table,
+            Partition partition, 
             int startVersion = 1, 
             int sliceSize = DefaultSliceSize) 
             where T : class, new()
@@ -114,8 +114,8 @@ namespace Streamstone
         }
         
         public static Task<StreamSlice<T>> ReadAsync<T>(
-            CloudTable table, 
-            string partition, 
+            CloudTable table,
+            Partition partition, 
             int startVersion = 1, 
             int sliceSize = DefaultSliceSize) 
             where T : class, new()

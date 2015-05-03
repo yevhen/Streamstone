@@ -8,7 +8,7 @@ namespace Streamstone
 {
     public sealed partial class Stream
     {
-        public readonly string Partition;
+        public readonly Partition Partition;
         public readonly string ETag;
         public readonly int Version;
 
@@ -26,9 +26,9 @@ namespace Streamstone
         /// Constructs a new <see cref="Stream"/> instance which doesn't have any additional properties.
         /// </summary>
         /// <param name="partition">
-        /// The partition key in which this stream will reside. 
+        /// The partition in which this stream will reside. 
         /// </param>
-        public Stream(string partition) 
+        public Stream(Partition partition) 
             : this(partition, StreamProperties.None)
         {}
 
@@ -36,25 +36,25 @@ namespace Streamstone
         /// Constructs a new <see cref="Stream"/> instance with the given additional properties.
         /// </summary>
         /// <param name="partition">
-        /// The partition key in which this stream will reside. 
+        /// The partition in which this stream will reside. 
         /// </param>
         /// <param name="properties">
         /// The additional properties for this stream.
         /// </param>
-        public Stream(string partition, IDictionary<string, EntityProperty> properties)
+        public Stream(Partition partition, IDictionary<string, EntityProperty> properties)
             : this(partition, StreamProperties.From(properties))
         {}
 
-        Stream(string partition, StreamProperties properties)
+        Stream(Partition partition, StreamProperties properties)
         {
-            Requires.NotNullOrEmpty(partition, "partition");
+            Requires.NotNull(partition, "partition");
             Requires.NotNull(properties, "properties");
 
             Partition = partition;
             this.properties = properties;
         }
 
-        internal Stream(string partition, string etag, int version, StreamProperties properties)
+        internal Stream(Partition partition, string etag, int version, StreamProperties properties)
         {
             Partition = partition;
             ETag = etag;
@@ -72,9 +72,9 @@ namespace Streamstone
             get { return !IsTransient; }
         }
 
-        static Stream From(StreamEntity entity)
+        static Stream From(Partition partition, StreamEntity entity)
         {
-            return new Stream(entity.PartitionKey, entity.ETag, entity.Version, entity.Properties);
+            return new Stream(partition, entity.ETag, entity.Version, entity.Properties);
         }
 
         StreamEntity Entity()

@@ -78,6 +78,7 @@
     <Compile Include="Scenarios\Reading_from_stream.cs" />
     <Compile Include="Scenarios\Opening_stream.cs" />
     <Compile Include="Scenarios\Setting_stream_properties.cs" />
+    <Compile Include="Scenarios\Virtual_partitions.cs" />
     <Compile Include="Storage.cs" />
     <Compile Include="Scenarios\Writing_to_stream.cs" />
     <Compile Include="Scenarios\Provisioning_stream.cs" />

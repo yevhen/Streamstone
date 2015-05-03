@@ -9,17 +9,17 @@ namespace Streamstone
 {
     class StreamEntity : TableEntity
     {
-        internal const string FixedRowKey = "SS-HEAD";
+        public const string FixedRowKey = "SS-HEAD";
 
         public StreamEntity()
         {
             Properties = StreamProperties.None;
         }
 
-        internal StreamEntity(string partition, string etag, int version, StreamProperties properties)
+        public StreamEntity(Partition partition, string etag, int version, StreamProperties properties)
         {
-            PartitionKey = partition;
-            RowKey = FixedRowKey;
+            PartitionKey = partition.PartitionKey;
+            RowKey = partition.StreamRowKey();
             ETag = etag;
             Version = version;
             Properties = properties;
@@ -41,7 +41,7 @@ namespace Streamstone
             return result;
         }
 
-        internal static StreamEntity From(DynamicTableEntity entity)
+        public static StreamEntity From(DynamicTableEntity entity)
         {
             return new StreamEntity
             {

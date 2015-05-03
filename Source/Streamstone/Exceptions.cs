@@ -19,9 +19,9 @@ namespace Streamstone
     public sealed class StreamNotFoundException : StreamstoneException
     {
         public readonly CloudTable Table;
-        public readonly string Partition;
+        public readonly Partition Partition;
 
-        public StreamNotFoundException(CloudTable table, string partition)
+        public StreamNotFoundException(CloudTable table, Partition partition)
             : base("Stream header was not found in partition '{1}' which resides in '{0}' table located at {2}",
                    table, partition, table.StorageUri)
         {
@@ -33,10 +33,10 @@ namespace Streamstone
     public sealed class DuplicateEventException : StreamstoneException
     {
         public readonly CloudTable Table;
-        public readonly string Partition;
+        public readonly Partition Partition;
         public readonly string Id;
 
-        public DuplicateEventException(CloudTable table, string partition, string id)
+        public DuplicateEventException(CloudTable table, Partition partition, string id)
             : base("Found existing event with id '{3}' in partition '{1}' which resides in '{0}' table located at {2}",
                    table, partition, table.StorageUri, id)
         {
@@ -49,10 +49,10 @@ namespace Streamstone
     public sealed class IncludedOperationConflictException : StreamstoneException
     {
         public readonly CloudTable Table;
-        public readonly string Partition;
+        public readonly Partition Partition;
         public readonly Include Include;
 
-        public IncludedOperationConflictException(CloudTable table, string partition, Include include)
+        public IncludedOperationConflictException(CloudTable table, Partition partition, Include include)
             : base("Included operation '{3}' had conflicts in partition '{1}' which resides in '{0}' table located at {2}",
                    table, partition, table.StorageUri, include.Type)
         {
@@ -65,9 +65,9 @@ namespace Streamstone
     public sealed class ConcurrencyConflictException : StreamstoneException
     {
         public readonly CloudTable Table;
-        public readonly string Partition;
+        public readonly Partition Partition;
 
-        public ConcurrencyConflictException(CloudTable table, string partition, string details)
+        public ConcurrencyConflictException(CloudTable table, Partition partition, string details)
             : base("Concurrent write detected for partition '{1}' which resides in table '{0}' located at {2}. See details below.\n{3}",
                    table, partition, table.StorageUri, details)
         {
@@ -75,17 +75,17 @@ namespace Streamstone
             Partition = partition;
         }
 
-        internal static Exception EventVersionExists(CloudTable table, string partition, int version)
+        internal static Exception EventVersionExists(CloudTable table, Partition partition, int version)
         {
             return new ConcurrencyConflictException(table, partition, string.Format("Event with version '{0}' is already exists", version));            
         }
 
-        internal static Exception StreamChanged(CloudTable table, string partition)
+        internal static Exception StreamChanged(CloudTable table, Partition partition)
         {
             return new ConcurrencyConflictException(table, partition, "Stream header has been changed in a storage");
         }
 
-        internal static Exception StreamChangedOrExists(CloudTable table, string partition)
+        internal static Exception StreamChangedOrExists(CloudTable table, Partition partition)
         {
             return new ConcurrencyConflictException(table, partition, "Stream header has been changed or already exists in a storage");
         }

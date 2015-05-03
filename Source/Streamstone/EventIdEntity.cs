@@ -12,10 +12,10 @@ namespace Streamstone
         public EventIdEntity()
         {}
 
-        internal EventIdEntity(string partition, string id, int version)
+        public EventIdEntity(Partition partition, string id, int version)
         {
-            PartitionKey = partition;
-            RowKey = RowKeyPrefix + id;
+            PartitionKey = partition.PartitionKey;
+            RowKey = partition.EventIdRowKey(id);
             Version = version;
         }
 
