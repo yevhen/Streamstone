@@ -101,7 +101,7 @@ namespace Streamstone
             return (await TryOpenAsync(table, partition).Really()).Found;
         }
 
-        const int DefaultSliceSize = 500;
+        const int DefaultSliceSize = 1000;
 
         public static StreamSlice<T> Read<T>(
             CloudTable table,

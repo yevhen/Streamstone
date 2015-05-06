@@ -1,43 +1,41 @@
 ﻿using System;
 using System.Linq;
 
-using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
-using Streamstone;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Example.Scenarios
 {
+    using Streamstone;
+
     public class S06_Include_additional_entities : Scenario
     {
         public override void Run()
         {
-            var stream = new Stream(Partition);
+            var id = Partition;
+            var stream = new Stream(id);
 
-            Console.WriteLine("Writing to new stream along with making snapshot in partition '{0}'", stream.Partition);
+            Console.WriteLine("Writing to new stream along with making snapshot in partition '{0}'", 
+                               stream.Partition);
 
             var events = new[]
             {
-                Event(new InventoryItemCreated(Partition, "iPhone6")),
-                Event(new InventoryItemCheckedIn(Partition, 100)),
-                Event(new InventoryItemCheckedOut(Partition, 50)),
-                Event(new InventoryItemRenamed(Partition, "iPhone6", "iPhone7")),
-                Event(new InventoryItemCheckedOut(Partition, 40))
+                Event(new InventoryItemCreated(id, "iPhone6")),
+                Event(new InventoryItemCheckedIn(id, 100)),
+                Event(new InventoryItemCheckedOut(id, 50)),
+                Event(new InventoryItemRenamed(id, "iPhone6", "iPhone7")),
+                Event(new InventoryItemCheckedOut(id, 40))
             };
 
-            var shapshot = new InventoryItemShapshot
+            var snapshot = Include.InsertOrReplace(new InventoryItemShapshot
             {
-                RowKey = "SNAPSHOT",
-                Name   = "iPhone7",
-                Count  = 100 - 50 - 40,
+                RowKey  = "SNAPSHOT",
+                Name    = "iPhone7",
+                Count   = 100 - 50 - 40,
                 Version = events.Length
-            };
+            });
 
-            var includes = new[]
-            {
-                Include.InsertOrReplace(shapshot)
-            };
-
-            var result = Stream.Write(Table, stream, events, includes);
+            var result = Stream.Write(Table, stream, events, new[]{snapshot});
 
             Console.WriteLine("Succesfully written to new stream.\r\nEtag: {0}, Version: {1}",
                               result.Stream.ETag, result.Stream.Version);
