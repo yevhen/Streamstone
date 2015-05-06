@@ -79,7 +79,6 @@
     <Compile Include="EventIdEntity.cs" />
     <Compile Include="EventProperties.cs" />
     <Compile Include="Partition.cs" />
-    <Compile Include="VersionedEntity.cs" />
     <Compile Include="PropertyMap.cs" />
     <Compile Include="Requires.cs" />
     <Compile Include="Exceptions.cs" />

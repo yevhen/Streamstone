@@ -29,6 +29,7 @@ namespace Example.Scenarios
                 RowKey = "SNAPSHOT",
                 Name   = "iPhone7",
                 Count  = 100 - 50 - 40,
+                Version = events.Length
             };
 
             var includes = new[]
@@ -40,9 +41,6 @@ namespace Example.Scenarios
 
             Console.WriteLine("Succesfully written to new stream.\r\nEtag: {0}, Version: {1}",
                               result.Stream.ETag, result.Stream.Version);
-
-            Console.WriteLine("The snapshot row will be automatically version-stamped.");
-            Console.WriteLine("The current version of snapshot is: {0}", shapshot.Version);
         }
 
         static Event Event(object e)
@@ -58,7 +56,7 @@ namespace Example.Scenarios
             return new Event(id.ToString("D"), data.Props());
         }
 
-        class InventoryItemShapshot : TableEntity, IVersionedEntity
+        class InventoryItemShapshot : TableEntity
         {
             public string Name { get; set; }
             public int Count   { get; set; }

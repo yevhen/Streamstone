@@ -110,18 +110,6 @@ namespace Streamstone.Scenarios
             Assert.Throws<ConcurrencyConflictException>(
                 async () => await Stream.WriteAsync(table, result.Stream, events, new[]{include}));
         }        
-        
-        [Test]
-        public async void When_included_entity_implements_versioned_entity()
-        {
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
-
-            var entity  = new TestVersionedEntity("INV-0001");
-            var include = Include.Insert(entity);
-
-            var result = await Stream.WriteAsync(table, new Stream(partition), events, new[]{include});
-            Assert.That(entity.Version, Is.EqualTo(result.Stream.Version));
-        }
 
         TestEntity RetrieveTestEntity(string rowKey)
         {
@@ -155,15 +143,6 @@ namespace Streamstone.Scenarios
             }
 
             public string Data { get; set; }            
-        }
-
-        class TestVersionedEntity : TestEntity, IVersionedEntity
-        {
-            public TestVersionedEntity(string rowKey)
-                : base(rowKey)
-            {}
-
-            public int Version { get; set; }
         }
     }
 }
