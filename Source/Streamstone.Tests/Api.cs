@@ -8,7 +8,8 @@ namespace Streamstone
         public const int MaxBatchSize = 100;
         public const int EntitiesPerEvent = 2;
         public const int StreamEntityPerBatch = 1;
-        public const int MaxEntitiesPerBatch = (MaxBatchSize / EntitiesPerEvent) - StreamEntityPerBatch;
+        public const int MaxEventsPerBatch = (MaxBatchSize / EntitiesPerEvent) - StreamEntityPerBatch;
+        public const int MaxEntitiesTotalPerBatch = MaxBatchSize - StreamEntityPerBatch;
 
         public const string StreamRowKey = "SS-HEAD";
         public const string EventRowKeyPrefix = "SS-SE-";

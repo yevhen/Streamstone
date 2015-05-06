@@ -113,11 +113,17 @@ namespace Streamstone
                 const int maxBatchSize = 100;
                 const int entitiesPerEvent = 2;
                 const int streamEntityPerBatch = 1;
-                const int maxEntitiesPerBatch = (maxBatchSize / entitiesPerEvent) - streamEntityPerBatch;
+                const int maxEventsPerBatch = (maxBatchSize / entitiesPerEvent) - streamEntityPerBatch;
+                const int maxEntitiesTotalPerBatch = maxBatchSize - streamEntityPerBatch;
 
-                if (events.Length + includes.Length > maxEntitiesPerBatch)
+                if (events.Length > maxEventsPerBatch)
                     throw new ArgumentOutOfRangeException("events",
-                        "Maximum number of events per batch is " + maxEntitiesPerBatch);
+                        "Maximum number of events per batch is " + maxEventsPerBatch);
+
+                if (events.Length * 2 + includes.Length > maxEntitiesTotalPerBatch)
+                    throw new ArgumentOutOfRangeException("includes",
+                        "Maximum number of includes you can put in this batch is " + 
+                            (maxEntitiesTotalPerBatch - events.Length * 2));
 
                 this.table = table;
                 this.stream = stream;

@@ -23,12 +23,12 @@ namespace Streamstone.Scenarios
         public void When_writing_number_of_events_plus_includes_is_over_max_batch_size_limit()
         {
             var events = Enumerable
-                .Range(1, (Api.MaxEntitiesPerBatch / 2) + 1)
+                .Range(1, Api.MaxEventsPerBatch - 1)
                 .Select(i => CreateEvent("e" + i))
                 .ToArray();
 
             var includes = Enumerable
-                .Range(1, (Api.MaxEntitiesPerBatch / 2) + 1)
+                .Range(1, Api.MaxEntitiesTotalPerBatch - events.Length * 2  + 1)
                 .Select(i => Include.Insert(new TestEntity()))
                 .ToArray();
 

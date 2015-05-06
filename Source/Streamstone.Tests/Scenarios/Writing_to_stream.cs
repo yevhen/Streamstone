@@ -77,7 +77,7 @@ namespace Streamstone.Scenarios
             var stream = await Stream.ProvisionAsync(table, partition);
 
             var events = Enumerable
-                .Range(1, Api.MaxEntitiesPerBatch + 1)
+                .Range(1, Api.MaxEventsPerBatch + 1)
                 .Select(i => CreateEvent("e" + i))
                 .ToArray();
 
