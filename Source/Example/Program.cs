@@ -25,8 +25,6 @@ namespace Example
                 new S07_Custom_stream_metadata(),
                 new S08_Concurrency_conflicts(),
                 new S09_Handling_duplicates(),
-                new S10_Using_snapshots(),
-                new S11_Creating_projections()
             };
 
             for (int i = 0; i < scenarios.Length; i++)
