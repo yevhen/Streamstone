@@ -6,11 +6,11 @@ Streamstone is a small library targeted at building scalable event-sourced appli
 
 ## Features
 
-+ ACID stream operations
++ Fully ACID compliant
 + Optimistic concurrency and idempotency support
-+ Queryable user-defined stream and event properties
-+ Supports arbitrary entity includes within a batch (for stream snapshots and projections)
-+ Virtual partitions (for cross-stream projections, "global" event ordering and multi-tenant apps)
++ Custom stream and event properties you can query on
++ Synchronous projections and snapshots
++ Friendly for multi-tenant designs
 
 ## Installing from NuGet [![NuGet](https://img.shields.io/nuget/v/Streamstone.svg?style=flat)](https://www.nuget.org/packages/Streamstone/)
 
@@ -28,11 +28,11 @@ For a list of available commands run `Nake.bat -T`.
 
 ## Design
 
-Streamstone is just a thin layer (library, not a server) on top of Windows Azure Table Storage. It implements low-level mechanics for dealing with event streams, and all heavy-weight lifting is done by underlying store. 
+Streamstone is just a thin layer (library, not a server) on top of Windows Azure Table Storage. It implements low-level mechanics for dealing with event streams, and all heavy-weight lifting is done by underlying provider. 
 
-The api is stateless and all exposed objects are immutable, once fully constructed. Streamstone doesn't dictate serialization protocol, so you are free to choose any protocol you want.
+The api is stateless and all exposed objects are immutable, once fully constructed. Streamstone doesn't dictate payload serialization protocol, so you are free to choose any protocol you want.
 
-Optimistic concurrency is implemented by making version be a part of a RowKey identifier. Idempotence support is done by automatically creating additional entity for every event, with RowKey value set to a unique identifier of a source event (consistent secondary index).     
+Optimistic concurrency is implemented by making version part of RowKey identifier. Idempotence support is done by automatically creating additional entity for every event, with RowKey value set to a unique identifier of a source event (consistent secondary index).     
 
 ## Schema
 
@@ -49,13 +49,14 @@ Optimistic concurrency is implemented by making version be a part of a RowKey id
 + Opening stream [[see](Source/Example/Scenarios/S02_Open_stream_for_writing.cs)]
 + Writing to stream [[see](Source/Example/Scenarios/S04_Write_to_stream.cs)]
 + Reading from stream [[see](Source/Example/Scenarios/S05_Read_from_stream.cs)]
++ Additional entity includes [[see](Source/Example/Scenarios/S06_Include_additional_entities.cs)]
 + Optimistic concurrency [[see](Source/Example/Scenarios/S08_Concurrency_conflicts.cs)]
 + Idempotent processing [[see](Source/Example/Scenarios/S09_Handling_duplicates.cs)]
 + Custom stream metadata [[see](Source/Example/Scenarios/S07_Custom_stream_metadata.cs)]
-+ Virtual partitions [[see]()]
++ Virtual partitions [[see](Source/Streamstone.Tests/Scenarios/Virtual_partitions.cs)]
 
 ##### Application
-+ Using snapshots [[see]()]
++ Using snapshots [[see](Source/Example/Scenarios/S06_Include_additional_entities.cs)]
 + Creating projections [[see]()]
 + Querying events [[see]()]
 
