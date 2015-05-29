@@ -14,7 +14,12 @@ namespace Streamstone
             return Provision(new Stream(partition));
         }
 
-        public static Stream Provision(Stream stream)
+        public static Stream Provision(Partition partition, IDictionary<string, EntityProperty> properties)
+        {
+            return Provision(new Stream(partition, properties));
+        }
+
+        static Stream Provision(Stream stream)
         {
             return new ProvisionOperation(stream.Partition.Table, stream).Execute();
         }
@@ -24,7 +29,12 @@ namespace Streamstone
             return ProvisionAsync(new Stream(partition));
         }
 
-        public static Task<Stream> ProvisionAsync(Stream stream)
+        public static Task<Stream> ProvisionAsync(Partition partition, IDictionary<string, EntityProperty> properties)
+        {
+            return ProvisionAsync(new Stream(partition, properties));
+        }
+
+        static Task<Stream> ProvisionAsync(Stream stream)
         {
             return new ProvisionOperation(stream.Partition.Table, stream).ExecuteAsync();
         }

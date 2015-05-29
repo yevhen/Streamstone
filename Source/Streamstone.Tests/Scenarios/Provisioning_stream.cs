@@ -58,7 +58,7 @@ namespace Streamstone.Scenarios
                 {"Active",  new EntityProperty(true)}
             };
 
-            var stream = await Stream.ProvisionAsync(new Stream(partition, properties));
+            var stream = await Stream.ProvisionAsync(partition, properties);
             var entity = partition.RetrieveStreamEntity();
 
             var expectedStream = new Stream
@@ -78,20 +78,6 @@ namespace Streamstone.Scenarios
             };
 
             entity.ShouldMatch(expectedEntity.ToExpectedObject());
-        }
-
-        [Test]
-        public async void When_trying_to_provision_already_stored_stream()
-        {
-            var stream = await Stream.ProvisionAsync(partition);
-
-            partition.CaptureContents(contents =>
-            {
-                Assert.Throws<ArgumentException>(
-                    async () => await Stream.ProvisionAsync(stream));
-
-                contents.AssertNothingChanged();
-            });
         }
     }
 }

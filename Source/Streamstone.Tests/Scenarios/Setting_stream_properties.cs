@@ -53,7 +53,7 @@ namespace Streamstone.Scenarios
                 {"P2", new EntityProperty("42")}
             };
 
-            var stream = await Stream.ProvisionAsync(new Stream(partition, properties));
+            var stream = await Stream.ProvisionAsync(partition, properties);
 
             var newProperties = new Dictionary<string, EntityProperty>
             {

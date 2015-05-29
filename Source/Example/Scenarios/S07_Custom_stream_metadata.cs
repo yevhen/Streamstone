@@ -26,12 +26,12 @@ namespace Example.Scenarios
                 {"Active",  new EntityProperty(true)}
             };
             
-            var stream = new Stream(partition, properties);
-            Stream.Provision(stream);
+            Stream.Provision(partition, properties);
+            
+            Console.WriteLine("Stream metadata specified during provisioning in partition '{0}'", 
+                              partition);
 
-            Console.WriteLine("Stream metadata specified during provisioning in partition '{0}'", partition);
-
-            stream = Stream.Open(partition);
+            var stream = Stream.Open(partition);
             Print(stream.Properties);
         }
 
@@ -48,7 +48,8 @@ namespace Example.Scenarios
             var stream = new Stream(partition, properties);
             Stream.Write(stream, new[]{new Event("42")});
 
-            Console.WriteLine("Stream metadata specified during writing to new stream in partition '{0}'", partition);
+            Console.WriteLine("Stream metadata specified during writing to new stream in partition '{0}'", 
+                              partition);
 
             stream = Stream.Open(partition);
             Print(stream.Properties);
@@ -64,12 +65,12 @@ namespace Example.Scenarios
                 {"Active",  new EntityProperty(true)}
             };
 
-            var stream = new Stream(partition, properties);
-            Stream.Provision(stream);
+            Stream.Provision(partition, properties);
 
-            Console.WriteLine("Stream metadata specified for stream in partition '{0}'", partition);
+            Console.WriteLine("Stream metadata specified for stream in partition '{0}'", 
+                              partition);
 
-            stream = Stream.Open(partition);
+            var stream = Stream.Open(partition);
             Print(stream.Properties);
 
             properties["Active"] = new EntityProperty(false);
