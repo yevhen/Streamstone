@@ -2,7 +2,6 @@
 using System.Linq;
 
 using Streamstone;
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Example.Scenarios
 {
@@ -50,7 +49,7 @@ namespace Example.Scenarios
                 slice = Stream.Read<EventEntity>(Table, Partition, nextSliceStart, sliceSize: 1);
 
                 foreach (var @event in slice.Events)
-                    Console.WriteLine("{0}: {1}-{2}", @event.Version, @event.Type, @event.Data);
+                    Console.WriteLine("{0}:{1} {2}-{3}", @event.Id, @event.Version, @event.Type, @event.Data);
 
                 nextSliceStart = slice.NextEventNumber;
             }
@@ -69,8 +68,7 @@ namespace Example.Scenarios
             return new Event(id.ToString(), data.Props());
         }
 
-        /// define entity that will hold event properties
-        class EventEntity : TableEntity     
+        class EventEntity
         {
             public string Id   { get; set; }
             public string Type { get; set; }
