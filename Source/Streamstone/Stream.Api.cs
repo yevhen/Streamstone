@@ -21,7 +21,7 @@ namespace Streamstone
 
         static Stream Provision(Stream stream)
         {
-            return new ProvisionOperation(stream.Partition.Table, stream).Execute();
+            return new ProvisionOperation(stream).Execute();
         }
 
         public static Task<Stream> ProvisionAsync(Partition partition)
@@ -36,7 +36,7 @@ namespace Streamstone
 
         static Task<Stream> ProvisionAsync(Stream stream)
         {
-            return new ProvisionOperation(stream.Partition.Table, stream).ExecuteAsync();
+            return new ProvisionOperation(stream).ExecuteAsync();
         }
 
         static readonly Include[] NoIncludes = new Include[0];
@@ -48,7 +48,7 @@ namespace Streamstone
 
         public static StreamWriteResult Write(Stream stream, Event[] events, Include[] includes)
         {
-            return new WriteOperation(stream.Partition.Table, stream, events, includes).Execute();
+            return new WriteOperation(stream, events, includes).Execute();
         }
 
         public static Task<StreamWriteResult> WriteAsync(Stream stream, Event[] events)
@@ -58,17 +58,17 @@ namespace Streamstone
 
         public static Task<StreamWriteResult> WriteAsync(Stream stream, Event[] events, Include[] includes)
         {
-            return new WriteOperation(stream.Partition.Table, stream, events, includes).ExecuteAsync();
+            return new WriteOperation(stream, events, includes).ExecuteAsync();
         }
 
         public static Stream SetProperties(Stream stream, IDictionary<string, EntityProperty> properties)
         {
-            return new SetPropertiesOperation(stream.Partition.Table, stream, StreamProperties.From(properties)).Execute();
+            return new SetPropertiesOperation(stream, StreamProperties.From(properties)).Execute();
         }
 
         public static Task<Stream> SetPropertiesAsync(Stream stream, IDictionary<string, EntityProperty> properties)
         {
-            return new SetPropertiesOperation(stream.Partition.Table, stream, StreamProperties.From(properties)).ExecuteAsync();
+            return new SetPropertiesOperation(stream, StreamProperties.From(properties)).ExecuteAsync();
         }
 
         public static Stream Open(Partition partition)
@@ -83,7 +83,7 @@ namespace Streamstone
 
         public static StreamOpenResult TryOpen(Partition partition)
         {
-            return new OpenStreamOperation(partition.Table, partition).Execute();
+            return new OpenStreamOperation(partition).Execute();
         }
 
         public static async Task<Stream> OpenAsync(Partition partition)
@@ -98,7 +98,7 @@ namespace Streamstone
 
         public static Task<StreamOpenResult> TryOpenAsync(Partition partition)
         {
-            return new OpenStreamOperation(partition.Table, partition).ExecuteAsync();
+            return new OpenStreamOperation(partition).ExecuteAsync();
         }
 
         public static bool Exists(Partition partition)
@@ -119,7 +119,7 @@ namespace Streamstone
             int sliceSize = DefaultSliceSize) 
             where T : class, new()
         {
-            return new ReadOperation<T>(partition.Table, partition, startVersion, sliceSize).Execute();
+            return new ReadOperation<T>(partition, startVersion, sliceSize).Execute();
         }
         
         public static Task<StreamSlice<T>> ReadAsync<T>(
@@ -128,7 +128,7 @@ namespace Streamstone
             int sliceSize = DefaultSliceSize) 
             where T : class, new()
         {
-            return new ReadOperation<T>(partition.Table, partition, startVersion, sliceSize).ExecuteAsync();
+            return new ReadOperation<T>(partition, startVersion, sliceSize).ExecuteAsync();
         }
     }
 }
