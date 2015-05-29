@@ -34,7 +34,7 @@ namespace Example
                 Console.WriteLine("{0}", scenario.GetType().Name.Replace("_", " "));
                 Console.WriteLine(new string('-', 40));
 
-                scenario.Initialize(table, i);
+                scenario.Initialize(table, i.ToString());
                 scenario.Run();
 
                 Console.WriteLine();

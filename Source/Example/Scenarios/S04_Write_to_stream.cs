@@ -18,7 +18,7 @@ namespace Example.Scenarios
 
         void WriteToExistingOrCreateNewStream()
         {
-            var existent = Stream.TryOpen(Table, Partition);
+            var existent = Stream.TryOpen(Partition);
 
             var stream = existent.Found 
                 ? existent.Stream 
@@ -26,10 +26,10 @@ namespace Example.Scenarios
 
             Console.WriteLine("Writing to new stream in partition '{0}'", stream.Partition);
 
-            var result = Stream.Write(Table, stream, new[]
+            var result = Stream.Write(stream, new[]
             {
-                Event(new InventoryItemCreated(Partition, "iPhone6")),
-                Event(new InventoryItemCheckedIn(Partition, 100)),
+                Event(new InventoryItemCreated(Id, "iPhone6")),
+                Event(new InventoryItemCheckedIn(Id, 100)),
             });
 
             Console.WriteLine("Succesfully written to new stream.\r\nEtag: {0}, Version: {1}", 
@@ -38,16 +38,16 @@ namespace Example.Scenarios
 
         void WriteSequentiallyToExistingStream()
         {
-            var stream = Stream.Open(Table, Partition);
+            var stream = Stream.Open(Partition);
 
             Console.WriteLine("Writing sequentially to existing stream in partition '{0}'", stream.Partition);
             Console.WriteLine("Etag: {0}, Version: {1}", stream.ETag, stream.Version);
 
             for (int i = 1; i <= 10; i++)
             {
-                var result = Stream.Write(Table, stream, new[]
+                var result = Stream.Write(stream, new[]
                 {
-                    Event(new InventoryItemCheckedIn(Partition, i*100)),
+                    Event(new InventoryItemCheckedIn(Id, i*100)),
                 });
 
                 Console.WriteLine("Succesfully written event '{0}' under version '{1}'", 

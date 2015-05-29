@@ -9,7 +9,7 @@ namespace Example.Scenarios
     {
         public override void Run()
         {
-            var result = Stream.Write(Table, new Stream(Partition), new[]{new Event(id: "42")});
+            var result = Stream.Write(new Stream(Partition), new[]{new Event(id: "42")});
 
             try
             {
@@ -19,7 +19,7 @@ namespace Example.Scenarios
                     new Event(id: "42")  // conflicting (duplicate) event
                 };
 
-                Stream.Write(Table, result.Stream, events);
+                Stream.Write(result.Stream, events);
             }
             catch (DuplicateEventException e)
             {

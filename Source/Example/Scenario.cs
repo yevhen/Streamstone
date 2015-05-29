@@ -1,19 +1,22 @@
 ﻿using System;
 using System.Linq;
 
+using Streamstone;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Example
 {
     public abstract class Scenario
     {
+        protected string Id;
         protected CloudTable Table;
-        protected string Partition;
+        protected Partition Partition;
 
-        public void Initialize(CloudTable table, int partition)
+        public void Initialize(CloudTable table, string id)
         {
+            Id = id;
             Table = table;
-            Partition = partition.ToString();
+            Partition = new Partition(table, id);
         }
 
         public abstract void Run();

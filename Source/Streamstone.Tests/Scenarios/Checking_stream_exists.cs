@@ -9,26 +9,27 @@ namespace Streamstone.Scenarios
     [TestFixture]
     public class Checking_stream_exists
     {
-        const string partition = "test";
+        Partition partition;
         CloudTable table;
 
         [SetUp]
         public void SetUp()
         {
             table = Storage.SetUp();
+            partition = new Partition(table, "test");
         }
 
         [Test]
         public async void When_stream_does_exists()
         {
-            await Stream.ProvisionAsync(table, partition);
-            Assert.True(await Stream.ExistsAsync(table, partition));
+            await Stream.ProvisionAsync(partition);
+            Assert.True(await Stream.ExistsAsync(partition));
         }
         
         [Test]
         public async void When_stream_does_not_exist()
         {
-            Assert.False(await Stream.ExistsAsync(table, partition));
+            Assert.False(await Stream.ExistsAsync(partition));
         }
     }
 }

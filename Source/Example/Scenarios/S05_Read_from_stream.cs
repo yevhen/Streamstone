@@ -22,14 +22,14 @@ namespace Example.Scenarios
                 .Select(Event)
                 .ToArray();
 
-            Stream.Write(Table, new Stream(Partition), events);
+            Stream.Write(new Stream(Partition), events);
         }
 
         void ReadSlice()
         {
             Console.WriteLine("Reading single slice from specified start version and using specified slice size");
 
-            var slice = Stream.Read<EventEntity>(Table, Partition, startVersion: 2, sliceSize: 2);
+            var slice = Stream.Read<EventEntity>(Partition, startVersion: 2, sliceSize: 2);
             foreach (var @event in slice.Events)
                 Console.WriteLine("{0}: {1}-{2}", @event.Version, @event.Type, @event.Data);
 
@@ -46,7 +46,7 @@ namespace Example.Scenarios
 
             do
             {
-                slice = Stream.Read<EventEntity>(Table, Partition, nextSliceStart, sliceSize: 1);
+                slice = Stream.Read<EventEntity>(Partition, nextSliceStart, sliceSize: 1);
 
                 foreach (var @event in slice.Events)
                     Console.WriteLine("{0}:{1} {2}-{3}", @event.Id, @event.Version, @event.Type, @event.Data);

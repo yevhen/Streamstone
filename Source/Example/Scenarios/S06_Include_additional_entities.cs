@@ -12,19 +12,18 @@ namespace Example.Scenarios
     {
         public override void Run()
         {
-            var id = Partition;
-            var stream = new Stream(id);
+            var stream = new Stream(Partition);
 
             Console.WriteLine("Writing to new stream along with making snapshot in partition '{0}'", 
-                               stream.Partition);
+                              stream.Partition);
 
             var events = new[]
             {
-                Event(new InventoryItemCreated(id, "iPhone6")),
-                Event(new InventoryItemCheckedIn(id, 100)),
-                Event(new InventoryItemCheckedOut(id, 50)),
-                Event(new InventoryItemRenamed(id, "iPhone6", "iPhone7")),
-                Event(new InventoryItemCheckedOut(id, 40))
+                Event(new InventoryItemCreated(Id, "iPhone6")),
+                Event(new InventoryItemCheckedIn(Id, 100)),
+                Event(new InventoryItemCheckedOut(Id, 50)),
+                Event(new InventoryItemRenamed(Id, "iPhone6", "iPhone7")),
+                Event(new InventoryItemCheckedOut(Id, 40))
             };
 
             var snapshot = Include.InsertOrReplace(new InventoryItemShapshot
@@ -35,7 +34,7 @@ namespace Example.Scenarios
                 Version = events.Length
             });
 
-            var result = Stream.Write(Table, stream, events, new[]{snapshot});
+            var result = Stream.Write(stream, events, new[]{snapshot});
 
             Console.WriteLine("Succesfully written to new stream.\r\nEtag: {0}, Version: {1}",
                               result.Stream.ETag, result.Stream.Version);

@@ -17,7 +17,7 @@ namespace Example.Scenarios
         {
             try
             {
-                Stream.Open(Table, Partition);
+                Stream.Open(Partition);
             }
             catch (StreamNotFoundException)
             {
@@ -27,9 +27,9 @@ namespace Example.Scenarios
 
         void OpenExistingStream()
         {
-            Stream.Provision(Table, Partition);
+            Stream.Provision(Partition);
 
-            var stream = Stream.Open(Table, Partition);
+            var stream = Stream.Open(Partition);
 
             Console.WriteLine("Opened existing (empty) stream in partition '{0}'", stream.Partition);
             Console.WriteLine("Etag: {0}", stream.ETag);

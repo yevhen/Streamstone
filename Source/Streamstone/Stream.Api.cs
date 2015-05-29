@@ -9,118 +9,116 @@ namespace Streamstone
 {
     public sealed partial class Stream
     {
-        public static Stream Provision(CloudTable table, Partition partition)
+        public static Stream Provision(Partition partition)
         {
-            return Provision(table, new Stream(partition));
+            return Provision(new Stream(partition));
         }
 
-        public static Stream Provision(CloudTable table, Stream stream)
+        public static Stream Provision(Stream stream)
         {
-            return new ProvisionOperation(table, stream).Execute();
+            return new ProvisionOperation(stream.Partition.Table, stream).Execute();
         }
 
-        public static Task<Stream> ProvisionAsync(CloudTable table, Partition partition)
+        public static Task<Stream> ProvisionAsync(Partition partition)
         {
-            return ProvisionAsync(table, new Stream(partition));
+            return ProvisionAsync(new Stream(partition));
         }
 
-        public static Task<Stream> ProvisionAsync(CloudTable table, Stream stream)
+        public static Task<Stream> ProvisionAsync(Stream stream)
         {
-            return new ProvisionOperation(table, stream).ExecuteAsync();
+            return new ProvisionOperation(stream.Partition.Table, stream).ExecuteAsync();
         }
 
         static readonly Include[] NoIncludes = new Include[0];
 
-        public static StreamWriteResult Write(CloudTable table, Stream stream, Event[] events)
+        public static StreamWriteResult Write(Stream stream, Event[] events)
         {
-            return Write(table, stream, events, NoIncludes);
+            return Write(stream, events, NoIncludes);
         }
 
-        public static StreamWriteResult Write(CloudTable table, Stream stream, Event[] events, Include[] includes)
+        public static StreamWriteResult Write(Stream stream, Event[] events, Include[] includes)
         {
-            return new WriteOperation(table, stream, events, includes).Execute();
+            return new WriteOperation(stream.Partition.Table, stream, events, includes).Execute();
         }
 
-        public static Task<StreamWriteResult> WriteAsync(CloudTable table, Stream stream, Event[] events)
+        public static Task<StreamWriteResult> WriteAsync(Stream stream, Event[] events)
         {
-            return WriteAsync(table, stream, events, NoIncludes);
+            return WriteAsync(stream, events, NoIncludes);
         }
 
-        public static Task<StreamWriteResult> WriteAsync(CloudTable table, Stream stream, Event[] events, Include[] includes)
+        public static Task<StreamWriteResult> WriteAsync(Stream stream, Event[] events, Include[] includes)
         {
-            return new WriteOperation(table, stream, events, includes).ExecuteAsync();
+            return new WriteOperation(stream.Partition.Table, stream, events, includes).ExecuteAsync();
         }
 
-        public static Stream SetProperties(CloudTable table, Stream stream, IDictionary<string, EntityProperty> properties)
+        public static Stream SetProperties(Stream stream, IDictionary<string, EntityProperty> properties)
         {
-            return new SetPropertiesOperation(table, stream, StreamProperties.From(properties)).Execute();
+            return new SetPropertiesOperation(stream.Partition.Table, stream, StreamProperties.From(properties)).Execute();
         }
 
-        public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, IDictionary<string, EntityProperty> properties)
+        public static Task<Stream> SetPropertiesAsync(Stream stream, IDictionary<string, EntityProperty> properties)
         {
-            return new SetPropertiesOperation(table, stream, StreamProperties.From(properties)).ExecuteAsync();
+            return new SetPropertiesOperation(stream.Partition.Table, stream, StreamProperties.From(properties)).ExecuteAsync();
         }
 
-        public static Stream Open(CloudTable table, Partition partition)
+        public static Stream Open(Partition partition)
         {
-            var result = TryOpen(table, partition);
+            var result = TryOpen(partition);
 
             if (result.Found)
                 return result.Stream;
 
-            throw new StreamNotFoundException(table, partition);
+            throw new StreamNotFoundException(partition.Table, partition);
         }
 
-        public static StreamOpenResult TryOpen(CloudTable table, Partition partition)
+        public static StreamOpenResult TryOpen(Partition partition)
         {
-            return new OpenStreamOperation(table, partition).Execute();
+            return new OpenStreamOperation(partition.Table, partition).Execute();
         }
 
-        public static async Task<Stream> OpenAsync(CloudTable table, Partition partition)
+        public static async Task<Stream> OpenAsync(Partition partition)
         {
-            var result = await TryOpenAsync(table, partition).Really();
+            var result = await TryOpenAsync(partition).Really();
 
             if (result.Found)
                 return result.Stream;
 
-            throw new StreamNotFoundException(table, partition);
+            throw new StreamNotFoundException(partition.Table, partition);
         }
 
-        public static Task<StreamOpenResult> TryOpenAsync(CloudTable table, Partition partition)
+        public static Task<StreamOpenResult> TryOpenAsync(Partition partition)
         {
-            return new OpenStreamOperation(table, partition).ExecuteAsync();
+            return new OpenStreamOperation(partition.Table, partition).ExecuteAsync();
         }
 
-        public static bool Exists(CloudTable table, Partition partition)
+        public static bool Exists(Partition partition)
         {
-            return TryOpen(table, partition).Found;
+            return TryOpen(partition).Found;
         }
 
-        public static async Task<bool> ExistsAsync(CloudTable table, Partition partition)
+        public static async Task<bool> ExistsAsync(Partition partition)
         {
-            return (await TryOpenAsync(table, partition).Really()).Found;
+            return (await TryOpenAsync(partition).Really()).Found;
         }
 
         const int DefaultSliceSize = 1000;
 
         public static StreamSlice<T> Read<T>(
-            CloudTable table,
             Partition partition, 
             int startVersion = 1, 
             int sliceSize = DefaultSliceSize) 
             where T : class, new()
         {
-            return new ReadOperation<T>(table, partition, startVersion, sliceSize).Execute();
+            return new ReadOperation<T>(partition.Table, partition, startVersion, sliceSize).Execute();
         }
         
         public static Task<StreamSlice<T>> ReadAsync<T>(
-            CloudTable table,
             Partition partition, 
             int startVersion = 1, 
             int sliceSize = DefaultSliceSize) 
             where T : class, new()
         {
-            return new ReadOperation<T>(table, partition, startVersion, sliceSize).ExecuteAsync();
+            return new ReadOperation<T>(partition.Table, partition, startVersion, sliceSize).ExecuteAsync();
         }
     }
 }

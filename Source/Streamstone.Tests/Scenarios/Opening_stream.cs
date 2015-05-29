@@ -9,35 +9,36 @@ namespace Streamstone.Scenarios
     [TestFixture]
     public class Opening_stream
     {
-        const string partition = "test";
+        Partition partition;
         CloudTable table;
 
         [SetUp]
         public void SetUp()
         {
             table = Storage.SetUp();
+            partition = new Partition(table, "test");
         }
 
         [Test]
         public async void When_stream_does_exists()
         {
-            await Stream.ProvisionAsync(table, partition);
-            Assert.NotNull(await Stream.OpenAsync(table, partition));
+            await Stream.ProvisionAsync(partition);
+            Assert.NotNull(await Stream.OpenAsync(partition));
         }
         
         [Test]
         [ExpectedException(typeof(StreamNotFoundException))]
         public async void When_stream_does_not_exist()
         {
-            await Stream.OpenAsync(table, partition);
+            await Stream.OpenAsync(partition);
         }
 
         [Test]
         public async void When_trying_to_open_and_stream_does_exists()
         {
-            await Stream.ProvisionAsync(table, partition);
+            await Stream.ProvisionAsync(partition);
             
-            var result = await Stream.TryOpenAsync(table, partition);
+            var result = await Stream.TryOpenAsync(partition);
             
             Assert.That(result.Found, Is.True);
             Assert.That(result.Stream, Is.Not.Null);
@@ -46,7 +47,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_trying_to_open_and_stream_does_not_exist()
         {
-            var result = await Stream.TryOpenAsync(table, partition);
+            var result = await Stream.TryOpenAsync(partition);
             
             Assert.That(result.Found, Is.False);
             Assert.That(result.Stream, Is.Null);

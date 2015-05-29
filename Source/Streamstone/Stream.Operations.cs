@@ -105,7 +105,7 @@ namespace Streamstone
                 Requires.NotNull(table, "table");
                 Requires.NotNull(stream, "stream");
                 Requires.NotNull(events, "events");
-                Requires.NotNull(events, "includes");
+                Requires.NotNull(includes, "includes");
 
                 if (events.Length == 0)
                     throw new ArgumentOutOfRangeException("events", "Events have 0 items");

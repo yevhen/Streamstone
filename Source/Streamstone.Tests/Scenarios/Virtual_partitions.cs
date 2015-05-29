@@ -10,34 +10,38 @@ namespace Streamstone.Scenarios
     [TestFixture]
     public class Virtual_partitions
     {
-        const string partition  = "test"; 
-        const string virtual1   = partition + "|123";
-        const string virtual2   = partition + "|456"; 
-        
         CloudTable table;
+        
+        Partition partition;
+        Partition virtual1;
+        Partition virtual2;
 
         [SetUp]
         public void SetUp()
         {
             table = Storage.SetUp();
+
+            partition = new Partition(table, "test");
+            virtual1  = new Partition(table, "test|123");
+            virtual2  = new Partition(table, "test|456");
         }
 
         [Test]
         public async void When_provisioning()
         {
-            await Stream.ProvisionAsync(table, virtual1);
-            await Stream.ProvisionAsync(table, virtual2);
+            await Stream.ProvisionAsync(virtual1);
+            await Stream.ProvisionAsync(virtual2);
 
-            Assert.That(table.RetrieveAll(partition).Count, Is.EqualTo(2));
+            Assert.That(partition.RetrieveAll().Count, Is.EqualTo(2));
         }
 
         [Test]
         public async void When_opening()
         {
-            await Stream.ProvisionAsync(table, virtual1);
+            await Stream.ProvisionAsync(virtual1);
 
-            Assert.True(Stream.TryOpen(table, virtual1).Found);
-            Assert.False(Stream.TryOpen(table, virtual2).Found);
+            Assert.True(Stream.TryOpen(virtual1).Found);
+            Assert.False(Stream.TryOpen(virtual2).Found);
         }
 
         [Test]
@@ -49,14 +53,14 @@ namespace Streamstone.Scenarios
             var e1 = CreateEvent("e1");
             var e2 = CreateEvent("e2");
 
-            await Stream.WriteAsync(table, stream1, new[] {e1, e2});
-            await Stream.WriteAsync(table, stream2, new[] {e1, e2});
+            await Stream.WriteAsync(stream1, new[] {e1, e2});
+            await Stream.WriteAsync(stream2, new[] {e1, e2});
 
-            Assert.That(table.RetrieveAll(partition).Count, 
+            Assert.That(partition.RetrieveAll().Count, 
                 Is.EqualTo(2 + 2*(2*2)));
 
-            var slice1 = await Stream.ReadAsync<TestRecordedEventEntity>(table, virtual1);
-            var slice2 = await Stream.ReadAsync<TestRecordedEventEntity>(table, virtual2);
+            var slice1 = await Stream.ReadAsync<TestRecordedEventEntity>(virtual1);
+            var slice2 = await Stream.ReadAsync<TestRecordedEventEntity>(virtual2);
 
             Assert.That(slice1.Events.Length, Is.EqualTo(2));
             Assert.That(slice2.Events.Length, Is.EqualTo(2));

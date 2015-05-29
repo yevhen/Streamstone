@@ -12,29 +12,30 @@ namespace Streamstone.Scenarios
     [TestFixture]
     public class Provisioning_stream
     {
-        const string partition = "test";
+        Partition partition;
         CloudTable table;
 
         [SetUp]
         public void SetUp()
         {
             table = Storage.SetUp();
+            partition = new Partition(table, "test");
         }
 
         [Test]
         public void When_partition_already_contain_stream_header()
         {
-            table.InsertStreamEntity(partition);
+            partition.InsertStreamEntity();
 
             Assert.Throws<ConcurrencyConflictException>(
-                async ()=> await Stream.ProvisionAsync(table, partition));
+                async ()=> await Stream.ProvisionAsync(partition));
         }
 
         [Test]
         public async void When_partition_is_virgin()
         {
-            var stream = await Stream.ProvisionAsync(table, partition);
-            var entity = table.RetrieveStreamEntity(partition);
+            var stream = await Stream.ProvisionAsync(partition);
+            var entity = partition.RetrieveStreamEntity();
             
             var expectedStream = new Stream(partition, entity.ETag, 0, StreamProperties.None);
             stream.ShouldEqual(expectedStream.ToExpectedObject());
@@ -57,8 +58,8 @@ namespace Streamstone.Scenarios
                 {"Active",  new EntityProperty(true)}
             };
 
-            var stream = await Stream.ProvisionAsync(table, new Stream(partition, properties));
-            var entity = table.RetrieveStreamEntity(partition);
+            var stream = await Stream.ProvisionAsync(new Stream(partition, properties));
+            var entity = partition.RetrieveStreamEntity();
 
             var expectedStream = new Stream
             (
@@ -82,12 +83,12 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_trying_to_provision_already_stored_stream()
         {
-            var stream = await Stream.ProvisionAsync(table, partition);
+            var stream = await Stream.ProvisionAsync(partition);
 
-            table.CaptureContents(partition, contents =>
+            partition.CaptureContents(contents =>
             {
                 Assert.Throws<ArgumentException>(
-                    async () => await Stream.ProvisionAsync(table, stream));
+                    async () => await Stream.ProvisionAsync(stream));
 
                 contents.AssertNothingChanged();
             });

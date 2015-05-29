@@ -10,13 +10,14 @@ namespace Streamstone.Scenarios
     [TestFixture]
     public class Including_additional_entities
     {
-        const string partition = "test";
+        Partition partition;
         CloudTable table;
 
         [SetUp]
         public void SetUp()
         {
             table = Storage.SetUp();
+            partition = new Partition(table, "test");
         }
 
         [Test]
@@ -27,10 +28,10 @@ namespace Streamstone.Scenarios
                 .Select(i => CreateEvent("e" + i))
                 .ToArray();
 
-            table.CaptureContents(partition, contents =>
+            partition.CaptureContents(contents =>
             {
                 Assert.Throws<ArgumentOutOfRangeException>(async () => await
-                    Stream.WriteAsync(table, new Stream(partition), events));
+                    Stream.WriteAsync(new Stream(partition), events));
 
                 contents.AssertNothingChanged();
             });
@@ -49,10 +50,10 @@ namespace Streamstone.Scenarios
                 .Select(i => Include.Insert(new TestEntity()))
                 .ToArray();
 
-            table.CaptureContents(partition, contents =>
+            partition.CaptureContents(contents =>
             {
                 Assert.Throws<ArgumentOutOfRangeException>(
-                    async () => await Stream.WriteAsync(table, new Stream(partition), events, includes));
+                    async () => await Stream.WriteAsync(new Stream(partition), events, includes));
 
                 contents.AssertNothingChanged();
             });
@@ -66,7 +67,7 @@ namespace Streamstone.Scenarios
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
-            await Stream.WriteAsync(table, new Stream(partition), events, new[]{include});
+            await Stream.WriteAsync(new Stream(partition), events, new[]{include});
             
             var actual = RetrieveTestEntity(entity.RowKey);
             Assert.That(actual, Is.Not.Null);
@@ -80,14 +81,14 @@ namespace Streamstone.Scenarios
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
-            var result = await Stream.WriteAsync(table, new Stream(partition), events, new[]{include});
+            var result = await Stream.WriteAsync(new Stream(partition), events, new[]{include});
 
             events = new[] {CreateEvent("e3")};
             entity = new TestEntity("INV-0001");
             include = Include.Insert(entity);
 
             Assert.Throws<IncludedOperationConflictException>(
-                async ()=> await Stream.WriteAsync(table, result.Stream, events, new[] {include}));
+                async ()=> await Stream.WriteAsync(result.Stream, events, new[] {include}));
         }
 
         [Test]
@@ -98,14 +99,14 @@ namespace Streamstone.Scenarios
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
-            var result = await Stream.WriteAsync(table, new Stream(partition), events, new[]{include});
+            var result = await Stream.WriteAsync(new Stream(partition), events, new[]{include});
 
             events = new[] {CreateEvent("e1")};
             entity = new TestEntity("INV-0001");
             include = Include.Insert(entity);
 
             Assert.Throws<DuplicateEventException>(
-                async () => await Stream.WriteAsync(table, result.Stream, events, new[]{include}));
+                async () => await Stream.WriteAsync(result.Stream, events, new[]{include}));
         }
 
         [Test]
@@ -116,23 +117,23 @@ namespace Streamstone.Scenarios
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
-            var result = await Stream.WriteAsync(table, new Stream(partition), events, new[]{include});
+            var result = await Stream.WriteAsync(new Stream(partition), events, new[]{include});
 
             events = new[] {CreateEvent("e3")};
             entity = new TestEntity("INV-0001");
             include = Include.Insert(entity);
 
-            table.UpdateStreamEntity(partition);
+            partition.UpdateStreamEntity();
             
             Assert.Throws<ConcurrencyConflictException>(
-                async () => await Stream.WriteAsync(table, result.Stream, events, new[]{include}));
+                async () => await Stream.WriteAsync(result.Stream, events, new[]{include}));
         }        
 
         TestEntity RetrieveTestEntity(string rowKey)
         {
             return table.CreateQuery<TestEntity>()
                         .Where(x =>
-                               x.PartitionKey == partition
+                               x.PartitionKey == partition.PartitionKey
                                && x.RowKey == rowKey)
                         .ToList()
                         .SingleOrDefault();
