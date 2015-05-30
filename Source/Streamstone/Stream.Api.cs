@@ -39,26 +39,14 @@ namespace Streamstone
             return new ProvisionOperation(stream).ExecuteAsync();
         }
 
-        static readonly Include[] NoIncludes = new Include[0];
-
         public static StreamWriteResult Write(Stream stream, EventData[] events)
         {
-            return Write(stream, events, NoIncludes);
-        }
-
-        public static StreamWriteResult Write(Stream stream, EventData[] events, Include[] includes)
-        {
-            return new WriteOperation(stream, events, includes).Execute();
+            return new WriteOperation(stream, events).Execute();
         }
 
         public static Task<StreamWriteResult> WriteAsync(Stream stream, EventData[] events)
         {
-            return WriteAsync(stream, events, NoIncludes);
-        }
-
-        public static Task<StreamWriteResult> WriteAsync(Stream stream, EventData[] events, Include[] includes)
-        {
-            return new WriteOperation(stream, events, includes).ExecuteAsync();
+            return new WriteOperation(stream, events).ExecuteAsync();
         }
 
         public static Stream SetProperties(Stream stream, IDictionary<string, EntityProperty> properties)

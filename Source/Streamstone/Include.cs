@@ -17,13 +17,15 @@ namespace Streamstone
     {
         public readonly ITableEntity Entity;
         public readonly IncludeType Type;
+
         readonly TableOperation operation;
 
-        Include(IncludeType type, ITableEntity entity, TableOperation operation)
+        Include(ITableEntity entity, IncludeType type, TableOperation operation)
         {
             Entity = entity;
             Type = type;
-            this.operation = operation;            
+
+            this.operation = operation;
         }
 
         internal TableOperation Apply(Partition partition)
@@ -34,22 +36,22 @@ namespace Streamstone
 
         public static Include Delete(ITableEntity entity)
         {
-            return new Include(IncludeType.Delete, entity, TableOperation.Delete(entity));
+            return new Include(entity, IncludeType.Delete, TableOperation.Delete(entity));
         }
         
         public static Include Insert(ITableEntity entity)
         {
-            return new Include(IncludeType.Insert, entity, TableOperation.Insert(entity));
+            return new Include(entity, IncludeType.Insert, TableOperation.Insert(entity));
         }
-        
+
         public static Include InsertOrMerge(ITableEntity entity)
         {
-            return new Include(IncludeType.InsertOrMerge, entity, TableOperation.InsertOrMerge(entity));
+            return new Include(entity, IncludeType.InsertOrMerge, TableOperation.InsertOrMerge(entity));
         }
-        
+
         public static Include InsertOrReplace(ITableEntity entity)
         {
-            return new Include(IncludeType.InsertOrReplace, entity, TableOperation.InsertOrReplace(entity));
+            return new Include(entity, IncludeType.InsertOrReplace, TableOperation.InsertOrReplace(entity));
         }
     }
 }

@@ -102,10 +102,9 @@ namespace Streamstone
             readonly EventData[] events;
             readonly Include[] includes;
 
-            public WriteOperation(Stream stream, EventData[] events, Include[] includes) : base(stream)
+            public WriteOperation(Stream stream, EventData[] events) : base(stream)
             {
                 Requires.NotNull(events, "events");
-                Requires.NotNull(includes, "includes");
 
                 if (events.Length == 0)
                     throw new ArgumentOutOfRangeException("events", "Events have 0 items");
@@ -116,17 +115,17 @@ namespace Streamstone
                 const int maxEventsPerBatch = (maxBatchSize / entitiesPerEvent) - streamEntityPerBatch;
                 const int maxEntitiesTotalPerBatch = maxBatchSize - streamEntityPerBatch;
 
+                this.events = events;
+                this.includes = events.SelectMany(x => x.Includes).ToArray();
+
                 if (events.Length > maxEventsPerBatch)
                     throw new ArgumentOutOfRangeException("events",
                         "Maximum number of events per batch is " + maxEventsPerBatch);
 
                 if (events.Length * 2 + includes.Length > maxEntitiesTotalPerBatch)
-                    throw new ArgumentOutOfRangeException("includes",
+                    throw new ArgumentOutOfRangeException("events",
                         "Maximum number of includes you can put in this batch is " + 
                             (maxEntitiesTotalPerBatch - events.Length * 2));
-
-                this.events = events;
-                this.includes = includes;
             }
 
             public StreamWriteResult Execute()

@@ -25,18 +25,13 @@ namespace Streamstone.Scenarios
         {
             var events = Enumerable
                 .Range(1, Api.MaxEventsPerBatch - 1)
-                .Select(i => CreateEvent("e" + i))
-                .ToArray();
-
-            var includes = Enumerable
-                .Range(1, Api.MaxEntitiesTotalPerBatch - events.Length * 2  + 1)
-                .Select(i => Include.Insert(new TestEntity()))
+                .Select(i => CreateEvent("e" + i, Include.Insert(new TestEntity())))
                 .ToArray();
 
             partition.CaptureContents(contents =>
             {
                 Assert.Throws<ArgumentOutOfRangeException>(
-                    async () => await Stream.WriteAsync(new Stream(partition), events, includes));
+                    async () => await Stream.WriteAsync(new Stream(partition), events));
 
                 contents.AssertNothingChanged();
             });
@@ -44,13 +39,12 @@ namespace Streamstone.Scenarios
 
         [Test]
         public async void When_include_has_no_conflicts()
-        {            
-            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
-            
+        {
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
-            await Stream.WriteAsync(new Stream(partition), events, new[]{include});
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2", include)};
+            await Stream.WriteAsync(new Stream(partition), events);
             
             var actual = RetrieveTestEntity(entity.RowKey);
             Assert.That(actual, Is.Not.Null);
@@ -59,78 +53,56 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_include_has_conflict()
         {
-            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
-            var result = await Stream.WriteAsync(new Stream(partition), events, new[]{include});
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2", include)};
+            var result = await Stream.WriteAsync(new Stream(partition), events);
 
-            events = new[] {CreateEvent("e3")};
             entity = new TestEntity("INV-0001");
             include = Include.Insert(entity);
 
+            events = new[] {CreateEvent("e3", include)};
             Assert.Throws<IncludedOperationConflictException>(
-                async ()=> await Stream.WriteAsync(result.Stream, events, new[] {include}));
+                async ()=> await Stream.WriteAsync(result.Stream, events));
         }
 
         [Test]
         public async void When_include_has_conflict_and_also_duplicate_event_conflict()
         {
-            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
-
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
-            var result = await Stream.WriteAsync(new Stream(partition), events, new[]{include});
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2", include)};
+            var result = await Stream.WriteAsync(new Stream(partition), events);
 
-            events = new[] {CreateEvent("e1")};
             entity = new TestEntity("INV-0001");
             include = Include.Insert(entity);
 
+            events = new[] {CreateEvent("e1", include)};
             Assert.Throws<DuplicateEventException>(
-                async () => await Stream.WriteAsync(result.Stream, events, new[]{include}));
+                async () => await Stream.WriteAsync(result.Stream, events));
         }
 
         [Test]
         public async void When_include_has_conflict_and_also_stream_header_has_changed_since_last_read()
         {
-            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
-
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 
-            var result = await Stream.WriteAsync(new Stream(partition), events, new[]{include});
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2", include)};
+            var result = await Stream.WriteAsync(new Stream(partition), events);
 
-            events = new[] {CreateEvent("e3")};
+            partition.UpdateStreamEntity();
+
             entity = new TestEntity("INV-0001");
             include = Include.Insert(entity);
 
-            partition.UpdateStreamEntity();
-            
+            events = new[] {CreateEvent("e3", include)};
             Assert.Throws<ConcurrencyConflictException>(
-                async () => await Stream.WriteAsync(result.Stream, events, new[]{include}));
+                async () => await Stream.WriteAsync(result.Stream, events));
         }
-
-        [Test]
-        public async void When_binding_to_an_event_outside_of_batch()
-        {
-            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
-
-            var entity = new TestEntity("INV-0001");
-            var include = Include.Insert(entity);
-
-            var result = await Stream.WriteAsync(new Stream(partition), events, new[] { include });
-
-            events = new[] { CreateEvent("e3") };
-            entity = new TestEntity("INV-0001");
-            include = Include.Insert(entity);
-
-            partition.UpdateStreamEntity();
-
-            Assert.Throws<ConcurrencyConflictException>(
-                async () => await Stream.WriteAsync(result.Stream, events, new[] { include }));
-        }  
 
         TestEntity RetrieveTestEntity(string rowKey)
         {
@@ -142,14 +114,16 @@ namespace Streamstone.Scenarios
                         .SingleOrDefault();
         }
 
-        static EventData CreateEvent(string id)
+        static EventData CreateEvent(string id, params Include[] includes)
         {
-            return new EventData(id, new Dictionary<string, EntityProperty>
+            var properties = new Dictionary<string, EntityProperty>
             {
                 {"Id",   new EntityProperty(id)},
                 {"Type", new EntityProperty("StreamChanged")},
                 {"Data", new EntityProperty("{}")}
-            });
+            };
+
+            return new EventData(id, properties, includes);
         }
 
         class TestEntity : TableEntity
