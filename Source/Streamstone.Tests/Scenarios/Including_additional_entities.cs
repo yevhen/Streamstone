@@ -21,23 +21,6 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public void When_writing_number_of_events_over_max_batch_size_limit()
-        {
-            var events = Enumerable
-                .Range(1, Api.MaxEventsPerBatch + 1)
-                .Select(i => CreateEvent("e" + i))
-                .ToArray();
-
-            partition.CaptureContents(contents =>
-            {
-                Assert.Throws<ArgumentOutOfRangeException>(async () => await
-                    Stream.WriteAsync(new Stream(partition), events));
-
-                contents.AssertNothingChanged();
-            });
-        }
-
-        [Test]
         public void When_writing_number_of_events_plus_includes_is_over_max_batch_size_limit()
         {
             var events = Enumerable
