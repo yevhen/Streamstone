@@ -99,10 +99,10 @@ namespace Streamstone
 
         class WriteOperation : StreamOperation
         {
-            readonly Event[] events;
+            readonly EventData[] events;
             readonly Include[] includes;
 
-            public WriteOperation(Stream stream, Event[] events, Include[] includes) : base(stream)
+            public WriteOperation(Stream stream, EventData[] events, Include[] includes) : base(stream)
             {
                 Requires.NotNull(events, "events");
                 Requires.NotNull(includes, "includes");
@@ -172,7 +172,7 @@ namespace Streamstone
                 readonly RecordedEvent[] events;
                 readonly Include[] includes;
 
-                internal Batch(Stream stream, ICollection<Event> events, Include[] includes)
+                internal Batch(Stream stream, ICollection<EventData> events, Include[] includes)
                 {                 
                     this.stream = stream.Entity();
                     this.stream.Version = stream.Version + events.Count;

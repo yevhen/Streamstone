@@ -96,7 +96,7 @@ namespace Streamstone.Scenarios
         {
             var stream = await Stream.ProvisionAsync(partition);
 
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(stream, events);
 
             AssertModifiedStream(stream, result, version: 2);
@@ -127,7 +127,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_writing_to_nonexisting_stream()
         {
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(new Stream(partition), events);
 
             AssertNewStream(result, version: 2);
@@ -164,7 +164,7 @@ namespace Streamstone.Scenarios
                 {"Active",  new EntityProperty(true)}
             };
             
-            Event[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(new Stream(partition, properties), events);
 
             AssertNewStream(result, 2, properties);
@@ -237,7 +237,7 @@ namespace Streamstone.Scenarios
             newStreamEntity.ShouldMatch(expectedEntity.ToExpectedObject());
         }
 
-        static void AssertRecordedEvent(int version, Event source, RecordedEvent actual)
+        static void AssertRecordedEvent(int version, EventData source, RecordedEvent actual)
         {
             var expected = source.Record(version);
             actual.ShouldMatch(expected.ToExpectedObject());
@@ -270,9 +270,9 @@ namespace Streamstone.Scenarios
             actual.ShouldMatch(expected.ToExpectedObject());
         }
 
-        static Event CreateEvent(string id)
+        static EventData CreateEvent(string id)
         {
-            return new Event(id, new Dictionary<string, EntityProperty>
+            return new EventData(id, new Dictionary<string, EntityProperty>
             {
                 {"Type", new EntityProperty("StreamChanged")},
                 {"Data", new EntityProperty("{}")}

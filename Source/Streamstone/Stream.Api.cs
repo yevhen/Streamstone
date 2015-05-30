@@ -41,22 +41,22 @@ namespace Streamstone
 
         static readonly Include[] NoIncludes = new Include[0];
 
-        public static StreamWriteResult Write(Stream stream, Event[] events)
+        public static StreamWriteResult Write(Stream stream, EventData[] events)
         {
             return Write(stream, events, NoIncludes);
         }
 
-        public static StreamWriteResult Write(Stream stream, Event[] events, Include[] includes)
+        public static StreamWriteResult Write(Stream stream, EventData[] events, Include[] includes)
         {
             return new WriteOperation(stream, events, includes).Execute();
         }
 
-        public static Task<StreamWriteResult> WriteAsync(Stream stream, Event[] events)
+        public static Task<StreamWriteResult> WriteAsync(Stream stream, EventData[] events)
         {
             return WriteAsync(stream, events, NoIncludes);
         }
 
-        public static Task<StreamWriteResult> WriteAsync(Stream stream, Event[] events, Include[] includes)
+        public static Task<StreamWriteResult> WriteAsync(Stream stream, EventData[] events, Include[] includes)
         {
             return new WriteOperation(stream, events, includes).ExecuteAsync();
         }

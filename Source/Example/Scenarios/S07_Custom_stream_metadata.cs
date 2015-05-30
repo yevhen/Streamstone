@@ -46,7 +46,7 @@ namespace Example.Scenarios
             };
 
             var stream = new Stream(partition, properties);
-            Stream.Write(stream, new[]{new Event("42")});
+            Stream.Write(stream, new[]{new EventData("42")});
 
             Console.WriteLine("Stream metadata specified during writing to new stream in partition '{0}'", 
                               partition);

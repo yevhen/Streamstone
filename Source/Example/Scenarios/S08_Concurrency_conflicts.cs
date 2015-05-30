@@ -36,11 +36,11 @@ namespace Example.Scenarios
             var a = Stream.Open(Partition);
             var b = Stream.Open(Partition);
 
-            Stream.Write(a, new[]{new Event("123")});
+            Stream.Write(a, new[]{new EventData("123")});
             
             try
             {
-                Stream.Write(b, new[]{new Event("456")});
+                Stream.Write(b, new[]{new EventData("456")});
             }
             catch (ConcurrencyConflictException)
             {
@@ -71,7 +71,7 @@ namespace Example.Scenarios
         {
             var stream = Stream.Open(Partition);
 
-            var result = Stream.Write(stream, new[]{new Event("AAA")});
+            var result = Stream.Write(stream, new[]{new EventData("AAA")});
             
             // a new stream header is returned after each write, it contains new Etag
             // and it should be used for subsequent operations
@@ -79,7 +79,7 @@ namespace Example.Scenarios
             
             try
             {
-                Stream.Write(stream, new[]{new Event("BBB")});
+                Stream.Write(stream, new[]{new EventData("BBB")});
             }
             catch (ConcurrencyConflictException)
             {

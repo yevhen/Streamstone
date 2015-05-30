@@ -56,7 +56,7 @@ namespace Example.Scenarios
             while (!slice.IsEndOfStream);
         }
 
-        static Event Event(int id)
+        static EventData Event(int id)
         {
             var data = new
             {
@@ -65,7 +65,7 @@ namespace Example.Scenarios
                 Data = "{some}"
             };
 
-            return new Event(id.ToString(), data.Props());
+            return new EventData(id.ToString(), data.Props());
         }
 
         class EventEntity

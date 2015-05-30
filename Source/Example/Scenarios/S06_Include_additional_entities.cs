@@ -40,7 +40,7 @@ namespace Example.Scenarios
                               result.Stream.ETag, result.Stream.Version);
         }
 
-        static Event Event(object e)
+        static EventData Event(object e)
         {
             var id = Guid.NewGuid();
 
@@ -50,7 +50,7 @@ namespace Example.Scenarios
                 Data = JsonConvert.SerializeObject(e)
             };
 
-            return new Event(id.ToString("D"), data.Props());
+            return new EventData(id.ToString("D"), data.Props());
         }
 
         class InventoryItemShapshot : TableEntity

@@ -60,7 +60,7 @@ namespace Example.Scenarios
             }
         }
 
-        static Event Event(object e)
+        static EventData Event(object e)
         {
             var id = Guid.NewGuid();
 
@@ -72,7 +72,7 @@ namespace Example.Scenarios
                 Bin = BSON(e)            // and any storage format: binary, string, whatever (any EdmType)
             };
 
-            return new Event(id.ToString("D"), data.Props());
+            return new EventData(id.ToString("D"), data.Props());
         }
 
         static string JSON(object data)

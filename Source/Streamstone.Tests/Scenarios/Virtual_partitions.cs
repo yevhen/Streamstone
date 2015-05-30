@@ -66,9 +66,9 @@ namespace Streamstone.Scenarios
             Assert.That(slice2.Events.Length, Is.EqualTo(2));
         }
 
-        static Event CreateEvent(string id)
+        static EventData CreateEvent(string id)
         {
-            return new Event(id, new Dictionary<string, EntityProperty>
+            return new EventData(id, new Dictionary<string, EntityProperty>
             {
                 {"Type", new EntityProperty("StreamChanged")},
                 {"Data", new EntityProperty("{}")}
