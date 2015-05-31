@@ -56,9 +56,9 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_writing_duplicate_event()
+        public void When_writing_duplicate_event()
         {
-            var stream = await Stream.ProvisionAsync(partition);
+            var stream = new Stream(partition);
 
             partition.InsertEventIdEntities(new[] { "e1", "e2" });
             partition.CaptureContents(contents =>
@@ -71,30 +71,11 @@ namespace Streamstone.Scenarios
                 contents.AssertNothingChanged();  
             });
         }
-        
-        [Test]
-        public async void When_writing_number_of_events_over_max_batch_size_limit()
-        {
-            var stream = await Stream.ProvisionAsync(partition);
-
-            var events = Enumerable
-                .Range(1, Api.MaxEventsPerBatch + 1)
-                .Select(i => CreateEvent("e" + i))
-                .ToArray();
-
-            partition.CaptureContents(contents =>
-            {
-                Assert.Throws<ArgumentOutOfRangeException>(
-                    async () => await Stream.WriteAsync(stream, events));
-
-                contents.AssertNothingChanged();  
-            });
-        }
 
         [Test]
         public async void When_successfully_written_events_to_an_existing_stream()
         {
-            var stream = await Stream.ProvisionAsync(partition);
+            var stream = new Stream(partition);
 
             EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(stream, events);
@@ -153,6 +134,23 @@ namespace Streamstone.Scenarios
 
             Assert.That(partition.RetrieveAll().Count,
                 Is.EqualTo(eventEntities.Length + eventIdEntities.Length + 1));
+        }
+
+        [Test]
+        public async void When_writing_number_of_events_over_max_batch_size_limit()
+        {
+            var events = Enumerable
+                .Range(1, Api.MaxEventsPerBatch + 1)
+                .Select(i => CreateEvent("e" + i))
+                .ToArray();
+            
+            partition.CaptureContents(contents =>
+            {
+                Assert.Throws<ArgumentOutOfRangeException>(
+                    async () => await Stream.WriteAsync(new Stream(partition), events));
+
+                contents.AssertNothingChanged();  
+            });
         }
 
         [Test]
