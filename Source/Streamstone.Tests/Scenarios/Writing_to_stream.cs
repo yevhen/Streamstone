@@ -137,20 +137,33 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_writing_number_of_events_over_max_batch_size_limit()
+        public async void When_writing_non_idempotent()
         {
-            var events = Enumerable
-                .Range(1, Api.MaxEventsPerBatch + 1)
-                .Select(i => CreateEvent("e" + i))
-                .ToArray();
-            
-            partition.CaptureContents(contents =>
-            {
-                Assert.Throws<ArgumentOutOfRangeException>(
-                    async () => await Stream.WriteAsync(new Stream(partition), events));
+            var stream = new Stream(partition);
 
-                contents.AssertNothingChanged();  
-            });
+            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
+            var result = await Stream.WriteAsync(stream, events, idempotent: false);
+
+            AssertModifiedStream(stream, result, version: 2);
+            AssertStreamEntity(version: 2);
+
+            var storedEvents = result.Events;
+            Assert.That(storedEvents.Length, Is.EqualTo(2));
+
+            AssertRecordedEvent(1, events[0], storedEvents[0]);
+            AssertRecordedEvent(2, events[1], storedEvents[1]);
+
+            var eventEntities = partition.RetrieveEventEntities();
+            Assert.That(eventEntities.Length, Is.EqualTo(2));
+
+            AssertEventEntity(1, eventEntities[0]);
+            AssertEventEntity(2, eventEntities[1]);
+
+            var eventIdEntities = partition.RetrieveEventIdEntities();
+            Assert.That(eventIdEntities.Length, Is.EqualTo(0));
+
+            Assert.That(partition.RetrieveAll().Count,
+                Is.EqualTo(eventEntities.Length + 1));
         }
 
         [Test]
@@ -276,5 +289,8 @@ namespace Streamstone.Scenarios
                 {"Data", new EntityProperty("{}")}
             });
         }
+
+        class TestEntity : TableEntity
+        {}
     }
 }

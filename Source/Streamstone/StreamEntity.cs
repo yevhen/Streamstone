@@ -53,5 +53,10 @@ namespace Streamstone
                 Properties = StreamProperties.From(entity)
             };
         }
+
+        public bool IsTransient()
+        {
+            return ETag == null;
+        }
     }
 }

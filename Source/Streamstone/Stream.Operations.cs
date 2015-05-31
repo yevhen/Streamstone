@@ -100,37 +100,22 @@ namespace Streamstone
         class WriteOperation : StreamOperation
         {
             readonly EventData[] events;
-            readonly Include[] includes;
+            readonly bool idempotent;
 
-            public WriteOperation(Stream stream, EventData[] events) : base(stream)
+            public WriteOperation(Stream stream, EventData[] events, bool idempotent = true) : base(stream)
             {
                 Requires.NotNull(events, "events");
 
                 if (events.Length == 0)
                     throw new ArgumentOutOfRangeException("events", "Events have 0 items");
 
-                const int maxBatchSize = 100;
-                const int entitiesPerEvent = 2;
-                const int streamEntityPerBatch = 1;
-                const int maxEventsPerBatch = (maxBatchSize / entitiesPerEvent) - streamEntityPerBatch;
-                const int maxEntitiesTotalPerBatch = maxBatchSize - streamEntityPerBatch;
-
                 this.events = events;
-                this.includes = events.SelectMany(x => x.Includes).ToArray();
-
-                if (events.Length > maxEventsPerBatch)
-                    throw new ArgumentOutOfRangeException("events",
-                        "Maximum number of events per batch is " + maxEventsPerBatch);
-
-                if (events.Length * 2 + includes.Length > maxEntitiesTotalPerBatch)
-                    throw new ArgumentOutOfRangeException("events",
-                        "Maximum number of includes you can put in this batch is " + 
-                            (maxEntitiesTotalPerBatch - events.Length * 2));
+                this.idempotent = idempotent;
             }
 
             public StreamWriteResult Execute()
             {
-                var batch = new Batch(Stream, events, includes);
+                var batch = new Batch(Stream, events, idempotent);
                 
                 try
                 {
@@ -146,7 +131,7 @@ namespace Streamstone
 
             public async Task<StreamWriteResult> ExecuteAsync()
             {
-                var batch = new Batch(Stream, events, includes);
+                var batch = new Batch(Stream, events, idempotent);
                 
                 try
                 {
@@ -162,69 +147,74 @@ namespace Streamstone
 
             class Batch
             {
-                readonly TableBatchOperation batch = new TableBatchOperation();
-                readonly List<ITableEntity> items = new List<ITableEntity>();
+                readonly TableBatchOperation operations = new TableBatchOperation();
+                readonly List<ITableEntity> entities = new List<ITableEntity>();
 
                 readonly StreamEntity stream;
-                readonly Partition partition;
-
                 readonly RecordedEvent[] events;
-                readonly Include[] includes;
+                readonly Partition partition;
+                readonly bool idempotent;
 
-                internal Batch(Stream stream, ICollection<EventData> events, Include[] includes)
-                {                 
+                internal Batch(Stream stream, ICollection<EventData> events, bool idempotent)
+                {
                     this.stream = stream.Entity();
-                    this.stream.Version = stream.Version + events.Count;
+                    this.idempotent = idempotent;
                     this.partition = stream.Partition;
-
+                    this.stream.Version = stream.Version + events.Count;
                     this.events = events
                         .Select((e, i) => e.Record(stream.Version + i + 1))
                         .ToArray();
-
-                    this.includes = includes;
                 }
 
                 internal TableBatchOperation Prepare()
                 {
                     WriteStream();
                     WriteEvents();
-                    WriteIncludes();
 
-                    return batch;
+                    return operations;
                 }
 
                 void WriteStream()
                 {
-                    if (stream.ETag == null)
-                        batch.Insert(stream);
+                    if (stream.IsTransient())
+                        operations.Insert(stream);
                     else
-                        batch.Replace(stream);
+                        operations.Replace(stream);
 
-                    items.Add(stream);
+                    entities.Add(stream);
                 }
 
                 void WriteEvents()
                 {
                     foreach (var e in events)
                     {
-                        var eventEntity = e.EventEntity(partition);
-                        var eventIdEntity = e.IdEntity(partition);
+                        WriteEvent(e.EventEntity(partition));
+                        WriteId(e.IdEntity(partition));
 
-                        batch.Insert(eventEntity);
-                        batch.Insert(eventIdEntity);
-
-                        items.Add(eventEntity);
-                        items.Add(eventIdEntity);
+                        foreach (var include in e.Includes)
+                            WriteInclude(include);
                     }
                 }
 
-                void WriteIncludes()
+                void WriteEvent(EventEntity entity)
                 {
-                    foreach (var include in includes)
-                    {
-                        batch.Add(include.Apply(partition));
-                        items.Add(include.Entity);
-                    }
+                    operations.Insert(entity);
+                    entities.Add(entity);
+                }
+
+                void WriteId(EventIdEntity entity)
+                {
+                    if (!idempotent)
+                        return;
+
+                    operations.Insert(entity);
+                    entities.Add(entity);
+                }
+
+                void WriteInclude(Include include)
+                {
+                    operations.Add(include.Apply(partition));
+                    entities.Add(include.Entity);
                 }
 
                 internal StreamWriteResult Result()
@@ -234,10 +224,10 @@ namespace Streamstone
 
                 internal void Handle(CloudTable table, StorageException exception)
                 {
-                    if (exception.RequestInformation.HttpStatusCode == (int) HttpStatusCode.PreconditionFailed)
+                    if (exception.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
                         throw ConcurrencyConflictException.StreamChangedOrExists(table, partition);
 
-                    if (exception.RequestInformation.HttpStatusCode != (int) HttpStatusCode.Conflict)
+                    if (exception.RequestInformation.HttpStatusCode != (int)HttpStatusCode.Conflict)
                         throw exception.PreserveStackTrace();
 
                     var error = exception.RequestInformation.ExtendedErrorInformation;
@@ -245,9 +235,9 @@ namespace Streamstone
                         throw UnexpectedStorageResponseException.ErrorCodeShouldBeEntityAlreadyExists(error);
 
                     var position = ParseConflictingEntityPosition(error);
-                    Debug.Assert(position >= 0 && position < items.Count);
+                    Debug.Assert(position >= 0 && position < entities.Count);
 
-                    var conflicting = items[position];
+                    var conflicting = entities[position];
                     if (conflicting is EventIdEntity)
                     {
                         var duplicate = events[(position - 1) / 2];
@@ -258,7 +248,7 @@ namespace Streamstone
                     if (@event != null)
                         throw ConcurrencyConflictException.EventVersionExists(table, partition, @event.Version);
 
-                    var include = Array.Find(includes, x => x.Entity == conflicting);
+                    var include = events.SelectMany(e => e.Includes).SingleOrDefault(x => x.Entity == conflicting);
                     if (include != null)
                         throw new IncludedOperationConflictException(table, partition, include);
 

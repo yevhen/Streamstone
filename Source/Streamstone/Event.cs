@@ -11,16 +11,6 @@ namespace Streamstone
     /// </summary>
     public sealed class EventData
     {
-        static readonly Include[] NoIncludes = new Include[0];
-
-        /// <summary>
-        /// The unique identifier representing this event
-        /// </summary>
-        public string Id
-        {
-            get; private set;
-        }
-
         readonly EventProperties properties;
         
         /// <summary>
@@ -33,13 +23,22 @@ namespace Streamstone
         }
 
         /// <summary>
-        /// The readonly map of additional properties which this event contains.
-        /// Includes both meta and data properties.
+        /// The unique identifier representing this event
+        /// </summary>
+        public string Id
+        {
+            get; private set;
+        }
+
+        /// <summary>
+        /// Additional entity includes to be stored along with this event
         /// </summary>
         public IEnumerable<Include> Includes
         {
             get; private set;
         }
+
+        static readonly Include[] NoIncludes = new Include[0];
 
         /// <summary>
         /// Constructs a new <see cref="EventData"/> instance which doesn't have any additional properties.
@@ -98,7 +97,7 @@ namespace Streamstone
         EventData(string id, EventProperties properties, Include[] includes)
         {
             Requires.NotNull(includes, "includes");
-
+            
             Id = id;
             Includes = includes;
             this.properties = properties;
@@ -106,7 +105,7 @@ namespace Streamstone
 
         internal RecordedEvent Record(int version)
         {
-            return new RecordedEvent(Id, version, properties);
+            return new RecordedEvent(Id, version, properties, Includes);
         }
     }
 
@@ -118,11 +117,6 @@ namespace Streamstone
         readonly EventProperties properties;
 
         /// <summary>
-        /// The unique identifier representing this event
-        /// </summary>
-        public readonly string Id;
-
-        /// <summary>
         /// The readonly map of additional properties which this event contains.
         /// Includes both meta and data properties.
         /// </summary>
@@ -132,14 +126,34 @@ namespace Streamstone
         }
 
         /// <summary>
+        /// The unique identifier representing this event
+        /// </summary>
+        public string Id
+        {
+            get; private set;
+        }
+
+        /// <summary>
+        /// Additional entity includes that were stored along with this event
+        /// </summary>
+        public IEnumerable<Include> Includes
+        {
+            get; private set;
+        }
+
+        /// <summary>
         /// A sequence number assigned by a stream to this event. 
         /// </summary>
-        public readonly int Version;
+        public int Version
+        {
+            get; private set;
+        }
 
-        internal RecordedEvent(string id, int version, EventProperties properties)
+        internal RecordedEvent(string id, int version, EventProperties properties, IEnumerable<Include> includes)
         {
             Id = id;
             Version = version;
+            Includes = includes;
             this.properties = properties;
         }
 

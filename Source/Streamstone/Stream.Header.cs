@@ -67,11 +67,6 @@ namespace Streamstone
             get { return ETag == null; }
         }
 
-        bool IsPersistent
-        {
-            get { return !IsTransient; }
-        }
-
         static Stream From(Partition partition, StreamEntity entity)
         {
             return new Stream(partition, entity.ETag, entity.Version, entity.Properties);
