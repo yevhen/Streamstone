@@ -100,9 +100,9 @@ namespace Streamstone
         class WriteOperation : StreamOperation
         {
             readonly EventData[] events;
-            readonly bool idempotent;
+            readonly bool ded;
 
-            public WriteOperation(Stream stream, EventData[] events, bool idempotent = true) : base(stream)
+            public WriteOperation(Stream stream, EventData[] events, bool ded = true) : base(stream)
             {
                 Requires.NotNull(events, "events");
 
@@ -110,12 +110,12 @@ namespace Streamstone
                     throw new ArgumentOutOfRangeException("events", "Events have 0 items");
 
                 this.events = events;
-                this.idempotent = idempotent;
+                this.ded = ded;
             }
 
             public StreamWriteResult Execute()
             {
-                var batch = new Batch(Stream, events, idempotent);
+                var batch = new Batch(Stream, events, ded);
                 
                 try
                 {
@@ -131,7 +131,7 @@ namespace Streamstone
 
             public async Task<StreamWriteResult> ExecuteAsync()
             {
-                var batch = new Batch(Stream, events, idempotent);
+                var batch = new Batch(Stream, events, ded);
                 
                 try
                 {
@@ -153,12 +153,12 @@ namespace Streamstone
                 readonly StreamEntity stream;
                 readonly RecordedEvent[] events;
                 readonly Partition partition;
-                readonly bool idempotent;
+                readonly bool ded;
 
-                internal Batch(Stream stream, ICollection<EventData> events, bool idempotent)
+                internal Batch(Stream stream, ICollection<EventData> events, bool ded)
                 {
                     this.stream = stream.Entity();
-                    this.idempotent = idempotent;
+                    this.ded = ded;
                     this.partition = stream.Partition;
                     this.stream.Version = stream.Version + events.Count;
                     this.events = events
@@ -204,7 +204,7 @@ namespace Streamstone
 
                 void WriteId(EventIdEntity entity)
                 {
-                    if (!idempotent)
+                    if (!ded)
                         return;
 
                     operations.Insert(entity);

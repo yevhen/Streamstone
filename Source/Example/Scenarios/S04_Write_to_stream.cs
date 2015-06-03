@@ -66,7 +66,7 @@ namespace Example.Scenarios
 
             var data = new
             {
-                Id = id,                 // id that you specify for Event ctor is used only for idempotency
+                Id = id,                 // id that you specify for Event ctor is used only for duplicate event detection
                 Type = e.GetType().Name, // you can include any number of custom properties along with event
                 Data = JSON(e),          // you're free to choose any name you like for data property
                 Bin = BSON(e)            // and any storage format: binary, string, whatever (any EdmType)

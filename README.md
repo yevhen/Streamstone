@@ -7,7 +7,8 @@ Streamstone is a small library targeted at building scalable event-sourced appli
 ## Features
 
 + Fully ACID compliant
-+ Optimistic concurrency and idempotency support
++ Optimistic concurrency support
++ Duplicate event detection (based on identity)
 + Custom stream and event properties you can query on
 + Synchronous projections and snapshots
 + Friendly for multi-tenant designs
@@ -32,7 +33,7 @@ Streamstone is just a thin layer (library, not a server) on top of Windows Azure
 
 The api is stateless and all exposed objects are immutable, once fully constructed. Streamstone doesn't dictate payload serialization protocol, so you are free to choose any protocol you want.
 
-Optimistic concurrency is implemented by making version part of RowKey identifier. Idempotence support is done by automatically creating additional entity for every event, with RowKey value set to a unique identifier of a source event (consistent secondary index).     
+Optimistic concurrency is implemented by making version part of RowKey identifier. Duplicate event detection is done by automatically creating additional entity for every event, with RowKey value set to a unique identifier of a source event (consistent secondary index).     
 
 ## Schema
 
@@ -51,7 +52,7 @@ Optimistic concurrency is implemented by making version part of RowKey identifie
 + Reading from stream [[see](Source/Example/Scenarios/S05_Read_from_stream.cs)]
 + Additional entity includes [[see](Source/Example/Scenarios/S06_Include_additional_entities.cs)]
 + Optimistic concurrency [[see](Source/Example/Scenarios/S08_Concurrency_conflicts.cs)]
-+ Idempotent processing [[see](Source/Example/Scenarios/S09_Handling_duplicates.cs)]
++ Handling duplicate events [[see](Source/Example/Scenarios/S09_Handling_duplicates.cs)]
 + Custom stream metadata [[see](Source/Example/Scenarios/S07_Custom_stream_metadata.cs)]
 + Virtual partitions [[see](Source/Streamstone.Tests/Scenarios/Virtual_partitions.cs)]
 
@@ -65,7 +66,7 @@ Optimistic concurrency is implemented by making version part of RowKey identifie
 The write batch size limit, imposed by Azure Table Storage, is 100 entities, therefore:
 
 + The maximum write batch size is 99 entities (100 - 1 header entity) 
-+ With idempotency enabled, maximum write batch size is 49 events (100/2 - 1 header entity) 
++ With duplicate event detection enabled, maximum write batch size is 49 events (100/2 - 1 header entity) 
 
 Other limitations of the underlying Azure Table Storage API:
 

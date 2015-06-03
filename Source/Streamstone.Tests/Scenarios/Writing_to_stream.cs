@@ -137,12 +137,12 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_writing_non_idempotent()
+        public async void When_writing_with_duplicate_event_detection_enabled()
         {
             var stream = new Stream(partition);
 
             EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
-            var result = await Stream.WriteAsync(stream, events, idempotent: false);
+            var result = await Stream.WriteAsync(stream, events, ded: false);
 
             AssertModifiedStream(stream, result, version: 2);
             AssertStreamEntity(version: 2);

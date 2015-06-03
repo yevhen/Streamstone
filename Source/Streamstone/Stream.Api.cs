@@ -39,14 +39,14 @@ namespace Streamstone
             return new ProvisionOperation(stream).ExecuteAsync();
         }
 
-        public static StreamWriteResult Write(Stream stream, EventData[] events, bool idempotent = true)
+        public static StreamWriteResult Write(Stream stream, EventData[] events, bool ded = true)
         {
-            return new WriteOperation(stream, events, idempotent).Execute();
+            return new WriteOperation(stream, events, ded).Execute();
         }
 
-        public static Task<StreamWriteResult> WriteAsync(Stream stream, EventData[] events, bool idempotent = true)
+        public static Task<StreamWriteResult> WriteAsync(Stream stream, EventData[] events, bool ded = true)
         {
-            return new WriteOperation(stream, events, idempotent).ExecuteAsync();
+            return new WriteOperation(stream, events, ded).ExecuteAsync();
         }
 
         public static Stream SetProperties(Stream stream, IDictionary<string, EntityProperty> properties)

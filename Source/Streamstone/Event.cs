@@ -44,7 +44,7 @@ namespace Streamstone
         /// Constructs a new <see cref="EventData"/> instance which doesn't have any additional properties.
         /// </summary>
         /// <param name="id">
-        /// The unique identifier of the event (used for idempotent writes).
+        /// The unique identifier of the event (used for duplicate event detection).
         /// </param>
         public EventData(string id)
             : this(id, EventProperties.None, NoIncludes)
@@ -55,7 +55,7 @@ namespace Streamstone
         /// but includes a set of additional entity includes.
         /// </summary>
         /// <param name="id">
-        /// The unique identifier of the event (used for idempotent writes).
+        /// The unique identifier of the event (used for duplicate event detection).
         /// </param>
         /// <param name="includes">
         /// Additional entity includes to be stored along with this event
@@ -68,7 +68,7 @@ namespace Streamstone
         /// Constructs a new <see cref="EventData"/> instance using given event properties.
         /// </summary>
         /// <param name="id">
-        /// The unique identifier of the event (used for idempotent writes).
+        /// The unique identifier of the event (used for duplicate event detection).
         /// </param>
         /// <param name="properties">
         /// The properties for this event (includes both meta and data properties).
@@ -82,7 +82,7 @@ namespace Streamstone
         /// and additional entity includes.
         /// </summary>
         /// <param name="id">
-        /// The unique identifier of the event (used for idempotent writes).
+        /// The unique identifier of the event (used for duplicate event detection).
         /// </param>
         /// <param name="properties">
         /// The properties for this event (includes both meta and data properties).
