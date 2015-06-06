@@ -147,7 +147,7 @@ namespace Streamstone
 
         internal EventEntity EventEntity(Partition partition)
         {
-            return new EventEntity(partition, Version, Properties);
+            return new EventEntity(partition, this);
         }
 
         internal EventIdEntity IdEntity(Partition partition)

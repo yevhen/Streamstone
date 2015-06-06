@@ -16,12 +16,12 @@ namespace Streamstone
             Properties = EventProperties.None;
         }
 
-        public EventEntity(Partition partition, int version, EventProperties properties)
+        public EventEntity(Partition partition, RecordedEvent @event)
         {
             PartitionKey = partition.PartitionKey;
-            RowKey = partition.EventVersionRowKey(version);
-            Properties = properties;
-            Version = version;   
+            RowKey = partition.EventVersionRowKey(@event.Version);
+            Properties = @event.Properties;
+            Version = @event.Version;   
         }
 
         public int Version                  { get; set; }
