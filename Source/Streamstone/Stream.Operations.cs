@@ -175,13 +175,14 @@ namespace Streamstone
                 }
 
                 readonly List<RecordedEvent> events = new List<RecordedEvent>();
+                int operations;
 
                 Chunk()
                 {}
 
                 Chunk(RecordedEvent first)
                 {
-                    events.Add(first);
+                    Accomodate(first);
                 }
 
                 Chunk Add(RecordedEvent @event)
@@ -194,18 +195,19 @@ namespace Streamstone
                     if (!CanAccomodate(@event))
                         return new Chunk(@event);
 
-                    events.Add(@event);
+                    Accomodate(@event);
                     return this;
+                }
+
+                void Accomodate(RecordedEvent @event)
+                {
+                    operations += @event.Operations.Length;
+                    events.Add(@event);
                 }
 
                 bool CanAccomodate(RecordedEvent @event)
                 {
-                    return OperationTotal() + @event.Operations.Length <= MaxOperationsPerChunk;
-                }
-
-                int OperationTotal()
-                {
-                    return events.Sum(@event => @event.Operations.Length);
+                    return operations + @event.Operations.Length <= MaxOperationsPerChunk;
                 }
 
                 public bool IsEmpty
