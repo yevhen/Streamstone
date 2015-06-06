@@ -36,7 +36,6 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_include_has_conflict()
         {
-            
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
 

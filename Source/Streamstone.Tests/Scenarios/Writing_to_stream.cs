@@ -60,7 +60,7 @@ namespace Streamstone.Scenarios
         {
             var stream = new Stream(partition);
 
-            partition.InsertEventIdEntities(new[] { "e1", "e2" });
+            partition.InsertEventIdEntities(new[] {"e1", "e2"});
             partition.CaptureContents(contents =>
             {
                 var duplicate = CreateEvent("e2");
@@ -137,12 +137,12 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_writing_with_duplicate_event_detection_enabled()
+        public async void When_writing_events_without_id()
         {
             var stream = new Stream(partition);
 
-            EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
-            var result = await Stream.WriteAsync(stream, events, ded: false);
+            EventData[] events = {CreateEvent(), CreateEvent()};
+            var result = await Stream.WriteAsync(stream, events);
 
             AssertModifiedStream(stream, result, version: 2);
             AssertStreamEntity(version: 2);
@@ -283,7 +283,7 @@ namespace Streamstone.Scenarios
             actual.ShouldMatch(expected.ToExpectedObject());
         }
 
-        static EventData CreateEvent(string id)
+        static EventData CreateEvent(string id = null)
         {
             var properties = new Dictionary<string, EntityProperty>
             {
@@ -291,7 +291,11 @@ namespace Streamstone.Scenarios
                 {"Data", new EntityProperty("{}")}
             };
 
-            return new EventData(EventId.From(id), EventProperties.From(properties));
+            var eventId = id != null 
+                ? EventId.From(id) 
+                : EventId.None;
+
+            return new EventData(eventId, EventProperties.From(properties));
         }
 
         class TestEntity : TableEntity

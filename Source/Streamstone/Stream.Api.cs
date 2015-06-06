@@ -38,7 +38,7 @@ namespace Streamstone
             return new ProvisionOperation(stream).ExecuteAsync();
         }
 
-        public static StreamWriteResult Write(Stream stream, EventData[] events, bool ded = true)
+        public static StreamWriteResult Write(Stream stream, EventData[] events)
         {
             Requires.NotNull(stream, "stream");
             Requires.NotNull(events, "events");
@@ -46,10 +46,10 @@ namespace Streamstone
             if (events.Length == 0)
                 throw new ArgumentOutOfRangeException("events", "Events have 0 items");
 
-            return new WriteOperation(stream, events, ded).Execute();
+            return new WriteOperation(stream, events).Execute();
         }
 
-        public static Task<StreamWriteResult> WriteAsync(Stream stream, EventData[] events, bool ded = true)
+        public static Task<StreamWriteResult> WriteAsync(Stream stream, EventData[] events)
         {
             Requires.NotNull(stream, "stream");
             Requires.NotNull(events, "events");
@@ -57,7 +57,7 @@ namespace Streamstone
             if (events.Length == 0)
                 throw new ArgumentOutOfRangeException("events", "Events have 0 items");
 
-            return new WriteOperation(stream, events, ded).ExecuteAsync();
+            return new WriteOperation(stream, events).ExecuteAsync();
         }
 
         public static Stream SetProperties(Stream stream, StreamProperties properties)

@@ -94,19 +94,17 @@ namespace Streamstone
             readonly Stream stream;
             readonly CloudTable table;
             readonly EventData[] events;
-            readonly bool ded;
 
-            public WriteOperation(Stream stream, EventData[] events, bool ded = true)
+            public WriteOperation(Stream stream, EventData[] events)
             {
                 this.stream = stream;
                 this.events = events;
-                this.ded = ded;
                 table = stream.Partition.Table;
             }
 
             public StreamWriteResult Execute()
             {
-                var batch = new Batch(stream, events, ded);
+                var batch = new Batch(stream, events);
                 
                 try
                 {
@@ -122,7 +120,7 @@ namespace Streamstone
 
             public async Task<StreamWriteResult> ExecuteAsync()
             {
-                var batch = new Batch(stream, events, ded);
+                var batch = new Batch(stream, events);
                 
                 try
                 {
@@ -144,12 +142,10 @@ namespace Streamstone
                 readonly StreamEntity stream;
                 readonly RecordedEvent[] events;
                 readonly Partition partition;
-                readonly bool ded;
 
-                internal Batch(Stream stream, ICollection<EventData> events, bool ded)
+                internal Batch(Stream stream, ICollection<EventData> events)
                 {
                     this.stream = stream.Entity();
-                    this.ded = ded;
                     this.partition = stream.Partition;
                     this.stream.Version = stream.Version + events.Count;
                     this.events = events
@@ -195,7 +191,7 @@ namespace Streamstone
 
                 void WriteId(EventIdEntity entity)
                 {
-                    if (!ded)
+                    if (entity.Event.Id == EventId.None)
                         return;
 
                     operations.Insert(entity);
