@@ -53,13 +53,11 @@ namespace Example.Scenarios
             var a = Stream.Open(Partition);
             var b = Stream.Open(Partition);
 
-            Stream.SetProperties(a, 
-                new Dictionary<string, EntityProperty>{{"A", new EntityProperty("42")}});
+            Stream.SetProperties(a, StreamProperties.From(new {A = 42}));
 
             try
             {
-                Stream.SetProperties(b,
-                    new Dictionary<string, EntityProperty> {{"A", new EntityProperty("56")}});
+                Stream.SetProperties(b, StreamProperties.From(new {A = 56}));
             }
             catch (ConcurrencyConflictException)
             {

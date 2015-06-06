@@ -1,26 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
     public sealed partial class Stream
     {
+        public readonly StreamProperties Properties;
         public readonly Partition Partition;
         public readonly string ETag;
         public readonly int Version;
-
-        readonly StreamProperties properties;
-        
-        /// <summary>
-        /// The readonly map of additional properties which this stream has.
-        /// </summary>
-        public IEnumerable<KeyValuePair<string, EntityProperty>> Properties
-        {
-            get { return properties; }
-        }
 
         /// <summary>
         /// Constructs a new <see cref="Stream"/> instance which doesn't have any additional properties.
@@ -41,17 +29,13 @@ namespace Streamstone
         /// <param name="properties">
         /// The additional properties for this stream.
         /// </param>
-        public Stream(Partition partition, IDictionary<string, EntityProperty> properties)
-            : this(partition, StreamProperties.From(properties))
-        {}
-
-        Stream(Partition partition, StreamProperties properties)
+        public Stream(Partition partition, StreamProperties properties)
         {
             Requires.NotNull(partition, "partition");
             Requires.NotNull(properties, "properties");
 
             Partition = partition;
-            this.properties = properties;
+            Properties = properties;
         }
 
         internal Stream(Partition partition, string etag, int version, StreamProperties properties)
@@ -59,7 +43,7 @@ namespace Streamstone
             Partition = partition;
             ETag = etag;
             Version = version;
-            this.properties = properties;
+            Properties = properties;
         }
         
         bool IsTransient
@@ -74,7 +58,7 @@ namespace Streamstone
 
         StreamEntity Entity()
         {
-            return new StreamEntity(Partition, ETag, Version, properties);
+            return new StreamEntity(Partition, ETag, Version, Properties);
         }
     }
 }

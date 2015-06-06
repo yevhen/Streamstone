@@ -58,7 +58,7 @@ namespace Streamstone.Scenarios
                 {"Active",  new EntityProperty(true)}
             };
 
-            var stream = await Stream.ProvisionAsync(partition, properties);
+            var stream = await Stream.ProvisionAsync(partition, StreamProperties.From(properties));
             var entity = partition.RetrieveStreamEntity();
 
             var expectedStream = new Stream

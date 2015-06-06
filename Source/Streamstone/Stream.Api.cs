@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
@@ -14,7 +11,7 @@ namespace Streamstone
             return Provision(new Stream(partition));
         }
 
-        public static Stream Provision(Partition partition, IDictionary<string, EntityProperty> properties)
+        public static Stream Provision(Partition partition, StreamProperties properties)
         {
             return Provision(new Stream(partition, properties));
         }
@@ -29,7 +26,7 @@ namespace Streamstone
             return ProvisionAsync(new Stream(partition));
         }
 
-        public static Task<Stream> ProvisionAsync(Partition partition, IDictionary<string, EntityProperty> properties)
+        public static Task<Stream> ProvisionAsync(Partition partition, StreamProperties properties)
         {
             return ProvisionAsync(new Stream(partition, properties));
         }
@@ -49,14 +46,14 @@ namespace Streamstone
             return new WriteOperation(stream, events, ded).ExecuteAsync();
         }
 
-        public static Stream SetProperties(Stream stream, IDictionary<string, EntityProperty> properties)
+        public static Stream SetProperties(Stream stream, StreamProperties properties)
         {
-            return new SetPropertiesOperation(stream, StreamProperties.From(properties)).Execute();
+            return new SetPropertiesOperation(stream, properties).Execute();
         }
 
-        public static Task<Stream> SetPropertiesAsync(Stream stream, IDictionary<string, EntityProperty> properties)
+        public static Task<Stream> SetPropertiesAsync(Stream stream, StreamProperties properties)
         {
-            return new SetPropertiesOperation(stream, StreamProperties.From(properties)).ExecuteAsync();
+            return new SetPropertiesOperation(stream, properties).ExecuteAsync();
         }
 
         public static Stream Open(Partition partition)

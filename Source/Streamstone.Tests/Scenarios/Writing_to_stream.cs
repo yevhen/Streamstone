@@ -169,14 +169,16 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_writing_to_nonexisting_stream_along_with_stream_properties()
         {
-            var properties = new Dictionary<string, EntityProperty>
+            var properties = new
             {
-                {"Created", new EntityProperty(DateTimeOffset.Now)},
-                {"Active",  new EntityProperty(true)}
+                Created = DateTimeOffset.Now,
+                Active = true
             };
-            
+
+            var stream = new Stream(partition, StreamProperties.From(properties));
+
             EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
-            var result = await Stream.WriteAsync(new Stream(partition, properties), events);
+            var result = await Stream.WriteAsync(stream, events);
 
             AssertNewStream(result, 2, properties);
             AssertStreamEntity(2, properties);
@@ -203,7 +205,7 @@ namespace Streamstone.Scenarios
                 Is.EqualTo(eventEntities.Length + eventIdEntities.Length + 1));
         }
 
-        void AssertNewStream(StreamWriteResult actual, int version, Dictionary<string, EntityProperty> properties = null)
+        void AssertNewStream(StreamWriteResult actual, int version, object properties = null)
         {
             var newStream = actual.Stream;
             var newStreamEntity = partition.RetrieveStreamEntity();
@@ -223,7 +225,7 @@ namespace Streamstone.Scenarios
             actualStream.ShouldEqual(expectedStream.ToExpectedObject());
         }
 
-        Stream CreateStream(int version, string etag, IDictionary<string, EntityProperty> properties = null)
+        Stream CreateStream(int version, string etag, object properties = null)
         {
             var props = properties != null  
                 ? StreamProperties.From(properties) 
@@ -232,7 +234,7 @@ namespace Streamstone.Scenarios
             return new Stream(partition, etag, version, props);
         }
 
-        void AssertStreamEntity(int version = 0, Dictionary<string, EntityProperty> properties = null)
+        void AssertStreamEntity(int version = 0, object properties = null)
         {
             var newStreamEntity = partition.RetrieveStreamEntity();
 

@@ -28,7 +28,7 @@ namespace Streamstone.Scenarios
             var properties = new Dictionary<string, EntityProperty>();
 
             var previous = await Stream.ProvisionAsync(partition);
-            var current  = await Stream.SetPropertiesAsync(previous, properties);
+            var current  = await Stream.SetPropertiesAsync(previous, StreamProperties.From(properties));
             
             Assert.That(current.ETag, Is.Not.EqualTo(previous.ETag));
             StreamProperties.From(properties).ToExpectedObject().ShouldEqual(current.Properties);
@@ -41,7 +41,7 @@ namespace Streamstone.Scenarios
             partition.UpdateStreamEntity();
 
             Assert.Throws<ConcurrencyConflictException>(
-                async ()=> await Stream.SetPropertiesAsync(stream, new Dictionary<string, EntityProperty>()));
+                async ()=> await Stream.SetPropertiesAsync(stream, StreamProperties.None));
         }
 
         [Test]
@@ -53,7 +53,7 @@ namespace Streamstone.Scenarios
                 {"P2", new EntityProperty("42")}
             };
 
-            var stream = await Stream.ProvisionAsync(partition, properties);
+            var stream = await Stream.ProvisionAsync(partition, StreamProperties.From(properties));
 
             var newProperties = new Dictionary<string, EntityProperty>
             {
@@ -61,7 +61,7 @@ namespace Streamstone.Scenarios
                 {"P2", new EntityProperty("56")}
             };
 
-            var newStream = await Stream.SetPropertiesAsync(stream, newProperties);
+            var newStream = await Stream.SetPropertiesAsync(stream, StreamProperties.From(newProperties));
             StreamProperties.From(newProperties).ToExpectedObject().ShouldEqual(newStream.Properties);
 
             var storedEntity = partition.RetrieveStreamEntity();
@@ -78,7 +78,7 @@ namespace Streamstone.Scenarios
             partition.CaptureContents(contents =>
             {
                 Assert.Throws<ArgumentException>(
-                    async ()=> await Stream.SetPropertiesAsync(stream, new Dictionary<string, EntityProperty>()));
+                    async ()=> await Stream.SetPropertiesAsync(stream, StreamProperties.None));
 
                 contents.AssertNothingChanged();
             });

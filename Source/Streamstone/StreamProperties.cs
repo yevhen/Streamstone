@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
-    sealed class StreamProperties : PropertyMap
+    public sealed class StreamProperties : PropertyMap
     {
-        internal static readonly StreamProperties None = new StreamProperties();
+        public static readonly StreamProperties None = new StreamProperties();
 
         StreamProperties()
         {}
@@ -18,22 +17,28 @@ namespace Streamstone
             : base(properties)
         {}
 
-        internal static StreamProperties ReadEntity(IDictionary<string, EntityProperty> properties)
+        public static StreamProperties ReadEntity(IDictionary<string, EntityProperty> properties)
         {
             Requires.NotNull(properties, "properties");
             return Build(properties);
         }
 
-        internal static StreamProperties From(ITableEntity entity)
-        {
-            Requires.NotNull(entity, "entity");
-            return Build(ToDictionary(entity));
-        }
-
-        internal static StreamProperties From(IDictionary<string, EntityProperty> properties)
+        public static StreamProperties From(IDictionary<string, EntityProperty> properties)
         {
             Requires.NotNull(properties, "properties");
             return Build(Clone(properties));
+        }
+
+        public static StreamProperties From(object properties)
+        {
+            Requires.NotNull(properties, "properties");
+            return Build(ToDictionary(properties));
+        }
+
+        public static StreamProperties From(ITableEntity entity)
+        {
+            Requires.NotNull(entity, "entity");
+            return Build(ToDictionary(entity));
         }
 
         static StreamProperties Build(IEnumerable<KeyValuePair<string, EntityProperty>> properties)
