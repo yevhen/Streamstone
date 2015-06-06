@@ -9,7 +9,7 @@ namespace Example.Scenarios
     {
         public override void Run()
         {
-            var result = Stream.Write(new Stream(Partition), new[]{new EventData(EventId.From("42"))});
+            var result = Stream.Write(new Stream(Partition), new EventData(EventId.From("42")));
 
             try
             {

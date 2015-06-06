@@ -53,8 +53,8 @@ namespace Streamstone.Scenarios
             var e1 = CreateEvent("e1");
             var e2 = CreateEvent("e2");
 
-            await Stream.WriteAsync(stream1, new[] {e1, e2});
-            await Stream.WriteAsync(stream2, new[] {e1, e2});
+            await Stream.WriteAsync(stream1, e1, e2);
+            await Stream.WriteAsync(stream2, e1, e2);
 
             Assert.That(partition.RetrieveAll().Count, 
                 Is.EqualTo(2 + 2*(2*2)));

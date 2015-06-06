@@ -26,11 +26,10 @@ namespace Example.Scenarios
 
             Console.WriteLine("Writing to new stream in partition '{0}'", stream.Partition);
 
-            var result = Stream.Write(stream, new[]
-            {
+            var result = Stream.Write(stream,
                 Event(new InventoryItemCreated(Id, "iPhone6")),
-                Event(new InventoryItemCheckedIn(Id, 100)),
-            });
+                Event(new InventoryItemCheckedIn(Id, 100))
+            );
 
             Console.WriteLine("Succesfully written to new stream.\r\nEtag: {0}, Version: {1}", 
                               result.Stream.ETag, result.Stream.Version);
@@ -45,10 +44,9 @@ namespace Example.Scenarios
 
             for (int i = 1; i <= 10; i++)
             {
-                var result = Stream.Write(stream, new[]
-                {
-                    Event(new InventoryItemCheckedIn(Id, i*100)),
-                });
+                var result = Stream.Write(stream, 
+                    Event(new InventoryItemCheckedIn(Id, i*100))
+                );
 
                 Console.WriteLine("Succesfully written event '{0}' under version '{1}'", 
                                    result.Events[0].Id, result.Events[0].Version);

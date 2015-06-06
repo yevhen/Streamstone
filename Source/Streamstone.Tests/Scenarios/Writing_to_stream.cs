@@ -47,7 +47,7 @@ namespace Streamstone.Scenarios
             partition.CaptureContents(contents =>
             {
                 Assert.Throws<ConcurrencyConflictException>(
-                    async ()=> await Stream.WriteAsync(stream, new[] {@event}));
+                    async ()=> await Stream.WriteAsync(stream, @event));
                 
                 contents.AssertNothingChanged();
             });
@@ -60,13 +60,13 @@ namespace Streamstone.Scenarios
         {
             var stream = new Stream(partition);
 
-            partition.InsertEventIdEntities(new[] {"e1", "e2"});
+            partition.InsertEventIdEntities("e1", "e2");
             partition.CaptureContents(contents =>
             {
                 var duplicate = CreateEvent("e2");
 
                 Assert.Throws<DuplicateEventException>(
-                    async () => await Stream.WriteAsync(stream, new[] {CreateEvent("e3"), duplicate}));
+                    async () => await Stream.WriteAsync(stream, CreateEvent("e3"), duplicate));
 
                 contents.AssertNothingChanged();  
             });

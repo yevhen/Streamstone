@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -38,7 +39,7 @@ namespace Streamstone
             return new ProvisionOperation(stream).ExecuteAsync();
         }
 
-        public static StreamWriteResult Write(Stream stream, EventData[] events)
+        public static StreamWriteResult Write(Stream stream, params EventData[] events)
         {
             Requires.NotNull(stream, "stream");
             Requires.NotNull(events, "events");
@@ -49,7 +50,7 @@ namespace Streamstone
             return new WriteOperation(stream, events).Execute();
         }
 
-        public static Task<StreamWriteResult> WriteAsync(Stream stream, EventData[] events)
+        public static Task<StreamWriteResult> WriteAsync(Stream stream, params EventData[] events)
         {
             Requires.NotNull(stream, "stream");
             Requires.NotNull(events, "events");
