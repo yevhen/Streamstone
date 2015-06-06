@@ -72,7 +72,7 @@ namespace Example.Scenarios
                 Bin = BSON(e)            // and any storage format: binary, string, whatever (any EdmType)
             };
 
-            return new EventData(id.ToString("D"), EventProperties.From(properties));
+            return new EventData(EventId.From(id), EventProperties.From(properties));
         }
 
         static string JSON(object data)

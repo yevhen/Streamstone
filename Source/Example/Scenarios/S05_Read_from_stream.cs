@@ -65,7 +65,7 @@ namespace Example.Scenarios
                 Data = "{some}"
             };
 
-            return new EventData(id.ToString(), EventProperties.From(properties));
+            return new EventData(EventId.From(id.ToString()), EventProperties.From(properties));
         }
 
         class EventEntity

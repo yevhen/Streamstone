@@ -106,7 +106,8 @@ namespace Streamstone.Scenarios
                 {"Data", new EntityProperty("{}")}
             };
 
-            return new EventData(id, 
+            return new EventData(
+                            EventId.From(id), 
                             EventProperties.From(properties), 
                             EventIncludes.From(includes));
         }

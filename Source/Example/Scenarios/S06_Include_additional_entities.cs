@@ -50,7 +50,8 @@ namespace Example.Scenarios
                 Data = JsonConvert.SerializeObject(@event)
             };
 
-            return new EventData(id.ToString("D"), 
+            return new EventData(
+                            EventId.From(id), 
                             EventProperties.From(properties), 
                             EventIncludes.From(includes));
         }

@@ -9,14 +9,14 @@ namespace Example.Scenarios
     {
         public override void Run()
         {
-            var result = Stream.Write(new Stream(Partition), new[]{new EventData(id: "42")});
+            var result = Stream.Write(new Stream(Partition), new[]{new EventData(EventId.From("42"))});
 
             try
             {
                 var events = new[]
                 {
-                    new EventData(id: "56"),
-                    new EventData(id: "42")  // conflicting (duplicate) event
+                    new EventData(EventId.From("56")),
+                    new EventData(EventId.From("42"))  // conflicting (duplicate) event
                 };
 
                 Stream.Write(result.Stream, events);

@@ -11,7 +11,7 @@ namespace Streamstone
         /// <summary>
         /// The unique identifier representing this event
         /// </summary>
-        public string Id
+        public EventId Id
         {
             get; private set;
         }
@@ -34,12 +34,19 @@ namespace Streamstone
         }
 
         /// <summary>
+        /// Constructs a new <see cref="EventData"/> instance which doesn't have any additional properties, includes and id.
+        /// </summary>
+        public EventData()
+            : this(EventId.None, EventProperties.None, EventIncludes.None)
+        {}
+
+        /// <summary>
         /// Constructs a new <see cref="EventData"/> instance which doesn't have any additional properties.
         /// </summary>
         /// <param name="id">
         /// The unique identifier of the event (used for duplicate event detection).
         /// </param>
-        public EventData(string id)
+        public EventData(EventId id)
             : this(id, EventProperties.None, EventIncludes.None)
         {}
 
@@ -53,7 +60,7 @@ namespace Streamstone
         /// <param name="includes">
         /// Additional entity includes to be stored along with this event
         ///  </param>
-        public EventData(string id, EventIncludes includes)
+        public EventData(EventId id, EventIncludes includes)
             : this(id, EventProperties.None, includes)
         {}
 
@@ -66,7 +73,7 @@ namespace Streamstone
         /// <param name="properties">
         /// The properties for this event (includes both meta and data properties).
         /// </param>
-        public EventData(string id, EventProperties properties)
+        public EventData(EventId id, EventProperties properties)
             : this(id, properties, EventIncludes.None)
         {}
 
@@ -83,7 +90,7 @@ namespace Streamstone
         /// <param name="includes">
         /// Additional entity includes to be stored along with this event
         ///  </param>
-        public EventData(string id, EventProperties properties, EventIncludes includes)
+        public EventData(EventId id, EventProperties properties, EventIncludes includes)
         {
             Requires.NotNull(properties, "properties");
             Requires.NotNull(includes, "includes");
@@ -107,7 +114,7 @@ namespace Streamstone
         /// <summary>
         /// The unique identifier representing this event
         /// </summary>
-        public string Id
+        public EventId Id
         {
             get; private set;
         }
@@ -137,7 +144,7 @@ namespace Streamstone
             get; private set;
         }
 
-        internal RecordedEvent(string id, EventProperties properties, EventIncludes includes, int version)
+        internal RecordedEvent(EventId id, EventProperties properties, EventIncludes includes, int version)
         {
             Id = id;
             Version = version;
