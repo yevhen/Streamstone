@@ -15,23 +15,27 @@ namespace Streamstone
 
     public sealed class Include
     {
-        public readonly ITableEntity Entity;
-        public readonly IncludeType Type;
-
-        readonly TableOperation operation;
+        readonly EntityOperation operation;
 
         Include(ITableEntity entity, IncludeType type, TableOperation operation)
         {
-            Entity = entity;
             Type = type;
-
-            this.operation = operation;
+            this.operation = new EntityOperation(entity, operation);
         }
 
-        internal TableOperation Apply(Partition partition)
+        public IncludeType Type
         {
-            Entity.PartitionKey = partition.PartitionKey;
-            return operation;
+            get; private set;
+        }
+
+        public ITableEntity Entity
+        {
+            get { return operation.Entity; }
+        }
+
+        internal EntityOperation Apply(Partition partition)
+        {
+            return operation.Apply(partition);
         }
 
         public static Include Delete(ITableEntity entity)

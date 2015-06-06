@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Streamstone
@@ -59,6 +60,11 @@ namespace Streamstone
         StreamEntity Entity()
         {
             return new StreamEntity(Partition, ETag, Version, Properties);
+        }
+
+        RecordedEvent[] Record(IEnumerable<EventData> events)
+        {
+            return events.Select((e, i) => e.Record(Partition, Version + i + 1)).ToArray();
         }
     }
 }

@@ -91,14 +91,15 @@ namespace Streamstone
 
         class WriteOperation
         {
-            readonly Stream stream;
             readonly CloudTable table;
-            readonly EventData[] events;
+            readonly StreamEntity stream;
+            readonly RecordedEvent[] events;
 
             public WriteOperation(Stream stream, EventData[] events)
             {
-                this.stream = stream;
-                this.events = events;
+                this.stream = stream.Entity();
+                this.stream.Version = stream.Version + events.Length;
+                this.events = stream.Record(events);
                 table = stream.Partition.Table;
             }
 
@@ -136,21 +137,18 @@ namespace Streamstone
 
             class Batch
             {
-                readonly TableBatchOperation operations = new TableBatchOperation();
-                readonly List<ITableEntity> entities = new List<ITableEntity>();
-
+                readonly List<EntityOperation> operations = 
+                     new List<EntityOperation>();
+                
                 readonly StreamEntity stream;
                 readonly RecordedEvent[] events;
                 readonly Partition partition;
 
-                internal Batch(Stream stream, ICollection<EventData> events)
+                internal Batch(StreamEntity stream, RecordedEvent[] events)
                 {
-                    this.stream = stream.Entity();
-                    this.partition = stream.Partition;
-                    this.stream.Version = stream.Version + events.Count;
-                    this.events = events
-                        .Select((e, i) => e.Record(stream.Version + i + 1))
-                        .ToArray();
+                    this.stream = stream;
+                    this.events = events;
+                    partition = stream.Partition;
                 }
 
                 internal TableBatchOperation Prepare()
@@ -158,50 +156,33 @@ namespace Streamstone
                     WriteStream();
                     WriteEvents();
 
-                    return operations;
+                    return ToBatch();
                 }
 
                 void WriteStream()
                 {
-                    if (stream.IsTransient())
-                        operations.Insert(stream);
-                    else
-                        operations.Replace(stream);
-
-                    entities.Add(stream);
+                    operations.Add(stream.Operation());
                 }
 
                 void WriteEvents()
                 {
                     foreach (var e in events)
-                    {
-                        WriteEvent(e.EventEntity(partition));
-                        WriteId(e.IdEntity(partition));
-
-                        foreach (var include in e.Includes)
-                            WriteInclude(include);
-                    }
+                        WriteEvent(e);
                 }
 
-                void WriteEvent(EventEntity entity)
+                void WriteEvent(RecordedEvent @event)
                 {
-                    operations.Insert(entity);
-                    entities.Add(entity);
+                    operations.AddRange(@event.Operations);
                 }
 
-                void WriteId(EventIdEntity entity)
+                TableBatchOperation ToBatch()
                 {
-                    if (entity.Event.Id == EventId.None)
-                        return;
+                    var result = new TableBatchOperation();
+                    
+                    foreach (var each in operations)
+                        result.Add(each.Operation);
 
-                    operations.Insert(entity);
-                    entities.Add(entity);
-                }
-
-                void WriteInclude(Include include)
-                {
-                    operations.Add(include.Apply(partition));
-                    entities.Add(include.Entity);
+                    return result;
                 }
 
                 internal StreamWriteResult Result()
@@ -224,7 +205,7 @@ namespace Streamstone
                     var position = ParseConflictingEntityPosition(error);
 
                     Debug.Assert(position >= 0 && position < operations.Count);
-                    var conflicting = entities[position];
+                    var conflicting = operations[position].Entity;
 
                     var id = conflicting as EventIdEntity;
                     if (id != null)

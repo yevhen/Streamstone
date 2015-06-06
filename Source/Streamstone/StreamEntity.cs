@@ -18,6 +18,7 @@ namespace Streamstone
 
         public StreamEntity(Partition partition, string etag, int version, StreamProperties properties)
         {
+            Partition = partition;
             PartitionKey = partition.PartitionKey;
             RowKey = partition.StreamRowKey();
             ETag = etag;
@@ -54,9 +55,21 @@ namespace Streamstone
             };
         }
 
-        public bool IsTransient()
+        public EntityOperation Operation()
         {
-            return ETag == null;
+            var isTransient = ETag == null;
+
+            var operation = isTransient 
+                ? TableOperation.Insert(this) 
+                : TableOperation.Replace(this);
+
+            return new EntityOperation(this, operation);
+        }
+
+        [IgnoreProperty]
+        public Partition Partition
+        {
+            get; set;
         }
     }
 }

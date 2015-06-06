@@ -250,9 +250,9 @@ namespace Streamstone.Scenarios
             newStreamEntity.ShouldMatch(expectedEntity.ToExpectedObject());
         }
 
-        static void AssertRecordedEvent(int version, EventData source, RecordedEvent actual)
+        void AssertRecordedEvent(int version, EventData source, RecordedEvent actual)
         {
-            var expected = source.Record(version);
+            var expected = source.Record(partition, version);
             actual.ShouldMatch(expected.ToExpectedObject());
         }
 
