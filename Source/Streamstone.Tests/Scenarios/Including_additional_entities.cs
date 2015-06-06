@@ -86,6 +86,51 @@ namespace Streamstone.Scenarios
                 async () => await Stream.WriteAsync(result.Stream, events));
         }
 
+        [Test]
+        public async void When_in_total_with_includes_is_over_WATS_max_batch_size_limit()
+        {
+            var stream = new Stream(partition);
+
+            var events = Enumerable
+                .Range(1, Api.AzureMaxBatchSize + 1)
+                .Select(i => CreateEvent("e" + i, Include.Insert(new TestEntity(i.ToString()))))
+                .ToArray();
+
+            var result = await Stream.WriteAsync(stream, events);
+
+            var storedEvents = result.Events;
+            Assert.That(storedEvents.Length, Is.EqualTo(events.Length));
+
+            var eventEntities = partition.RetrieveEventEntities();
+            Assert.That(eventEntities.Length, Is.EqualTo(events.Length));
+
+            var eventIdEntities = partition.RetrieveEventIdEntities();
+            Assert.That(eventIdEntities.Length, Is.EqualTo(events.Length));
+
+            Assert.That(partition.RetrieveAll().Count,
+                Is.EqualTo((eventEntities.Length * 2) + eventIdEntities.Length + 1));
+        }
+
+
+        [Test]
+        public void When_single_event_along_with_includes_is_over_WATS_max_batch_size_limit()
+        {
+            var stream = new Stream(partition);
+
+            var includes = Enumerable
+                .Range(1, Api.AzureMaxBatchSize)
+                .Select(i => Include.Insert(new TestEntity(i.ToString())))
+                .ToArray();
+
+            var @event = new EventData(
+                EventId.From("offsize"), 
+                EventIncludes.From(includes)
+            );
+
+            Assert.Throws<InvalidOperationException>(
+                async ()=> await Stream.WriteAsync(stream, @event));
+        }
+
         TestEntity RetrieveTestEntity(string rowKey)
         {
             return table.CreateQuery<TestEntity>()

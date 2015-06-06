@@ -205,6 +205,28 @@ namespace Streamstone.Scenarios
                 Is.EqualTo(eventEntities.Length + eventIdEntities.Length + 1));
         }
 
+        [Test]
+        public async void When_writing_over_WATS_max_batch_size_limit()
+        {
+            var stream = new Stream(partition);
+
+            var events = Enumerable
+                .Range(1, Api.AzureMaxBatchSize + 1)
+                .Select(i => CreateEvent())
+                .ToArray();
+
+            var result = await Stream.WriteAsync(stream, events);
+
+            AssertModifiedStream(stream, result, version: events.Length);
+            AssertStreamEntity(version: events.Length);
+
+            var storedEvents = result.Events;
+            Assert.That(storedEvents.Length, Is.EqualTo(events.Length));
+
+            var eventEntities = partition.RetrieveEventEntities();
+            Assert.That(eventEntities.Length, Is.EqualTo(events.Length));
+        }
+  
         void AssertNewStream(StreamWriteResult actual, int version, object properties = null)
         {
             var newStream = actual.Stream;

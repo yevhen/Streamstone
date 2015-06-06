@@ -62,9 +62,9 @@ namespace Streamstone
             return new StreamEntity(Partition, ETag, Version, Properties);
         }
 
-        RecordedEvent[] Record(IEnumerable<EventData> events)
+        IEnumerable<RecordedEvent> Record(IEnumerable<EventData> events)
         {
-            return events.Select((e, i) => e.Record(Partition, Version + i + 1)).ToArray();
+            return events.Select((e, i) => e.Record(Partition, Version + i + 1));
         }
     }
 }

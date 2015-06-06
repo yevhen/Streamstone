@@ -91,48 +91,134 @@ namespace Streamstone
 
         class WriteOperation
         {
-            readonly CloudTable table;
-            readonly StreamEntity stream;
-            readonly RecordedEvent[] events;
+            const int MaxOperationsPerChunk = 99;
 
-            public WriteOperation(Stream stream, EventData[] events)
+            readonly Stream stream;
+            readonly CloudTable table;
+            readonly IEnumerable<RecordedEvent> events;
+
+            public WriteOperation(Stream stream, IEnumerable<EventData> events)
             {
-                this.stream = stream.Entity();
-                this.stream.Version = stream.Version + events.Length;
+                this.stream = stream;
                 this.events = stream.Record(events);
                 table = stream.Partition.Table;
             }
 
             public StreamWriteResult Execute()
             {
-                var batch = new Batch(stream, events);
-                
-                try
+                var current = stream;
+
+                foreach (var chunk in Chunks())
                 {
-                    table.ExecuteBatch(batch.Prepare());
-                }
-                catch (StorageException e)
-                {
-                    batch.Handle(table, e);
+                    var batch = chunk.ToBatch(current);
+
+                    try
+                    {
+                        table.ExecuteBatch(batch.Prepare());
+                    }
+                    catch (StorageException e)
+                    {
+                        batch.Handle(table, e);
+                    }
+
+                    current = batch.Result();
                 }
 
-                return batch.Result();
+                return new StreamWriteResult(current, events.ToArray());
             }
 
             public async Task<StreamWriteResult> ExecuteAsync()
             {
-                var batch = new Batch(stream, events);
-                
-                try
+                var current = stream;
+
+                foreach (var chunk in Chunks())
                 {
-                    await table.ExecuteBatchAsync(batch.Prepare()).Really();
-                }
-                catch (StorageException e)
-                {
-                    batch.Handle(table, e);
+                    var batch = chunk.ToBatch(current);
+
+                    try
+                    {
+                        await table.ExecuteBatchAsync(batch.Prepare()).Really();
+                    }
+                    catch (StorageException e)
+                    {
+                        batch.Handle(table, e);
+                    }
+
+                    current = batch.Result();
                 }
 
-                return batch.Result();
+                return new StreamWriteResult(current, events.ToArray());
+            }
+
+            IEnumerable<Chunk> Chunks()
+            {
+                return Chunk.Split(events).Where(s => !s.IsEmpty);
+            }
+
+            class Chunk
+            {
+                public static IEnumerable<Chunk> Split(IEnumerable<RecordedEvent> events)
+                {
+                    var current = new Chunk();
+
+                    foreach (var @event in events)
+                    {
+                        var next = current.Add(@event);
+
+                        if (next != current)
+                            yield return current;
+
+                        current = next;
+                    }
+
+                    yield return current;
+                }
+
+                readonly List<RecordedEvent> events = new List<RecordedEvent>();
+
+                Chunk()
+                {}
+
+                Chunk(RecordedEvent first)
+                {
+                    events.Add(first);
+                }
+
+                Chunk Add(RecordedEvent @event)
+                {
+                    if (@event.Operations.Length > MaxOperationsPerChunk)
+                        throw new InvalidOperationException(
+                            string.Format("{0} include(s) in event {1}:{{{2}}}, plus event entity itself, is over Azure's max batch size limit [{3}]",
+                                          @event.Includes.Count(), @event.Version, @event.Id, MaxOperationsPerChunk));
+                    
+                    if (!CanAccomodate(@event))
+                        return new Chunk(@event);
+
+                    events.Add(@event);
+                    return this;
+                }
+
+                bool CanAccomodate(RecordedEvent @event)
+                {
+                    return OperationTotal() + @event.Operations.Length <= MaxOperationsPerChunk;
+                }
+
+                int OperationTotal()
+                {
+                    return events.Sum(@event => @event.Operations.Length);
+                }
+
+                public bool IsEmpty
+                {
+                    get { return events.Count == 0; }
+                }
+
+                public Batch ToBatch(Stream stream)
+                {
+                    var entity = stream.Entity();
+                    entity.Version += events.Count; 
+                    return new Batch(entity, events);
+                }
             }
 
             class Batch
@@ -141,10 +227,10 @@ namespace Streamstone
                      new List<EntityOperation>();
                 
                 readonly StreamEntity stream;
-                readonly RecordedEvent[] events;
+                readonly IEnumerable<RecordedEvent> events;
                 readonly Partition partition;
 
-                internal Batch(StreamEntity stream, RecordedEvent[] events)
+                internal Batch(StreamEntity stream, IEnumerable<RecordedEvent> events)
                 {
                     this.stream = stream;
                     this.events = events;
@@ -185,9 +271,9 @@ namespace Streamstone
                     return result;
                 }
 
-                internal StreamWriteResult Result()
+                internal Stream Result()
                 {
-                    return new StreamWriteResult(From(partition, stream), events);
+                    return From(partition, stream);
                 }
 
                 internal void Handle(CloudTable table, StorageException exception)
