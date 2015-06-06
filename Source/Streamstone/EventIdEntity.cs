@@ -12,13 +12,23 @@ namespace Streamstone
         public EventIdEntity()
         {}
 
-        public EventIdEntity(Partition partition, string id, int version)
+        public EventIdEntity(Partition partition, RecordedEvent @event)
         {
+            Event = @event;
             PartitionKey = partition.PartitionKey;
-            RowKey = partition.EventIdRowKey(id);
-            Version = version;
+            RowKey = partition.EventIdRowKey(@event.Id);
+            Version = @event.Version;
         }
 
-        public int Version { get; set; }
+        public int Version
+        {
+            get; set;
+        }
+
+        [IgnoreProperty]
+        public RecordedEvent Event
+        {
+            get; set;
+        }
     }
 }

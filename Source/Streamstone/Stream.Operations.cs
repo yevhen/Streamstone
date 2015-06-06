@@ -235,14 +235,13 @@ namespace Streamstone
                         throw UnexpectedStorageResponseException.ErrorCodeShouldBeEntityAlreadyExists(error);
 
                     var position = ParseConflictingEntityPosition(error);
-                    Debug.Assert(position >= 0 && position < entities.Count);
 
+                    Debug.Assert(position >= 0 && position < operations.Count);
                     var conflicting = entities[position];
-                    if (conflicting is EventIdEntity)
-                    {
-                        var duplicate = events[(position - 1) / 2];
-                        throw new DuplicateEventException(table, partition, duplicate.Id);
-                    }
+
+                    var id = conflicting as EventIdEntity;
+                    if (id != null)
+                        throw new DuplicateEventException(table, partition, id.Event.Id);
 
                     var @event = conflicting as EventEntity;
                     if (@event != null)

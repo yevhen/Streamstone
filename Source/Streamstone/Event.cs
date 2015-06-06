@@ -152,7 +152,7 @@ namespace Streamstone
 
         internal EventIdEntity IdEntity(Partition partition)
         {
-            return new EventIdEntity(partition, Id, Version);
+            return new EventIdEntity(partition, this);
         }
     }
 }
