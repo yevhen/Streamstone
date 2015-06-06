@@ -9,6 +9,7 @@ Streamstone is a small library targeted at building scalable event-sourced appli
 + Fully ACID compliant
 + Optimistic concurrency support
 + Duplicate event detection (based on identity)
++ Automatic continuation for both writes and reads (over WATS limits)
 + Custom stream and event properties you can query on
 + Synchronous projections and snapshots
 + Friendly for multi-tenant designs
@@ -63,10 +64,12 @@ Optimistic concurrency is implemented by making version part of RowKey identifie
 
 ## Limitations
 
-The write batch size limit, imposed by Azure Table Storage, is 100 entities, therefore:
+While Streamstone allows you to pass any number of events to `Stream.Write`, the max batch size limit imposed by Azure Table Storage is 100 entities, therefore:
 
-+ The maximum write batch size is 99 entities (100 - 1 header entity) 
-+ With duplicate event detection enabled, maximum write batch size is 49 events (100/2 - 1 header entity) 
++ The batch will be automatically flushed for every 99 events (100 - 1 header entity)
++ The batch will be automatically flushed for every 49 events with id being set (100/2 - 1 header entity)
++ You will get back `InvalidOperationException` when trying to write an event which together with its includes is over max batch size limit
++ The actual size in bytes of event payload is not taken into account, so all limitations outlined below still apply
 
 Other limitations of the underlying Azure Table Storage API:
 
