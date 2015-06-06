@@ -64,7 +64,7 @@ namespace Example.Scenarios
         {
             var id = Guid.NewGuid();
 
-            var data = new
+            var properties = new
             {
                 Id = id,                 // id that you specify for Event ctor is used only for duplicate event detection
                 Type = e.GetType().Name, // you can include any number of custom properties along with event
@@ -72,7 +72,7 @@ namespace Example.Scenarios
                 Bin = BSON(e)            // and any storage format: binary, string, whatever (any EdmType)
             };
 
-            return new EventData(id.ToString("D"), data.Props());
+            return new EventData(id.ToString("D"), EventProperties.From(properties));
         }
 
         static string JSON(object data)

@@ -44,13 +44,13 @@ namespace Example.Scenarios
         {
             var id = Guid.NewGuid();
 
-            var data = new
+            var properties = new
             {
                 Type = @event.GetType().Name,
                 Data = JsonConvert.SerializeObject(@event)
             };
 
-            return new EventData(id.ToString("D"), data.Props(), includes);
+            return new EventData(id.ToString("D"), EventProperties.From(properties), includes);
         }
 
         class InventoryItemShapshot : TableEntity

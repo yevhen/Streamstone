@@ -6,7 +6,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
-    sealed class EventProperties : PropertyMap
+    public sealed class EventProperties : PropertyMap
     {
         internal static readonly EventProperties None = new EventProperties();
 
@@ -23,10 +23,16 @@ namespace Streamstone
             return Build(properties);
         }
 
-        internal static EventProperties From(IDictionary<string, EntityProperty> properties)
+        public static EventProperties From(IDictionary<string, EntityProperty> properties)
         {
             Requires.NotNull(properties, "properties");
-            return Build(properties.Clone());
+            return Build(Clone(properties));
+        }
+
+        public static EventProperties From(object properties)
+        {
+            Requires.NotNull(properties, "properties");
+            return Build(ToDictionary(properties));
         }
 
         static EventProperties Build(IEnumerable<KeyValuePair<string, EntityProperty>> properties)

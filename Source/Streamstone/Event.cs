@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
@@ -11,17 +8,6 @@ namespace Streamstone
     /// </summary>
     public sealed class EventData
     {
-        readonly EventProperties properties;
-        
-        /// <summary>
-        /// The readonly map of additional properties which this event contains.
-        /// Includes both meta and data properties.
-        /// </summary>
-        public IEnumerable<KeyValuePair<string, EntityProperty>> Properties 
-        {
-            get { return properties; }
-        }
-
         /// <summary>
         /// The unique identifier representing this event
         /// </summary>
@@ -31,9 +17,18 @@ namespace Streamstone
         }
 
         /// <summary>
+        /// The readonly map of additional properties which this event contains.
+        /// Includes both meta and data properties.
+        /// </summary>
+        public EventProperties Properties
+        {
+            get; private set;
+        }
+
+        /// <summary>
         /// Additional entity includes to be stored along with this event
         /// </summary>
-        public IEnumerable<Include> Includes
+        public Include[] Includes
         {
             get; private set;
         }
@@ -73,8 +68,8 @@ namespace Streamstone
         /// <param name="properties">
         /// The properties for this event (includes both meta and data properties).
         /// </param>
-        public EventData(string id, IDictionary<string, EntityProperty> properties)
-            : this(id, EventProperties.From(properties), NoIncludes)
+        public EventData(string id, EventProperties properties)
+            : this(id, properties, NoIncludes)
         {}
 
         /// <summary>
@@ -90,22 +85,19 @@ namespace Streamstone
         /// <param name="includes">
         /// Additional entity includes to be stored along with this event
         ///  </param>
-        public EventData(string id, IDictionary<string, EntityProperty> properties, Include[] includes)
-            : this(id, EventProperties.From(properties), includes)
-        {}
-
-        EventData(string id, EventProperties properties, Include[] includes)
+        public EventData(string id, EventProperties properties, Include[] includes)
         {
+            Requires.NotNull(properties, "properties");
             Requires.NotNull(includes, "includes");
             
             Id = id;
             Includes = includes;
-            this.properties = properties;
+            Properties = properties;
         }
 
         internal RecordedEvent Record(int version)
         {
-            return new RecordedEvent(Id, version, properties, Includes);
+            return new RecordedEvent(Id, Properties, Includes, version);
         }
     }
 
@@ -114,17 +106,6 @@ namespace Streamstone
     /// </summary>
     public sealed class RecordedEvent
     {
-        readonly EventProperties properties;
-
-        /// <summary>
-        /// The readonly map of additional properties which this event contains.
-        /// Includes both meta and data properties.
-        /// </summary>
-        public IEnumerable<KeyValuePair<string, EntityProperty>> Properties
-        {
-            get { return properties; }
-        }
-
         /// <summary>
         /// The unique identifier representing this event
         /// </summary>
@@ -134,9 +115,18 @@ namespace Streamstone
         }
 
         /// <summary>
+        /// The readonly map of additional properties which this event contains.
+        /// Includes both meta and data properties.
+        /// </summary>
+        public EventProperties Properties
+        {
+            get; private set;
+        }
+
+        /// <summary>
         /// Additional entity includes that were stored along with this event
         /// </summary>
-        public IEnumerable<Include> Includes
+        public Include[] Includes
         {
             get; private set;
         }
@@ -149,17 +139,17 @@ namespace Streamstone
             get; private set;
         }
 
-        internal RecordedEvent(string id, int version, EventProperties properties, IEnumerable<Include> includes)
+        internal RecordedEvent(string id, EventProperties properties, Include[] includes, int version)
         {
             Id = id;
             Version = version;
             Includes = includes;
-            this.properties = properties;
+            Properties = properties;
         }
 
         internal EventEntity EventEntity(Partition partition)
         {
-            return new EventEntity(partition, Version, properties);
+            return new EventEntity(partition, Version, Properties);
         }
 
         internal EventIdEntity IdEntity(Partition partition)

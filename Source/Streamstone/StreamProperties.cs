@@ -27,13 +27,13 @@ namespace Streamstone
         internal static StreamProperties From(ITableEntity entity)
         {
             Requires.NotNull(entity, "entity");
-            return Build(entity.Props());
+            return Build(ToDictionary(entity));
         }
 
         internal static StreamProperties From(IDictionary<string, EntityProperty> properties)
         {
             Requires.NotNull(properties, "properties");
-            return Build(properties.Clone());
+            return Build(Clone(properties));
         }
 
         static StreamProperties Build(IEnumerable<KeyValuePair<string, EntityProperty>> properties)

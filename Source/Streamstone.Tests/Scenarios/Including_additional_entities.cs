@@ -106,7 +106,7 @@ namespace Streamstone.Scenarios
                 {"Data", new EntityProperty("{}")}
             };
 
-            return new EventData(id, properties, includes);
+            return new EventData(id, EventProperties.From(properties), includes);
         }
 
         class TestEntity : TableEntity

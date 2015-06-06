@@ -68,11 +68,13 @@ namespace Streamstone.Scenarios
 
         static EventData CreateEvent(string id)
         {
-            return new EventData(id, new Dictionary<string, EntityProperty>
+            var properties = new Dictionary<string, EntityProperty>
             {
                 {"Type", new EntityProperty("StreamChanged")},
                 {"Data", new EntityProperty("{}")}
-            });
+            };
+
+            return new EventData(id, EventProperties.From(properties));
         }
     }
 }

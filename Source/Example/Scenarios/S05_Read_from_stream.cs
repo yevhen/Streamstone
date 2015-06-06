@@ -58,14 +58,14 @@ namespace Example.Scenarios
 
         static EventData Event(int id)
         {
-            var data = new
+            var properties = new
             {
                 Id = id,
                 Type = "<type>",
                 Data = "{some}"
             };
 
-            return new EventData(id.ToString(), data.Props());
+            return new EventData(id.ToString(), EventProperties.From(properties));
         }
 
         class EventEntity
