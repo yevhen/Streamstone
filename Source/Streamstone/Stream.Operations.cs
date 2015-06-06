@@ -20,9 +20,8 @@ namespace Streamstone
 
             public ProvisionOperation(Stream stream)
             {
-                Requires.NotNull(stream, "stream");
                 Debug.Assert(stream.IsTransient);
-
+                
                 this.stream = stream;
                 table = stream.Partition.Table;
             }
@@ -94,23 +93,14 @@ namespace Streamstone
         {
             readonly Stream stream;
             readonly CloudTable table;
-
             readonly EventData[] events;
             readonly bool ded;
 
             public WriteOperation(Stream stream, EventData[] events, bool ded = true)
             {
-                Requires.NotNull(events, "events");
-
-                if (events.Length == 0)
-                    throw new ArgumentOutOfRangeException("events", "Events have 0 items");
-
+                this.stream = stream;
                 this.events = events;
                 this.ded = ded;
-
-                Requires.NotNull(stream, "stream");
-
-                this.stream = stream;
                 table = stream.Partition.Table;
             }
 
@@ -278,21 +268,12 @@ namespace Streamstone
         {
             readonly Stream stream;
             readonly CloudTable table;
-
             readonly StreamProperties properties;
 
             public SetPropertiesOperation(Stream stream, StreamProperties properties)
-            {
-                Requires.NotNull(properties, "properties");
-
-                if (stream.IsTransient)
-                    throw new ArgumentException("Can't set properties on transient stream", "stream");
-
-                this.properties = properties;
-
-                Requires.NotNull(stream, "stream");
-
+            {                
                 this.stream = stream;
+                this.properties = properties;
                 table = stream.Partition.Table;
             }
 
@@ -367,8 +348,6 @@ namespace Streamstone
 
             public OpenStreamOperation(Partition partition)
             {
-                Requires.NotNull(partition, "partition");
-
                 this.partition = partition;
                 table = partition.Table;
             }
@@ -408,15 +387,9 @@ namespace Streamstone
 
             public ReadOperation(Partition partition, int startVersion, int sliceSize)
             {
-                Requires.GreaterThanOrEqualToOne(startVersion, "startVersion");
-                Requires.GreaterThanOrEqualToOne(sliceSize, "sliceSize");
-
+                this.partition = partition;
                 this.startVersion = startVersion;
                 this.sliceSize = sliceSize;
-
-                Requires.NotNull(partition, "partition");
-
-                this.partition = partition;
                 table = partition.Table;
             }
 

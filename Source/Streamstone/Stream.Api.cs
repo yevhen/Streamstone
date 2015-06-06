@@ -18,6 +18,7 @@ namespace Streamstone
 
         static Stream Provision(Stream stream)
         {
+            Requires.NotNull(stream, "stream");
             return new ProvisionOperation(stream).Execute();
         }
 
@@ -33,26 +34,51 @@ namespace Streamstone
 
         static Task<Stream> ProvisionAsync(Stream stream)
         {
+            Requires.NotNull(stream, "stream");
             return new ProvisionOperation(stream).ExecuteAsync();
         }
 
         public static StreamWriteResult Write(Stream stream, EventData[] events, bool ded = true)
         {
+            Requires.NotNull(stream, "stream");
+            Requires.NotNull(events, "events");
+
+            if (events.Length == 0)
+                throw new ArgumentOutOfRangeException("events", "Events have 0 items");
+
             return new WriteOperation(stream, events, ded).Execute();
         }
 
         public static Task<StreamWriteResult> WriteAsync(Stream stream, EventData[] events, bool ded = true)
         {
+            Requires.NotNull(stream, "stream");
+            Requires.NotNull(events, "events");
+
+            if (events.Length == 0)
+                throw new ArgumentOutOfRangeException("events", "Events have 0 items");
+
             return new WriteOperation(stream, events, ded).ExecuteAsync();
         }
 
         public static Stream SetProperties(Stream stream, StreamProperties properties)
         {
+            Requires.NotNull(stream, "stream");
+            Requires.NotNull(properties, "properties");
+
+            if (stream.IsTransient)
+                throw new ArgumentException("Can't set properties on transient stream", "stream");
+
             return new SetPropertiesOperation(stream, properties).Execute();
         }
 
         public static Task<Stream> SetPropertiesAsync(Stream stream, StreamProperties properties)
         {
+            Requires.NotNull(stream, "stream");
+            Requires.NotNull(properties, "properties");
+
+            if (stream.IsTransient)
+                throw new ArgumentException("Can't set properties on transient stream", "stream");
+
             return new SetPropertiesOperation(stream, properties).ExecuteAsync();
         }
 
@@ -68,6 +94,8 @@ namespace Streamstone
 
         public static StreamOpenResult TryOpen(Partition partition)
         {
+            Requires.NotNull(partition, "partition");
+
             return new OpenStreamOperation(partition).Execute();
         }
 
@@ -83,6 +111,8 @@ namespace Streamstone
 
         public static Task<StreamOpenResult> TryOpenAsync(Partition partition)
         {
+            Requires.NotNull(partition, "partition");
+
             return new OpenStreamOperation(partition).ExecuteAsync();
         }
 
@@ -104,6 +134,10 @@ namespace Streamstone
             int sliceSize = DefaultSliceSize) 
             where T : class, new()
         {
+            Requires.NotNull(partition, "partition");
+            Requires.GreaterThanOrEqualToOne(startVersion, "startVersion");
+            Requires.GreaterThanOrEqualToOne(sliceSize, "sliceSize");
+            
             return new ReadOperation<T>(partition, startVersion, sliceSize).Execute();
         }
         
@@ -113,6 +147,10 @@ namespace Streamstone
             int sliceSize = DefaultSliceSize) 
             where T : class, new()
         {
+            Requires.NotNull(partition, "partition");
+            Requires.GreaterThanOrEqualToOne(startVersion, "startVersion");
+            Requires.GreaterThanOrEqualToOne(sliceSize, "sliceSize");
+
             return new ReadOperation<T>(partition, startVersion, sliceSize).ExecuteAsync();
         }
     }
