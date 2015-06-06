@@ -28,12 +28,10 @@ namespace Streamstone
         /// <summary>
         /// Additional entity includes to be stored along with this event
         /// </summary>
-        public Include[] Includes
+        public EventIncludes Includes
         {
             get; private set;
         }
-
-        static readonly Include[] NoIncludes = new Include[0];
 
         /// <summary>
         /// Constructs a new <see cref="EventData"/> instance which doesn't have any additional properties.
@@ -42,7 +40,7 @@ namespace Streamstone
         /// The unique identifier of the event (used for duplicate event detection).
         /// </param>
         public EventData(string id)
-            : this(id, EventProperties.None, NoIncludes)
+            : this(id, EventProperties.None, EventIncludes.None)
         {}
 
         /// <summary>
@@ -55,7 +53,7 @@ namespace Streamstone
         /// <param name="includes">
         /// Additional entity includes to be stored along with this event
         ///  </param>
-        public EventData(string id, Include[] includes) 
+        public EventData(string id, EventIncludes includes)
             : this(id, EventProperties.None, includes)
         {}
 
@@ -69,7 +67,7 @@ namespace Streamstone
         /// The properties for this event (includes both meta and data properties).
         /// </param>
         public EventData(string id, EventProperties properties)
-            : this(id, properties, NoIncludes)
+            : this(id, properties, EventIncludes.None)
         {}
 
         /// <summary>
@@ -85,7 +83,7 @@ namespace Streamstone
         /// <param name="includes">
         /// Additional entity includes to be stored along with this event
         ///  </param>
-        public EventData(string id, EventProperties properties, Include[] includes)
+        public EventData(string id, EventProperties properties, EventIncludes includes)
         {
             Requires.NotNull(properties, "properties");
             Requires.NotNull(includes, "includes");
@@ -126,7 +124,7 @@ namespace Streamstone
         /// <summary>
         /// Additional entity includes that were stored along with this event
         /// </summary>
-        public Include[] Includes
+        public EventIncludes Includes
         {
             get; private set;
         }
@@ -139,7 +137,7 @@ namespace Streamstone
             get; private set;
         }
 
-        internal RecordedEvent(string id, EventProperties properties, Include[] includes, int version)
+        internal RecordedEvent(string id, EventProperties properties, EventIncludes includes, int version)
         {
             Id = id;
             Version = version;

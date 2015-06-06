@@ -50,7 +50,9 @@ namespace Example.Scenarios
                 Data = JsonConvert.SerializeObject(@event)
             };
 
-            return new EventData(id.ToString("D"), EventProperties.From(properties), includes);
+            return new EventData(id.ToString("D"), 
+                            EventProperties.From(properties), 
+                            EventIncludes.From(includes));
         }
 
         class InventoryItemShapshot : TableEntity
