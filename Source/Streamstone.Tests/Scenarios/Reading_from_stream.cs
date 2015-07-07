@@ -29,7 +29,14 @@ namespace Streamstone.Scenarios
             Assert.Throws<ArgumentOutOfRangeException>(
                 async ()=> await Stream.ReadAsync<TestEventEntity>(partition, -1));
         }
-        
+
+        [Test]
+        [ExpectedException(typeof(StreamNotFoundException))]
+        public async void When_stream_doesnt_exist()
+        {
+            await Stream.ReadAsync<TestEventEntity>(partition);
+        }
+
         [Test]
         public async void When_stream_is_empty()
         {
