@@ -531,7 +531,14 @@ namespace Streamstone
 
             DynamicTableEntity FindStreamEntity(IEnumerable<DynamicTableEntity> entities)
             {
-                return entities.Single(x => x.RowKey == partition.StreamRowKey());
+                var result = entities.SingleOrDefault(x => x.RowKey == partition.StreamRowKey());
+
+                if (result == null)
+                {
+                    throw new StreamNotFoundException(partition.Table, partition);
+                }
+
+                return result;
             }
 
             Stream BuildStream(DynamicTableEntity entity)
