@@ -73,6 +73,7 @@
       <Link>Properties\Streamstone.Version.cs</Link>
     </Compile>
     <Compile Include="Annotations.cs" />
+    <Compile Include="EntityChangeTracker.cs" />
     <Compile Include="EntityOperation.cs" />
     <Compile Include="EventId.cs" />
     <Compile Include="EventIncludes.cs" />

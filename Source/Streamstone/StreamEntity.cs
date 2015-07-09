@@ -59,11 +59,10 @@ namespace Streamstone
         {
             var isTransient = ETag == null;
 
-            var operation = isTransient 
-                ? TableOperation.Insert(this) 
-                : TableOperation.Replace(this);
-
-            return new EntityOperation(this, operation);
+            return isTransient
+                    ? (EntityOperation) 
+                      new EntityOperation.Insert(this)
+                    : new EntityOperation.Replace(this);
         }
 
         [IgnoreProperty]

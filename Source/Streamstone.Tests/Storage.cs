@@ -8,6 +8,8 @@ using ExpectedObjects;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 
+using NUnit.Framework;
+
 namespace Streamstone
 {
     static class Storage

@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.WindowsAzure.Storage.Table;
-
 namespace Streamstone
 {
     /// <summary>
@@ -132,14 +130,6 @@ namespace Streamstone
         }
 
         /// <summary>
-        /// Additional entity includes that were stored along with this event
-        /// </summary>
-        public EventIncludes Includes
-        {
-            get; private set;
-        }
-
-        /// <summary>
         /// A sequence number assigned by a stream to this event. 
         /// </summary>
         public int Version
@@ -147,15 +137,16 @@ namespace Streamstone
             get; private set;
         }
 
-        internal readonly EntityOperation[] Operations;
+        internal readonly EntityOperation[] EventOperations;
+        internal readonly EntityOperation[] IncludedOperations;
 
-        internal RecordedEvent(EventId id, EventProperties properties, EventIncludes includes, Partition partition, int version)
+        internal RecordedEvent(EventId id, EventProperties properties, IEnumerable<Include> includes, Partition partition, int version)
         {
             Id = id;
             Version = version;
-            Includes = includes;
             Properties = properties;
-            Operations = Prepare(partition).ToArray();
+            EventOperations = Prepare(partition).ToArray();
+            IncludedOperations = Prepare(includes, partition).ToArray();
         }
 
         IEnumerable<EntityOperation> Prepare(Partition partition)
@@ -164,21 +155,28 @@ namespace Streamstone
 
             if (Id != EventId.None)
                 yield return IdEntity(partition);
-
-            foreach (var include in Includes.Select(x => x.Apply(partition)))
-                yield return include;
         }
 
         EntityOperation EventEntity(Partition partition)
         {
             var entity = new EventEntity(partition, this);
-            return new EntityOperation(entity, TableOperation.Insert(entity));
+            return new EntityOperation.Insert(entity);
         }
 
         EntityOperation IdEntity(Partition partition)
         {
             var entity = new EventIdEntity(partition, this);
-            return new EntityOperation(entity, TableOperation.Insert(entity));
+            return new EntityOperation.Insert(entity);
+        }
+
+        static IEnumerable<EntityOperation> Prepare(IEnumerable<Include> includes, Partition partition)
+        {
+            return includes.Select(include => include.Operation.Apply(partition));
+        }
+
+        internal int Operations
+        {
+            get { return EventOperations.Length + IncludedOperations.Length; }
         }
     }
 }

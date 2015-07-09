@@ -32,7 +32,7 @@ namespace Streamstone
 
         public IEnumerator<Include> GetEnumerator()
         {
-            return ((IEnumerable<Include>) includes).GetEnumerator();
+            return ((IEnumerable<Include>)includes).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

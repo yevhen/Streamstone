@@ -17,7 +17,7 @@ namespace Example.Scenarios
             Console.WriteLine("Writing to new stream along with making snapshot in partition '{0}'", 
                               stream.Partition);
 
-            var snapshot = Include.InsertOrReplace(new InventoryItemShapshot
+            var snapshot = Include.Insert(new InventoryItemShapshot
             {
                 RowKey = "SNAPSHOT",
                 Name = "iPhone7",

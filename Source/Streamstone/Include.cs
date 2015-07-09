@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 using Microsoft.WindowsAzure.Storage.Table;
 
@@ -8,19 +7,31 @@ namespace Streamstone
     public enum IncludeType
     {
         Insert,
-        InsertOrReplace,
-        InsertOrMerge,
+        Replace,
         Delete
     }
 
     public sealed class Include
     {
-        readonly EntityOperation operation;
+        public static Include Insert(ITableEntity entity)
+        {
+            return new Include(IncludeType.Insert, new EntityOperation.Insert(entity));
+        }
 
-        Include(ITableEntity entity, IncludeType type, TableOperation operation)
+        public static Include Replace(ITableEntity entity)
+        {
+            return new Include(IncludeType.Replace, new EntityOperation.Replace(entity));
+        }
+
+        public static Include Delete(ITableEntity entity)
+        {
+            return new Include(IncludeType.Delete, new EntityOperation.Delete(entity));
+        }
+ 
+        Include(IncludeType type, EntityOperation operation)
         {
             Type = type;
-            this.operation = new EntityOperation(entity, operation);
+            Operation = operation;
         }
 
         public IncludeType Type
@@ -30,32 +41,12 @@ namespace Streamstone
 
         public ITableEntity Entity
         {
-            get { return operation.Entity; }
+            get { return Operation.Entity; }
         }
 
-        internal EntityOperation Apply(Partition partition)
+        internal EntityOperation Operation
         {
-            return operation.Apply(partition);
-        }
-
-        public static Include Delete(ITableEntity entity)
-        {
-            return new Include(entity, IncludeType.Delete, TableOperation.Delete(entity));
-        }
-        
-        public static Include Insert(ITableEntity entity)
-        {
-            return new Include(entity, IncludeType.Insert, TableOperation.Insert(entity));
-        }
-
-        public static Include InsertOrMerge(ITableEntity entity)
-        {
-            return new Include(entity, IncludeType.InsertOrMerge, TableOperation.InsertOrMerge(entity));
-        }
-
-        public static Include InsertOrReplace(ITableEntity entity)
-        {
-            return new Include(entity, IncludeType.InsertOrReplace, TableOperation.InsertOrReplace(entity));
+            get; private set;
         }
     }
 }

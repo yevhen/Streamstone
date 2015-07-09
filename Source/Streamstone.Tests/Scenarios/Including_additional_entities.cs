@@ -21,16 +21,30 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_include_has_no_conflicts()
+        public void When_include_has_no_conflicts_happy_path()
         {
-            var entity = new TestEntity("INV-0001");
-            var include = Include.Insert(entity);
+            var entity1 = new TestEntity("INV-0001");
+            var entity2 = new TestEntity("INV-0002");
 
-            EventData[] events = {CreateEvent("e1"), CreateEvent("e2", include)};
-            await Stream.WriteAsync(new Stream(partition), events);
-            
-            var actual = RetrieveTestEntity(entity.RowKey);
-            Assert.That(actual, Is.Not.Null);
+            EventData[] events =
+            {
+                CreateEvent("e1", Include.Insert(entity1)), 
+                CreateEvent("e2", Include.Insert(entity2))
+            };
+
+            var result = Stream.Write(new Stream(partition), events);
+
+            var stored = RetrieveTestEntity(entity1.RowKey);
+            Assert.That(stored, Is.Not.Null);
+
+            stored = RetrieveTestEntity(entity2.RowKey);
+            Assert.That(stored, Is.Not.Null);
+
+            Assert.That(result.Includes.Length, Is.EqualTo(2));
+            Assert.That(result.Includes[0], Is.SameAs(entity1));
+            Assert.That(result.Includes[0].ETag, Is.Not.Null.Or.Empty);
+            Assert.That(result.Includes[1], Is.SameAs(entity2));
+            Assert.That(result.Includes[1].ETag, Is.Not.Null.Or.Empty);            
         }
         
         [Test]
@@ -110,7 +124,6 @@ namespace Streamstone.Scenarios
             Assert.That(partition.RetrieveAll().Count,
                 Is.EqualTo((eventEntities.Length * 2) + eventIdEntities.Length + 1));
         }
-
 
         [Test]
         public void When_single_event_along_with_includes_is_over_WATS_max_batch_size_limit()

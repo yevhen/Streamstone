@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -187,10 +186,10 @@ namespace Streamstone
 
                 Chunk Add(RecordedEvent @event)
                 {
-                    if (@event.Operations.Length > MaxOperationsPerChunk)
+                    if (@event.Operations > MaxOperationsPerChunk)
                         throw new InvalidOperationException(
                             string.Format("{0} include(s) in event {1}:{{{2}}}, plus event entity itself, is over Azure's max batch size limit [{3}]",
-                                          @event.Includes.Count(), @event.Version, @event.Id, MaxOperationsPerChunk));
+                                          @event.IncludedOperations.Length, @event.Version, @event.Id, MaxOperationsPerChunk));
                     
                     if (!CanAccomodate(@event))
                         return new Chunk(@event);
@@ -201,13 +200,13 @@ namespace Streamstone
 
                 void Accomodate(RecordedEvent @event)
                 {
-                    operations += @event.Operations.Length;
+                    operations += @event.Operations;
                     events.Add(@event);
                 }
 
                 bool CanAccomodate(RecordedEvent @event)
                 {
-                    return operations + @event.Operations.Length <= MaxOperationsPerChunk;
+                    return operations + @event.Operations <= MaxOperationsPerChunk;
                 }
 
                 public bool IsEmpty
@@ -229,10 +228,10 @@ namespace Streamstone
                      new List<EntityOperation>();
                 
                 readonly StreamEntity stream;
-                readonly IEnumerable<RecordedEvent> events;
+                readonly List<RecordedEvent> events;
                 readonly Partition partition;
 
-                internal Batch(StreamEntity stream, IEnumerable<RecordedEvent> events)
+                internal Batch(StreamEntity stream, List<RecordedEvent> events)
                 {
                     this.stream = stream;
                     this.events = events;
@@ -243,6 +242,7 @@ namespace Streamstone
                 {
                     WriteStream();
                     WriteEvents();
+                    WriteIncludes();
 
                     return ToBatch();
                 }
@@ -254,13 +254,17 @@ namespace Streamstone
 
                 void WriteEvents()
                 {
-                    foreach (var e in events)
-                        WriteEvent(e);
+                    operations.AddRange(events.SelectMany(e => e.EventOperations));
                 }
 
-                void WriteEvent(RecordedEvent @event)
+                void WriteIncludes()
                 {
-                    operations.AddRange(@event.Operations);
+                    var tracker = new EntityChangeTracker();
+
+                    foreach (var @event in events)
+                        tracker.Record(@event.IncludedOperations);
+
+                    operations.AddRange(tracker.Compute());
                 }
 
                 TableBatchOperation ToBatch()
@@ -268,7 +272,7 @@ namespace Streamstone
                     var result = new TableBatchOperation();
                     
                     foreach (var each in operations)
-                        result.Add(each.Operation);
+                        result.Add(each);
 
                     return result;
                 }
@@ -306,11 +310,8 @@ namespace Streamstone
                     if (@event != null)
                         throw ConcurrencyConflictException.EventVersionExists(table, partition, @event.Version);
 
-                    var include = events.SelectMany(e => e.Includes).SingleOrDefault(x => x.Entity == conflicting);
-                    if (include != null)
-                        throw new IncludedOperationConflictException(table, partition, include);
-
-                    throw new WarningException("How did this happen? We've got conflict on entity which is neither event nor id or include");
+                    var include = operations.Single(x => x.Entity == conflicting); 
+                    throw IncludedOperationConflictException.Create(table, partition, include);
                 }
 
                 static int ParseConflictingEntityPosition(StorageExtendedErrorInformation error)
