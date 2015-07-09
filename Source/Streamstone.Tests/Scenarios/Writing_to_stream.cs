@@ -51,8 +51,20 @@ namespace Streamstone.Scenarios
                 
                 contents.AssertNothingChanged();
             });
+        }
 
-            partition.UpdateStreamEntity(version: 3);
+        [Test]
+        public void When_writing_together_with_creating_stream_and_stream_already_exists()
+        {
+            Stream.Provision(partition);
+
+            partition.CaptureContents(contents =>
+            {
+                Assert.Throws<ConcurrencyConflictException>(
+                    async () => await Stream.WriteAsync(new Stream(partition), CreateEvent()));
+
+                contents.AssertNothingChanged();
+            });
         }
 
         [Test]

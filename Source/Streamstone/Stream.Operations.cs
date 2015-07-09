@@ -295,6 +295,9 @@ namespace Streamstone
                     Debug.Assert(position >= 0 && position < operations.Count);
                     var conflicting = operations[position].Entity;
 
+                    if (conflicting == stream)
+                        throw ConcurrencyConflictException.StreamChangedOrExists(table, partition);
+
                     var id = conflicting as EventIdEntity;
                     if (id != null)
                         throw new DuplicateEventException(table, partition, id.Event.Id);
