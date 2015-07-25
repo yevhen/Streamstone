@@ -12,6 +12,7 @@ namespace Streamstone
         public readonly CloudTable Table;
         public readonly string PartitionKey;
         public readonly string RowKeyPrefix;
+        public readonly string Key;
 
         public Partition(CloudTable table, string key)
         {
@@ -22,10 +23,12 @@ namespace Streamstone
                 StringSplitOptions.RemoveEmptyEntries);
 
             Table = table;
+            
             PartitionKey = parts[0];
             RowKeyPrefix = parts.Length > 1 
                             ? parts[1] + separator[0] 
                             : "";
+            Key = key;
         }
 
         public string StreamRowKey()
@@ -45,7 +48,7 @@ namespace Streamstone
 
         public override string ToString()
         {
-            return string.Format("{0}.{1}{2}", Table.Name, PartitionKey, RowKeyPrefix);
+            return string.Format("{0}.{1}", Table.Name, Key);
         }
     }
 }
