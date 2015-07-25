@@ -75,6 +75,7 @@
     <Compile Include="Scenarios\S02_Open_stream_for_writing.cs" />
     <Compile Include="Scenarios\S03_Try_open_stream_for_writing.cs" />
     <Compile Include="Scenarios\S04_Write_to_stream.cs" />
+    <Compile Include="Scenarios\S10_Stream_directory.cs" />
     <Compile Include="Scenarios\S09_Handling_duplicates.cs" />
     <Compile Include="Scenarios\S08_Concurrency_conflicts.cs" />
     <Compile Include="Scenarios\S07_Custom_stream_metadata.cs" />
