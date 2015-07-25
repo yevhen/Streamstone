@@ -96,6 +96,7 @@
     <Compile Include="StreamProperties.cs" />
     <Compile Include="StreamSlice.cs" />
     <Compile Include="StreamWriteResult.cs" />
+    <Compile Include="Utility.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Packages.config" />

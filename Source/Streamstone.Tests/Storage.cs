@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 
 using ExpectedObjects;
 
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 
-using NUnit.Framework;
-
 namespace Streamstone
 {
+    using Utility;
+
     static class Storage
     {
         const string TableName = "Streams";
@@ -113,10 +112,7 @@ namespace Streamstone
 
         public static EventEntity[] RetrieveEventEntities(this Partition partition)
         {
-            return partition.Table.CreateQuery<EventEntity>()
-                        .Where(x => x.PartitionKey == partition.PartitionKey)
-                        .Where(RowKeyPrefix.Range<EventEntity>(Api.EventRowKeyPrefix))
-                        .ToArray();
+            return partition.RowKeyPrefixQuery<EventEntity>(prefix: Api.EventRowKeyPrefix).ToArray();
         }
 
         public static void InsertEventIdEntities(this Partition partition, params string[] ids)
@@ -135,10 +131,7 @@ namespace Streamstone
 
         public static EventIdEntity[] RetrieveEventIdEntities(this Partition partition)
         {
-            return partition.Table.CreateQuery<EventIdEntity>()
-                        .Where(x => x.PartitionKey == partition.PartitionKey)
-                        .Where(RowKeyPrefix.Range<EventIdEntity>(Api.EventIdRowKeyPrefix))
-                        .ToArray();
+            return partition.RowKeyPrefixQuery<EventIdEntity>(prefix: Api.EventIdRowKeyPrefix).ToArray();
         }
 
         public static List<DynamicTableEntity> RetrieveAll(this Partition partition)
@@ -192,35 +185,6 @@ namespace Streamstone
             {
                 var current = partition.RetrieveAll();
                 current.ShouldMatch(captured.ToExpectedObject());
-            }
-        }
-
-        static class RowKeyPrefix
-        {
-            public static Expression<Func<TEntity, bool>> Range<TEntity>(string prefix) where TEntity : ITableEntity
-            {
-                var range = new PrefixRange(prefix);
-
-                // ReSharper disable StringCompareToIsCultureSpecific
-                return x => x.RowKey.CompareTo(range.Start) >= 0
-                            && x.RowKey.CompareTo(range.End) < 0;
-            }
-
-            struct PrefixRange
-            {
-                public readonly string Start;
-                public readonly string End;
-
-                public PrefixRange(string prefix)
-                {
-                    Start = prefix;
-
-                    var length = prefix.Length - 1;
-                    var lastChar = prefix[length];
-                    var nextLastChar = (char)(lastChar + 1);
-
-                    End = prefix.Substring(0, length) + nextLastChar;
-                }
             }
         }
     }
