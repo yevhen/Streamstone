@@ -46,10 +46,15 @@ namespace Streamstone
             Version = version;
             Properties = properties;
         }
-        
-        bool IsTransient
+
+        public bool IsTransient
         {
             get { return ETag == null; }
+        }
+
+        public bool IsPersistent
+        {
+            get { return !IsTransient; }
         }
 
         static Stream From(Partition partition, StreamEntity entity)
