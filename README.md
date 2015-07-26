@@ -59,9 +59,14 @@ Optimistic concurrency is implemented by making version part of RowKey identifie
 + Virtual partitions [[see](Source/Streamstone.Tests/Scenarios/Virtual_partitions.cs)]
 
 ##### Application
++ Implementing stream directory [[see](Source/Example/Scenarios/S10_Stream_directory.cs)]
 + Using snapshots [[see](Source/Example/Scenarios/S06_Include_additional_entities.cs)]
 + Creating projections [[see]()]
 + Querying events [[see]()]
+
+##### Demo
++ Classic Greg Young's CQRS demo using Streamstone [[repo](https://github.com/yevhen/Streamstone.m-r)]
++ Using Streamstone in stateful applications. Event-sourced actors for Project Orleans [[see](https://github.com/yevhen/Orleankka/tree/master/Source/Example.EventSourcing.Persistence.Streamstone)]  
 
 ## Limitations
 
