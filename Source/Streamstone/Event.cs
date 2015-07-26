@@ -10,7 +10,7 @@ namespace Streamstone
     public sealed class EventData
     {
         /// <summary>
-        /// The unique identifier representing this event
+        /// The unique identifier representing this event.
         /// </summary>
         public EventId Id
         {
@@ -27,7 +27,7 @@ namespace Streamstone
         }
 
         /// <summary>
-        /// Additional entity includes to be stored along with this event
+        /// Additional entity includes to be stored along with this event.
         /// </summary>
         public EventIncludes Includes
         {
@@ -89,7 +89,7 @@ namespace Streamstone
         /// The properties for this event (includes both meta and data properties).
         /// </param>
         /// <param name="includes">
-        /// Additional entity includes to be stored along with this event
+        /// Additional entity includes to be stored along with this event.
         ///  </param>
         public EventData(EventId id, EventProperties properties, EventIncludes includes)
         {

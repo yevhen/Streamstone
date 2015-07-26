@@ -76,7 +76,7 @@ namespace Streamstone
                 internal void Handle(CloudTable table, StorageException exception)
                 {
                     if (exception.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
-                        throw ConcurrencyConflictException.StreamChangedOrExists(table, partition);
+                        throw ConcurrencyConflictException.StreamChangedOrExists(partition);
 
                     throw exception.PreserveStackTrace();
                 }
@@ -285,7 +285,7 @@ namespace Streamstone
                 internal void Handle(CloudTable table, StorageException exception)
                 {
                     if (exception.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
-                        throw ConcurrencyConflictException.StreamChangedOrExists(table, partition);
+                        throw ConcurrencyConflictException.StreamChangedOrExists(partition);
 
                     if (exception.RequestInformation.HttpStatusCode != (int)HttpStatusCode.Conflict)
                         throw exception.PreserveStackTrace();
@@ -300,18 +300,18 @@ namespace Streamstone
                     var conflicting = operations[position].Entity;
 
                     if (conflicting == stream)
-                        throw ConcurrencyConflictException.StreamChangedOrExists(table, partition);
+                        throw ConcurrencyConflictException.StreamChangedOrExists(partition);
 
                     var id = conflicting as EventIdEntity;
                     if (id != null)
-                        throw new DuplicateEventException(table, partition, id.Event.Id);
+                        throw new DuplicateEventException(partition, id.Event.Id);
 
                     var @event = conflicting as EventEntity;
                     if (@event != null)
-                        throw ConcurrencyConflictException.EventVersionExists(table, partition, @event.Version);
+                        throw ConcurrencyConflictException.EventVersionExists(partition, @event.Version);
 
                     var include = operations.Single(x => x.Entity == conflicting); 
-                    throw IncludedOperationConflictException.Create(table, partition, include);
+                    throw IncludedOperationConflictException.Create(partition, include);
                 }
 
                 static int ParseConflictingEntityPosition(StorageExtendedErrorInformation error)
@@ -398,7 +398,7 @@ namespace Streamstone
                 internal void Handle(CloudTable table, StorageException exception)
                 {
                     if (exception.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
-                        throw ConcurrencyConflictException.StreamChanged(table, partition);
+                        throw ConcurrencyConflictException.StreamChanged(partition);
 
                     throw exception.PreserveStackTrace();
                 }
@@ -538,9 +538,7 @@ namespace Streamstone
                 var result = entities.SingleOrDefault(x => x.RowKey == partition.StreamRowKey());
 
                 if (result == null)
-                {
-                    throw new StreamNotFoundException(partition.Table, partition);
-                }
+                    throw new StreamNotFoundException(partition);
 
                 return result;
             }

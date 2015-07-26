@@ -5,15 +5,38 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
-    public class Partition
+    /// <summary>
+    /// Represents table partition. Virtual partitions are created by using <c>`|`</c> split separator in a key.
+    /// </summary>
+    public sealed class Partition
     {
         static readonly string[] separator = {"|"};
 
+        /// <summary>
+        /// The table in which this partition resides
+        /// </summary>
         public readonly CloudTable Table;
+
+        /// <summary>
+        /// The partition key
+        /// </summary>
         public readonly string PartitionKey;
+
+        /// <summary>
+        /// The row key prefix. Will be non-empty only for virtual partitions
+        /// </summary>
         public readonly string RowKeyPrefix;
+
+        /// <summary>
+        /// The full key of this partition
+        /// </summary>
         public readonly string Key;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Partition"/> class.
+        /// </summary>
+        /// <param name="table">The cloud table.</param>
+        /// <param name="key">The full key.</param>
         public Partition(CloudTable table, string key)
         {
             Requires.NotNull(table, "table");
@@ -31,21 +54,28 @@ namespace Streamstone
             Key = key;
         }
 
-        public string StreamRowKey()
+        internal string StreamRowKey()
         {
             return string.Format("{0}{1}", RowKeyPrefix, StreamEntity.FixedRowKey);
         }
 
-        public string EventVersionRowKey(int version)
+        internal string EventVersionRowKey(int version)
         {
             return string.Format("{0}{1}{2:d10}", RowKeyPrefix, EventEntity.RowKeyPrefix, version);
         }
 
-        public string EventIdRowKey(string id)
+        internal string EventIdRowKey(string id)
         {
             return string.Format("{0}{1}{2}", RowKeyPrefix, EventIdEntity.RowKeyPrefix, id);
         }
 
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>
+        /// A string that represents the current object.
+        /// </returns>
+        /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
             return string.Format("{0}.{1}", Table.Name, Key);

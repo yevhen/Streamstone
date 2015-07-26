@@ -6,38 +6,138 @@ namespace Streamstone
 {
     public sealed partial class Stream
     {
+        /// <summary>
+        /// Provisions new stream in the specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>The stream header</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If stream already exists in the partition
+        /// </exception>
         public static Stream Provision(Partition partition)
         {
             return Provision(new Stream(partition));
         }
 
+        /// <summary>
+        /// Provisions new stream  with the given properties in the specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <param name="properties">The stream properties</param>
+        /// <returns>The stream header</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="properties"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        /// If stream already exists in the partition
+        /// </exception>
         public static Stream Provision(Partition partition, StreamProperties properties)
         {
             return Provision(new Stream(partition, properties));
         }
 
+        /// <summary>
+        /// Provisions specified stream.
+        /// </summary>
+        /// <param name="stream">The transient stream header.</param>
+        /// <returns>The updated, persistent stream header</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="stream"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If stream already exists in the partition
+        /// </exception>
         static Stream Provision(Stream stream)
         {
             Requires.NotNull(stream, "stream");
             return new ProvisionOperation(stream).Execute();
         }
 
+        /// <summary>
+        /// Initiates an asynchronous operation that provisions new stream in the specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>The promise, that wil eventually return stream header or will fail with exception</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If stream already exists in the partition
+        /// </exception>
         public static Task<Stream> ProvisionAsync(Partition partition)
         {
             return ProvisionAsync(new Stream(partition));
         }
 
+        /// <summary>
+        /// Initiates an asynchronous operation that provisions new stream with the given properties in the specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <param name="properties">The stream properties</param>
+        /// <returns>The promise, that wil eventually return stream header or will fail with exception</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="properties"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        /// If stream already exists in the partition
+        /// </exception>        
         public static Task<Stream> ProvisionAsync(Partition partition, StreamProperties properties)
         {
             return ProvisionAsync(new Stream(partition, properties));
         }
 
+        /// <summary>
+        /// Initiates an asynchronous operation that provisions specified stream.
+        /// </summary>
+        /// <param name="stream">The transient stream header.</param>
+        /// <returns>The promise, that wil eventually return updated, persistent stream header or will fail with exception</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="stream"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If stream already exists in the partition
+        /// </exception>
         static Task<Stream> ProvisionAsync(Stream stream)
         {
             Requires.NotNull(stream, "stream");
             return new ProvisionOperation(stream).ExecuteAsync();
         }
 
+        /// <summary>
+        /// Writes the given array of events to a stream using speficed stream header.
+        /// </summary>
+        /// <param name="stream">The stream header.</param>
+        /// <param name="events">The events to write.</param>
+        /// <returns>
+        ///     The result of the stream write operation which has updated stream header
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="stream"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="events"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///    If <paramref name="events"/> array is empty
+        /// </exception>
+        /// <exception cref="DuplicateEventException">
+        ///     If event with the given id already exists in a storage
+        /// </exception>
+        /// <exception cref="IncludedOperationConflictException">
+        ///     If included entity operation has conflicts
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If write operation has conflicts
+        /// </exception>
         public static StreamWriteResult Write(Stream stream, params EventData[] events)
         {
             Requires.NotNull(stream, "stream");
@@ -49,6 +149,33 @@ namespace Streamstone
             return new WriteOperation(stream, events).Execute();
         }
 
+        /// <summary>
+        /// Initiates an asynchronous operation that writes the given array of events to a stream using speficed stream header.
+        /// </summary>
+        /// <param name="stream">The stream header.</param>
+        /// <param name="events">The events to write.</param>
+        /// <returns>
+        ///     The promise, that wil eventually return the result of the stream write operation 
+        ///    which has updated stream header or will fail with exception
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="stream"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="events"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///    If <paramref name="events"/> array is empty
+        /// </exception>
+        /// <exception cref="DuplicateEventException">
+        ///     If event with the given id already exists in a storage
+        /// </exception>
+        /// <exception cref="IncludedOperationConflictException">
+        ///     If included entity operation has conflicts
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If write operation has conflicts
+        /// </exception>
         public static Task<StreamWriteResult> WriteAsync(Stream stream, params EventData[] events)
         {
             Requires.NotNull(stream, "stream");
@@ -60,6 +187,24 @@ namespace Streamstone
             return new WriteOperation(stream, events).ExecuteAsync();
         }
 
+        /// <summary>
+        /// Sets the given stream properties (metadata).
+        /// </summary>
+        /// <param name="stream">The stream header.</param>
+        /// <param name="properties">The properties.</param>
+        /// <returns>Updated stream header</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="stream"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="properties"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     If given stream header represents a transient stream
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If stream has been changed in storage after the given stream header has been read
+        /// </exception>
         public static Stream SetProperties(Stream stream, StreamProperties properties)
         {
             Requires.NotNull(stream, "stream");
@@ -71,6 +216,24 @@ namespace Streamstone
             return new SetPropertiesOperation(stream, properties).Execute();
         }
 
+         /// <summary>
+        /// Initiates an asynchronous operation that sets the given stream properties (metadata).
+        /// </summary>
+        /// <param name="stream">The stream header.</param>
+        /// <param name="properties">The properties.</param>
+        /// <returns>The promise, that wil eventually return updated stream header or will fail with exception</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="stream"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="properties"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     If given stream header represents a transient stream
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If stream has been changed in storage after the given stream header has been read
+        /// </exception>
         public static Task<Stream> SetPropertiesAsync(Stream stream, StreamProperties properties)
         {
             Requires.NotNull(stream, "stream");
@@ -82,6 +245,17 @@ namespace Streamstone
             return new SetPropertiesOperation(stream, properties).ExecuteAsync();
         }
 
+        /// <summary>
+        /// Opens the stream in specified partition. Basically, it just return a stream header.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>The stream header</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="StreamNotFoundException">
+        ///     If there is no stream in a given partition
+        /// </exception>
         public static Stream Open(Partition partition)
         {
             var result = TryOpen(partition);
@@ -89,16 +263,22 @@ namespace Streamstone
             if (result.Found)
                 return result.Stream;
 
-            throw new StreamNotFoundException(partition.Table, partition);
+            throw new StreamNotFoundException(partition);
         }
 
-        public static StreamOpenResult TryOpen(Partition partition)
-        {
-            Requires.NotNull(partition, "partition");
-
-            return new OpenStreamOperation(partition).Execute();
-        }
-
+        /// <summary>
+        /// Initiates an asynchronous operation that opens the stream in specified partition. Basically, it just return a stream header.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>
+        ///     The promise, that wil eventually return the stream header or wil fail with exception
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="StreamNotFoundException">
+        ///     If there is no stream in a given partition
+        /// </exception>
         public static async Task<Stream> OpenAsync(Partition partition)
         {
             var result = await TryOpenAsync(partition).Really();
@@ -106,9 +286,37 @@ namespace Streamstone
             if (result.Found)
                 return result.Stream;
 
-            throw new StreamNotFoundException(partition.Table, partition);
+            throw new StreamNotFoundException(partition);
         }
 
+        /// <summary>
+        /// Tries to open the stream in a specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>
+        ///     The result of stream open operation, which could be further examined for stream existence
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        public static StreamOpenResult TryOpen(Partition partition)
+        {
+            Requires.NotNull(partition, "partition");
+
+            return new OpenStreamOperation(partition).Execute();
+        }
+
+        /// <summary>
+        /// Initiates an asynchronous operation that tries to open the stream in a specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>
+        ///     The promise, that wil eventually return the result of stream open operation, 
+        ///     which could be further examined for stream existence;  or wil fail with exception
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
         public static Task<StreamOpenResult> TryOpenAsync(Partition partition)
         {
             Requires.NotNull(partition, "partition");
@@ -116,11 +324,32 @@ namespace Streamstone
             return new OpenStreamOperation(partition).ExecuteAsync();
         }
 
+        /// <summary>
+        /// Checks if there is a stream exists in the specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>
+        ///     <c>true</c> if stream header was found in the specified partition, <c>false</c> otherwise
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
         public static bool Exists(Partition partition)
         {
             return TryOpen(partition).Found;
         }
 
+        /// <summary>
+        /// Initiates an asynchronous operation that checks if there is a stream exists in the specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>
+        ///     The promise, that wil eventually return <c>true</c>
+        ///     if stream header was found in the specified partition,  <c>false</c> otherwise
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
         public static async Task<bool> ExistsAsync(Partition partition)
         {
             return (await TryOpenAsync(partition).Really()).Found;
@@ -128,6 +357,28 @@ namespace Streamstone
 
         const int DefaultSliceSize = 1000;
 
+        /// <summary>
+        /// Reads the events from a stream in a specified partition.
+        /// </summary>
+        /// <typeparam name="T">The type of event entity to return</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="startVersion">The start version.</param>
+        /// <param name="sliceSize">Size of the slice.</param>
+        /// <returns>
+        ///     The slice of the stream, which contains events that has been read
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     If <paramref name="startVersion"/> &lt; 1
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     If <paramref name="sliceSize"/> &lt; 1
+        /// </exception>       
+        /// <exception cref="StreamNotFoundException">
+        ///     If there is no stream in a given partition
+        /// </exception>
         public static StreamSlice<T> Read<T>(
             Partition partition, 
             int startVersion = 1, 
@@ -140,7 +391,30 @@ namespace Streamstone
             
             return new ReadOperation<T>(partition, startVersion, sliceSize).Execute();
         }
-        
+
+        /// <summary>
+        /// Initiates an asynchronous operation that reads the events from a stream in a specified partition.
+        /// </summary>
+        /// <typeparam name="T">The type of event entity to return</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="startVersion">The start version.</param>
+        /// <param name="sliceSize">Size of the slice.</param>
+        /// <returns>
+        ///     The promise, that wil eventually return the slice of the stream, 
+        ///     which contains events that has been read; or will fail with exception
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     If <paramref name="startVersion"/> &lt; 1
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     If <paramref name="sliceSize"/> &lt; 1
+        /// </exception>       
+        /// <exception cref="StreamNotFoundException">
+        ///     If there is no stream in a given partition
+        /// </exception>
         public static Task<StreamSlice<T>> ReadAsync<T>(
             Partition partition, 
             int startVersion = 1, 

@@ -17,18 +17,11 @@ namespace Streamstone
         [AssertionMethod]
         public static void NotNullOrEmpty(string argument, [InvokerParameterName] string argumentName)
         {
-            if (string.IsNullOrEmpty(argument))
-                throw new ArgumentNullException(argument, argumentName);
-        }
-
-        [AssertionMethod]
-        public static void NotNullOrWhitespace(string argument, [InvokerParameterName] string argumentName)
-        {
             if (argument == null)
                 throw new ArgumentNullException(argumentName);
 
-            if (string.IsNullOrWhiteSpace(argument))
-                throw new ArgumentException(argumentName + " cannot consist of whitespace chars only", argumentName);
+            if (argument == "")
+                throw new ArgumentException(argumentName + " cannot be an empty string", argumentName);
         }
 
         [AssertionMethod]

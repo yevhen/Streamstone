@@ -8,18 +8,35 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
+    /// <summary>
+    /// Represents collection of named properties
+    /// </summary>
     public abstract class PropertyMap : IEnumerable<KeyValuePair<string, EntityProperty>>
     {
         readonly IDictionary<string, EntityProperty> properties = new Dictionary<string, EntityProperty>();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PropertyMap"/> class.
+        /// </summary>
         protected PropertyMap()
         {}
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PropertyMap"/> class.
+        /// </summary>
+        /// <param name="properties">The properties.</param>
         protected PropertyMap(IDictionary<string, EntityProperty> properties)
         {
             this.properties = properties;
         }
 
+        /// <summary>
+        /// Returns an enumerator that iterates through the collection.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="T:System.Collections.Generic.IEnumerator`1"/> that can be used to iterate through the collection.
+        /// </returns>
+        /// <filterpriority>1</filterpriority>
         public IEnumerator<KeyValuePair<string, EntityProperty>> GetEnumerator()
         {
             return properties.GetEnumerator();
@@ -38,12 +55,23 @@ namespace Streamstone
 
         internal static IEnumerable<KeyValuePair<string, EntityProperty>> ToDictionary(ITableEntity entity)
         {
-            Requires.NotNull(entity, "entity");
             return entity.WriteEntity(new OperationContext());
         }
 
         static readonly object[] noargs = new object[0];
 
+        /// <summary>
+        /// Converts given object instance to a sequence of named properties. 
+        /// Only public properties of WATS compatible types will be converted.
+        /// </summary>
+        /// <param name="obj">The object.</param>
+        /// <returns>Sequence of named propeties</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="obj"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="NotSupportedException">
+        ///     If <paramref name="obj"/> has properties of WATS incompatible type
+        /// </exception>
         protected static IEnumerable<KeyValuePair<string, EntityProperty>> ToDictionary(object obj)
         {
             Requires.NotNull(obj, "obj");
