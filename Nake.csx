@@ -30,7 +30,6 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 [Step] void Clean(string path = OutputPath)
 {
     Delete(@"{path}\*.*|-:*.vshost.exe");
-    RemoveDir(@"**\bin|**\obj|{path}\*|-:*.vshost.exe");
 }
 
 /// Builds sources using specified configuration and output path
