@@ -62,20 +62,29 @@ namespace Example.Scenarios
 
         void WriteMultipleStreamsInParallel()
         {
-            Enumerable.Range(1, 50).AsParallel()
+            const int streamsToWrite = 10;
+
+            Enumerable.Range(1, streamsToWrite).AsParallel()
                 .ForAll(streamIndex =>
                 {
-                    var stream = new Stream(string.Concat(Partition, "-", streamIndex));
-                    Console.WriteLine("Writing to new stream in partition '{0}'", stream.Partition);
+                    var partition = new Partition(Partition.Table, streamIndex.ToString());
+
+                    var existent = Stream.TryOpen(partition);
+
+                    var stream = existent.Found
+                        ? existent.Stream
+                        : new Stream(partition);
+
+                    Console.WriteLine("Writing to new stream in partition '{0}'", partition);
                     var stopwatch = Stopwatch.StartNew();
 
-                    for (int i = 1; i <= 3; i++)
+                    for(int i=0; i<30; ++i)
                     {
                         var events = Enumerable.Range(1, 10)
-                            .Select(_ => Event(new InventoryItemCheckedIn(Partition, i * 1000 + streamIndex)))
+                            .Select(_ => Event(new InventoryItemCheckedIn(partition.Key, i * 1000 + streamIndex)))
                             .ToArray();
 
-                        var result = Stream.Write(Table, stream, events);
+                        var result = Stream.Write(stream, events);
 
                         stream = result.Stream;
                     }
