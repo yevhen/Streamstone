@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
 
 using Streamstone;
+using System.Diagnostics;
 
 namespace Example.Scenarios
 {
@@ -14,6 +15,7 @@ namespace Example.Scenarios
         {
             WriteToExistingOrCreateNewStream();
             WriteSequentiallyToExistingStream();
+            WriteMultipleStreamsInParallel();
         }
 
         void WriteToExistingOrCreateNewStream()
@@ -48,7 +50,7 @@ namespace Example.Scenarios
                     Event(new InventoryItemCheckedIn(Id, i*100))
                 );
 
-                Console.WriteLine("Succesfully written event '{0}' under version '{1}'", 
+                Console.WriteLine("Succesfully written event '{0}' under version '{1}'",
                                    result.Events[0].Id, result.Events[0].Version);
 
                 Console.WriteLine("Etag: {0}, Version: {1}",
@@ -56,6 +58,40 @@ namespace Example.Scenarios
 
                 stream = result.Stream;
             }
+        }
+
+        void WriteMultipleStreamsInParallel()
+        {
+            const int streamsToWrite = 10;
+
+            Enumerable.Range(1, streamsToWrite).AsParallel()
+                .ForAll(streamIndex =>
+                {
+                    var partition = new Partition(Partition.Table, streamIndex.ToString());
+
+                    var existent = Stream.TryOpen(partition);
+
+                    var stream = existent.Found
+                        ? existent.Stream
+                        : new Stream(partition);
+
+                    Console.WriteLine("Writing to new stream in partition '{0}'", partition);
+                    var stopwatch = Stopwatch.StartNew();
+
+                    for(int i=0; i<30; ++i)
+                    {
+                        var events = Enumerable.Range(1, 10)
+                            .Select(_ => Event(new InventoryItemCheckedIn(partition.Key, i * 1000 + streamIndex)))
+                            .ToArray();
+
+                        var result = Stream.Write(stream, events);
+
+                        stream = result.Stream;
+                    }
+
+                    stopwatch.Stop();
+                    Console.WriteLine("Finished writing 300 events to new stream in partition '{0}' in {1}ms", stream.Partition, stopwatch.ElapsedMilliseconds);
+                });
         }
 
         static EventData Event(object e)
