@@ -15,7 +15,7 @@ namespace Example.Scenarios
 
         void TryOpenNonExistentStream()
         {
-            var existent = Stream.TryOpen(Table, Partition);
+            var existent = Stream.TryOpen(Partition);
 
             Console.WriteLine("Trying to open non-existent stream. Found: {0}, Stream: {1}", 
                               existent.Found, existent.Stream == null ? "<null>" : "?!?");
@@ -23,9 +23,9 @@ namespace Example.Scenarios
 
         void TryOpenExistentStream()
         {
-            Stream.Provision(Table, Partition);
+            Stream.Provision(Partition);
 
-            var existent = Stream.TryOpen(Table, Partition);
+            var existent = Stream.TryOpen(Partition);
 
             Console.WriteLine("Trying to open existent stream. Found: {0}, Stream: {1}\r\nEtag - {2}, Version - {3}",
                                existent.Found, existent.Stream, existent.Stream.ETag, existent.Stream.Version);

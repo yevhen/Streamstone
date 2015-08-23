@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 
 using ExpectedObjects;
 
@@ -10,7 +9,9 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
-    static class StorageModel
+    using Utility;
+
+    static class Storage
     {
         const string TableName = "Streams";
 
@@ -63,88 +64,82 @@ namespace Streamstone
                     : CloudStorageAccount.DevelopmentStorageAccount;
         }
 
-        public static StreamEntity InsertStreamEntity(this CloudTable table, string partition, int version = 0)
+        public static StreamEntity InsertStreamEntity(this Partition partition, int version = 0)
         {
             var entity = new StreamEntity
             {
-                PartitionKey = partition,
-                RowKey = ApiModel.StreamRowKey,
+                PartitionKey = partition.PartitionKey,
+                RowKey = Api.StreamRowKey,
                 Version = version
             };
 
-            table.Execute(TableOperation.Insert(entity));
+            partition.Table.Execute(TableOperation.Insert(entity));
             return entity;
         }
 
-        public static StreamEntity UpdateStreamEntity(this CloudTable table, string partition, int version = 0)
+        public static StreamEntity UpdateStreamEntity(this Partition partition, int version = 0)
         {
-            var entity = RetrieveStreamEntity(table, partition);
+            var entity = RetrieveStreamEntity(partition);
             entity.Version = version;
 
-            table.Execute(TableOperation.Replace(entity));
+            partition.Table.Execute(TableOperation.Replace(entity));
             return entity;
         }
 
-        public static StreamEntity RetrieveStreamEntity(this CloudTable table, string partition)
+        public static StreamEntity RetrieveStreamEntity(this Partition partition)
         {
-            return table.CreateQuery<StreamEntity>()
+            return partition.Table.CreateQuery<StreamEntity>()
                         .Where(x =>
-                               x.PartitionKey == partition &&
-                               x.RowKey == ApiModel.StreamRowKey)
+                               x.PartitionKey == partition.PartitionKey &&
+                               x.RowKey == Api.StreamRowKey)
                         .ToList()
                         .SingleOrDefault();
         }
 
-        public static void InsertEventEntities(this CloudTable table, string partition, params string[] ids)
+        public static void InsertEventEntities(this Partition partition, params string[] ids)
         {
             for (int i = 0; i < ids.Length; i++)
             {
                 var e = new EventEntity
                 {
-                    PartitionKey = partition,
+                    PartitionKey = partition.PartitionKey,
                     RowKey = (i+1).FormatEventRowKey()
                 };
 
-                table.Execute(TableOperation.Insert(e));
+                partition.Table.Execute(TableOperation.Insert(e));
             }
         }
 
-        public static EventEntity[] RetrieveEventEntities(this CloudTable table, string partition)
+        public static EventEntity[] RetrieveEventEntities(this Partition partition)
         {
-            return table.CreateQuery<EventEntity>()
-                        .Where(x => x.PartitionKey == partition)
-                        .Where(RowKeyPrefix.Range<EventEntity>(ApiModel.EventRowKeyPrefix))
-                        .ToArray();
+            return partition.RowKeyPrefixQuery<EventEntity>(prefix: Api.EventRowKeyPrefix).ToArray();
         }
 
-        public static void InsertEventIdEntities(this CloudTable table, string partition, params string[] ids)
+        public static void InsertEventIdEntities(this Partition partition, params string[] ids)
         {
             for (int i = 0; i < ids.Length; i++)
             {
                 var e = new EventIdEntity
                 {
-                    PartitionKey = partition,
+                    PartitionKey = partition.PartitionKey,
                     RowKey = ids[i].FormatEventIdRowKey(),
                 };
 
-                table.Execute(TableOperation.Insert(e));
+                partition.Table.Execute(TableOperation.Insert(e));
             }
         }
 
-        public static EventIdEntity[] RetrieveEventIdEntities(this CloudTable table, string partition)
+        public static EventIdEntity[] RetrieveEventIdEntities(this Partition partition)
         {
-            return table.CreateQuery<EventIdEntity>()
-                        .Where(x => x.PartitionKey == partition)
-                        .Where(RowKeyPrefix.Range<EventIdEntity>(ApiModel.EventIdRowKeyPrefix))
-                        .ToArray();
+            return partition.RowKeyPrefixQuery<EventIdEntity>(prefix: Api.EventIdRowKeyPrefix).ToArray();
         }
 
-        public static List<DynamicTableEntity> RetrieveAll(this CloudTable table, string partition)
+        public static List<DynamicTableEntity> RetrieveAll(this Partition partition)
         {
-            var query = table.CreateQuery<DynamicTableEntity>()
-                             .Where(x => x.PartitionKey == partition);
+            var query = partition.Table.CreateQuery<DynamicTableEntity>()
+                                 .Where(x => x.PartitionKey == partition.PartitionKey);
 
-            return RetrieveAll(table, query);
+            return RetrieveAll(partition.Table, query);
         }
 
         static List<DynamicTableEntity> RetrieveAll(CloudTable table, IQueryable<DynamicTableEntity> query)
@@ -166,59 +161,30 @@ namespace Streamstone
             return entities;
         }
 
-        public static PartitionContents CaptureContents(this CloudTable table, string partition, Action<PartitionContents> continueWith)
+        public static PartitionContents CaptureContents(this Partition partition, Action<PartitionContents> continueWith)
         {
-            return new PartitionContents(table, partition, continueWith);
+            return new PartitionContents(partition, continueWith);
         }
 
         public class PartitionContents
         {
             readonly CloudTable table;
-            readonly string partition;
+            readonly Partition partition;
             readonly List<DynamicTableEntity> captured;
 
-            public PartitionContents(CloudTable table, string partition, Action<PartitionContents> continueWith)
+            public PartitionContents(Partition partition, Action<PartitionContents> continueWith)
             {
-                this.table = table;
+                this.table = partition.Table;
                 this.partition = partition;
 
-                captured = table.RetrieveAll(partition);
+                captured = partition.RetrieveAll();
                 continueWith(this);
             }
 
             public void AssertNothingChanged()
             {
-                var current = table.RetrieveAll(partition);
+                var current = partition.RetrieveAll();
                 current.ShouldMatch(captured.ToExpectedObject());
-            }
-        }
-
-        static class RowKeyPrefix
-        {
-            public static Expression<Func<TEntity, bool>> Range<TEntity>(string prefix) where TEntity : ITableEntity
-            {
-                var range = new PrefixRange(prefix);
-
-                // ReSharper disable StringCompareToIsCultureSpecific
-                return x => x.RowKey.CompareTo(range.Start) >= 0
-                            && x.RowKey.CompareTo(range.End) < 0;
-            }
-
-            struct PrefixRange
-            {
-                public readonly string Start;
-                public readonly string End;
-
-                public PrefixRange(string prefix)
-                {
-                    Start = prefix;
-
-                    var length = prefix.Length - 1;
-                    var lastChar = prefix[length];
-                    var nextLastChar = (char)(lastChar + 1);
-
-                    End = prefix.Substring(0, length) + nextLastChar;
-                }
             }
         }
     }

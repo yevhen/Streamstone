@@ -11,14 +11,14 @@ namespace Example.Scenarios
     {
         public override void Run()
         {
-            SpecifyingDuringProvisioning();
+            SpecifyingForExistingStream();
             SpecifyingDuringWritingToNewStream();
             UpdatingForExistingStream();
         }
 
-        void SpecifyingDuringProvisioning()
+        void SpecifyingForExistingStream()
         {
-            var partition = Partition + ".a";
+            var partition = new Partition(Table, Id + ".a");
 
             var properties = new Dictionary<string, EntityProperty>
             {
@@ -26,18 +26,18 @@ namespace Example.Scenarios
                 {"Active",  new EntityProperty(true)}
             };
             
-            var stream = new Stream(partition, properties);
-            Stream.Provision(Table, stream);
+            Stream.Provision(partition, StreamProperties.From(properties));
+            
+            Console.WriteLine("Stream metadata specified during provisioning in partition '{0}'", 
+                              partition);
 
-            Console.WriteLine("Stream metadata specified during provisioning in partition '{0}'", partition);
-
-            stream = Stream.Open(Table, partition);
+            var stream = Stream.Open(partition);
             Print(stream.Properties);
         }
 
         void SpecifyingDuringWritingToNewStream()
         {
-            var partition = Partition + ".b";
+            var partition = new Partition(Table, Id + ".b");
 
             var properties = new Dictionary<string, EntityProperty>
             {
@@ -45,18 +45,19 @@ namespace Example.Scenarios
                 {"Active",  new EntityProperty(true)}
             };
 
-            var stream = new Stream(partition, properties);
-            Stream.Write(Table, stream, new[]{new Event("42")});
+            var stream = new Stream(partition, StreamProperties.From(properties));
+            Stream.Write(stream, new EventData());
 
-            Console.WriteLine("Stream metadata specified during writing to new stream in partition '{0}'", partition);
+            Console.WriteLine("Stream metadata specified during writing to new stream in partition '{0}'", 
+                              partition);
 
-            stream = Stream.Open(Table, partition);
+            stream = Stream.Open(partition);
             Print(stream.Properties);
         }
 
         void UpdatingForExistingStream()
         {
-            var partition = Partition + ".c";
+            var partition = new Partition(Table, Id + ".c");
 
             var properties = new Dictionary<string, EntityProperty>
             {
@@ -64,20 +65,20 @@ namespace Example.Scenarios
                 {"Active",  new EntityProperty(true)}
             };
 
-            var stream = new Stream(partition, properties);
-            Stream.Provision(Table, stream);
+            Stream.Provision(partition, StreamProperties.From(properties));
 
-            Console.WriteLine("Stream metadata specified for stream in partition '{0}'", partition);
+            Console.WriteLine("Stream metadata specified for stream in partition '{0}'", 
+                              partition);
 
-            stream = Stream.Open(Table, partition);
+            var stream = Stream.Open(partition);
             Print(stream.Properties);
 
             properties["Active"] = new EntityProperty(false);
-            Stream.SetProperties(Table, stream, properties);
+            Stream.SetProperties(stream, StreamProperties.From(properties));
 
             Console.WriteLine("Updated stream metadata in partition '{0}'", partition);
 
-            stream = Stream.Open(Table, partition);
+            stream = Stream.Open(partition);
             Print(stream.Properties);
         }
 

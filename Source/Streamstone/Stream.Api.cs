@@ -1,126 +1,431 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
     public sealed partial class Stream
     {
-        public static Stream Provision(CloudTable table, string partition)
+        /// <summary>
+        /// Provisions new stream in the specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>The stream header</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If stream already exists in the partition
+        /// </exception>
+        public static Stream Provision(Partition partition)
         {
-            return Provision(table, new Stream(partition));
+            return Provision(new Stream(partition));
         }
 
-        public static Stream Provision(CloudTable table, Stream stream)
+        /// <summary>
+        /// Provisions new stream  with the given properties in the specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <param name="properties">The stream properties</param>
+        /// <returns>The stream header</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="properties"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        /// If stream already exists in the partition
+        /// </exception>
+        public static Stream Provision(Partition partition, StreamProperties properties)
         {
-            return new ProvisionOperation(table, stream).Execute();
+            return Provision(new Stream(partition, properties));
         }
 
-        public static Task<Stream> ProvisionAsync(CloudTable table, string partition)
+        /// <summary>
+        /// Provisions specified stream.
+        /// </summary>
+        /// <param name="stream">The transient stream header.</param>
+        /// <returns>The updated, persistent stream header</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="stream"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If stream already exists in the partition
+        /// </exception>
+        static Stream Provision(Stream stream)
         {
-            return ProvisionAsync(table, new Stream(partition));
+            Requires.NotNull(stream, "stream");
+            return new ProvisionOperation(stream).Execute();
         }
 
-        public static Task<Stream> ProvisionAsync(CloudTable table, Stream stream)
+        /// <summary>
+        /// Initiates an asynchronous operation that provisions new stream in the specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>The promise, that wil eventually return stream header or will fail with exception</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If stream already exists in the partition
+        /// </exception>
+        public static Task<Stream> ProvisionAsync(Partition partition)
         {
-            return new ProvisionOperation(table, stream).ExecuteAsync();
+            return ProvisionAsync(new Stream(partition));
         }
 
-        static readonly Include[] NoIncludes = new Include[0];
-
-        public static StreamWriteResult Write(CloudTable table, Stream stream, Event[] events)
+        /// <summary>
+        /// Initiates an asynchronous operation that provisions new stream with the given properties in the specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <param name="properties">The stream properties</param>
+        /// <returns>The promise, that wil eventually return stream header or will fail with exception</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="properties"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        /// If stream already exists in the partition
+        /// </exception>        
+        public static Task<Stream> ProvisionAsync(Partition partition, StreamProperties properties)
         {
-            return Write(table, stream, events, NoIncludes);
+            return ProvisionAsync(new Stream(partition, properties));
         }
 
-        public static StreamWriteResult Write(CloudTable table, Stream stream, Event[] events, Include[] includes)
+        /// <summary>
+        /// Initiates an asynchronous operation that provisions specified stream.
+        /// </summary>
+        /// <param name="stream">The transient stream header.</param>
+        /// <returns>The promise, that wil eventually return updated, persistent stream header or will fail with exception</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="stream"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If stream already exists in the partition
+        /// </exception>
+        static Task<Stream> ProvisionAsync(Stream stream)
         {
-            return new WriteOperation(table, stream, events, includes).Execute();
+            Requires.NotNull(stream, "stream");
+            return new ProvisionOperation(stream).ExecuteAsync();
         }
 
-        public static Task<StreamWriteResult> WriteAsync(CloudTable table, Stream stream, Event[] events)
+        /// <summary>
+        /// Writes the given array of events to a stream using speficed stream header.
+        /// </summary>
+        /// <param name="stream">The stream header.</param>
+        /// <param name="events">The events to write.</param>
+        /// <returns>
+        ///     The result of the stream write operation which has updated stream header
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="stream"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="events"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///    If <paramref name="events"/> array is empty
+        /// </exception>
+        /// <exception cref="DuplicateEventException">
+        ///     If event with the given id already exists in a storage
+        /// </exception>
+        /// <exception cref="IncludedOperationConflictException">
+        ///     If included entity operation has conflicts
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If write operation has conflicts
+        /// </exception>
+        public static StreamWriteResult Write(Stream stream, params EventData[] events)
         {
-            return WriteAsync(table, stream, events, NoIncludes);
+            Requires.NotNull(stream, "stream");
+            Requires.NotNull(events, "events");
+
+            if (events.Length == 0)
+                throw new ArgumentOutOfRangeException("events", "Events have 0 items");
+
+            return new WriteOperation(stream, events).Execute();
         }
 
-        public static Task<StreamWriteResult> WriteAsync(CloudTable table, Stream stream, Event[] events, Include[] includes)
+        /// <summary>
+        /// Initiates an asynchronous operation that writes the given array of events to a stream using speficed stream header.
+        /// </summary>
+        /// <param name="stream">The stream header.</param>
+        /// <param name="events">The events to write.</param>
+        /// <returns>
+        ///     The promise, that wil eventually return the result of the stream write operation 
+        ///    which has updated stream header or will fail with exception
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="stream"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="events"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///    If <paramref name="events"/> array is empty
+        /// </exception>
+        /// <exception cref="DuplicateEventException">
+        ///     If event with the given id already exists in a storage
+        /// </exception>
+        /// <exception cref="IncludedOperationConflictException">
+        ///     If included entity operation has conflicts
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If write operation has conflicts
+        /// </exception>
+        public static Task<StreamWriteResult> WriteAsync(Stream stream, params EventData[] events)
         {
-            return new WriteOperation(table, stream, events, includes).ExecuteAsync();
+            Requires.NotNull(stream, "stream");
+            Requires.NotNull(events, "events");
+
+            if (events.Length == 0)
+                throw new ArgumentOutOfRangeException("events", "Events have 0 items");
+
+            return new WriteOperation(stream, events).ExecuteAsync();
         }
 
-        public static Stream SetProperties(CloudTable table, Stream stream, IDictionary<string, EntityProperty> properties)
+        /// <summary>
+        /// Sets the given stream properties (metadata).
+        /// </summary>
+        /// <param name="stream">The stream header.</param>
+        /// <param name="properties">The properties.</param>
+        /// <returns>Updated stream header</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="stream"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="properties"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     If given stream header represents a transient stream
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If stream has been changed in storage after the given stream header has been read
+        /// </exception>
+        public static Stream SetProperties(Stream stream, StreamProperties properties)
         {
-            return new SetPropertiesOperation(table, stream, StreamProperties.From(properties)).Execute();
+            Requires.NotNull(stream, "stream");
+            Requires.NotNull(properties, "properties");
+
+            if (stream.IsTransient)
+                throw new ArgumentException("Can't set properties on transient stream", "stream");
+
+            return new SetPropertiesOperation(stream, properties).Execute();
         }
 
-        public static Task<Stream> SetPropertiesAsync(CloudTable table, Stream stream, IDictionary<string, EntityProperty> properties)
+         /// <summary>
+        /// Initiates an asynchronous operation that sets the given stream properties (metadata).
+        /// </summary>
+        /// <param name="stream">The stream header.</param>
+        /// <param name="properties">The properties.</param>
+        /// <returns>The promise, that wil eventually return updated stream header or will fail with exception</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="stream"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="properties"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     If given stream header represents a transient stream
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If stream has been changed in storage after the given stream header has been read
+        /// </exception>
+        public static Task<Stream> SetPropertiesAsync(Stream stream, StreamProperties properties)
         {
-            return new SetPropertiesOperation(table, stream, StreamProperties.From(properties)).ExecuteAsync();
+            Requires.NotNull(stream, "stream");
+            Requires.NotNull(properties, "properties");
+
+            if (stream.IsTransient)
+                throw new ArgumentException("Can't set properties on transient stream", "stream");
+
+            return new SetPropertiesOperation(stream, properties).ExecuteAsync();
         }
 
-        public static Stream Open(CloudTable table, string partition)
+        /// <summary>
+        /// Opens the stream in specified partition. Basically, it just return a stream header.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>The stream header</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="StreamNotFoundException">
+        ///     If there is no stream in a given partition
+        /// </exception>
+        public static Stream Open(Partition partition)
         {
-            var result = TryOpen(table, partition);
+            var result = TryOpen(partition);
 
             if (result.Found)
                 return result.Stream;
 
-            throw new StreamNotFoundException(table, partition);
+            throw new StreamNotFoundException(partition);
         }
 
-        public static StreamOpenResult TryOpen(CloudTable table, string partition)
+        /// <summary>
+        /// Initiates an asynchronous operation that opens the stream in specified partition. Basically, it just return a stream header.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>
+        ///     The promise, that wil eventually return the stream header or wil fail with exception
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="StreamNotFoundException">
+        ///     If there is no stream in a given partition
+        /// </exception>
+        public static async Task<Stream> OpenAsync(Partition partition)
         {
-            return new OpenStreamOperation(table, partition).Execute();
-        }
-
-        public static async Task<Stream> OpenAsync(CloudTable table, string partition)
-        {
-            var result = await TryOpenAsync(table, partition).Really();
+            var result = await TryOpenAsync(partition).Really();
 
             if (result.Found)
                 return result.Stream;
 
-            throw new StreamNotFoundException(table, partition);
+            throw new StreamNotFoundException(partition);
         }
 
-        public static Task<StreamOpenResult> TryOpenAsync(CloudTable table, string partition)
+        /// <summary>
+        /// Tries to open the stream in a specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>
+        ///     The result of stream open operation, which could be further examined for stream existence
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        public static StreamOpenResult TryOpen(Partition partition)
         {
-            return new OpenStreamOperation(table, partition).ExecuteAsync();
+            Requires.NotNull(partition, "partition");
+
+            return new OpenStreamOperation(partition).Execute();
         }
 
-        public static bool Exists(CloudTable table, string partition)
+        /// <summary>
+        /// Initiates an asynchronous operation that tries to open the stream in a specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>
+        ///     The promise, that wil eventually return the result of stream open operation, 
+        ///     which could be further examined for stream existence;  or wil fail with exception
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        public static Task<StreamOpenResult> TryOpenAsync(Partition partition)
         {
-            return TryOpen(table, partition).Found;
+            Requires.NotNull(partition, "partition");
+
+            return new OpenStreamOperation(partition).ExecuteAsync();
         }
-        
-        public static async Task<bool> ExistsAsync(CloudTable table, string partition)
+
+        /// <summary>
+        /// Checks if there is a stream exists in the specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>
+        ///     <c>true</c> if stream header was found in the specified partition, <c>false</c> otherwise
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        public static bool Exists(Partition partition)
         {
-            return (await TryOpenAsync(table, partition).Really()).Found;
+            return TryOpen(partition).Found;
         }
 
-        const int DefaultSliceSize = 500;
+        /// <summary>
+        /// Initiates an asynchronous operation that checks if there is a stream exists in the specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <returns>
+        ///     The promise, that wil eventually return <c>true</c>
+        ///     if stream header was found in the specified partition,  <c>false</c> otherwise
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        public static async Task<bool> ExistsAsync(Partition partition)
+        {
+            return (await TryOpenAsync(partition).Really()).Found;
+        }
 
+        const int DefaultSliceSize = 1000;
+
+        /// <summary>
+        /// Reads the events from a stream in a specified partition.
+        /// </summary>
+        /// <typeparam name="T">The type of event entity to return</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="startVersion">The start version.</param>
+        /// <param name="sliceSize">Size of the slice.</param>
+        /// <returns>
+        ///     The slice of the stream, which contains events that has been read
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     If <paramref name="startVersion"/> &lt; 1
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     If <paramref name="sliceSize"/> &lt; 1
+        /// </exception>       
+        /// <exception cref="StreamNotFoundException">
+        ///     If there is no stream in a given partition
+        /// </exception>
         public static StreamSlice<T> Read<T>(
-            CloudTable table, 
-            string partition, 
+            Partition partition, 
             int startVersion = 1, 
             int sliceSize = DefaultSliceSize) 
             where T : class, new()
         {
-            return new ReadOperation<T>(table, partition, startVersion, sliceSize).Execute();
+            Requires.NotNull(partition, "partition");
+            Requires.GreaterThanOrEqualToOne(startVersion, "startVersion");
+            Requires.GreaterThanOrEqualToOne(sliceSize, "sliceSize");
+            
+            return new ReadOperation<T>(partition, startVersion, sliceSize).Execute();
         }
-        
+
+        /// <summary>
+        /// Initiates an asynchronous operation that reads the events from a stream in a specified partition.
+        /// </summary>
+        /// <typeparam name="T">The type of event entity to return</typeparam>
+        /// <param name="partition">The partition.</param>
+        /// <param name="startVersion">The start version.</param>
+        /// <param name="sliceSize">Size of the slice.</param>
+        /// <returns>
+        ///     The promise, that wil eventually return the slice of the stream, 
+        ///     which contains events that has been read; or will fail with exception
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     If <paramref name="startVersion"/> &lt; 1
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     If <paramref name="sliceSize"/> &lt; 1
+        /// </exception>       
+        /// <exception cref="StreamNotFoundException">
+        ///     If there is no stream in a given partition
+        /// </exception>
         public static Task<StreamSlice<T>> ReadAsync<T>(
-            CloudTable table, 
-            string partition, 
+            Partition partition, 
             int startVersion = 1, 
             int sliceSize = DefaultSliceSize) 
             where T : class, new()
         {
-            return new ReadOperation<T>(table, partition, startVersion, sliceSize).ExecuteAsync();
+            Requires.NotNull(partition, "partition");
+            Requires.GreaterThanOrEqualToOne(startVersion, "startVersion");
+            Requires.GreaterThanOrEqualToOne(sliceSize, "sliceSize");
+
+            return new ReadOperation<T>(partition, startVersion, sliceSize).ExecuteAsync();
         }
     }
 }

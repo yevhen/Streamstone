@@ -25,8 +25,7 @@ namespace Example
                 new S07_Custom_stream_metadata(),
                 new S08_Concurrency_conflicts(),
                 new S09_Handling_duplicates(),
-                new S10_Using_snapshots(),
-                new S11_Creating_projections()
+                new S10_Stream_directory(),
             };
 
             for (int i = 0; i < scenarios.Length; i++)
@@ -36,7 +35,7 @@ namespace Example
                 Console.WriteLine("{0}", scenario.GetType().Name.Replace("_", " "));
                 Console.WriteLine(new string('-', 40));
 
-                scenario.Initialize(table, i);
+                scenario.Initialize(table, i.ToString());
                 scenario.Run();
 
                 Console.WriteLine();

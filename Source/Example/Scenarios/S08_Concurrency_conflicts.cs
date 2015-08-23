@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Streamstone;
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Example.Scenarios
 {
@@ -19,11 +17,11 @@ namespace Example.Scenarios
 
         void SimultaneousProvisioning()
         {
-            Stream.Provision(Table, Partition);
+            Stream.Provision(Partition);
 
             try
             {
-                Stream.Provision(Table, Partition);
+                Stream.Provision(Partition);
             }
             catch (ConcurrencyConflictException)
             {
@@ -33,14 +31,14 @@ namespace Example.Scenarios
 
         void SimultaneousWriting()
         {
-            var a = Stream.Open(Table, Partition);
-            var b = Stream.Open(Table, Partition);
+            var a = Stream.Open(Partition);
+            var b = Stream.Open(Partition);
 
-            Stream.Write(Table, a, new[]{new Event("123")});
+            Stream.Write(a, new EventData(EventId.From("123")));
             
             try
             {
-                Stream.Write(Table, b, new[]{new Event("456")});
+                Stream.Write(b, new EventData(EventId.From("456")));
             }
             catch (ConcurrencyConflictException)
             {
@@ -50,16 +48,14 @@ namespace Example.Scenarios
 
         void SimultaneousSettingOfStreamMetadata()
         {
-            var a = Stream.Open(Table, Partition);
-            var b = Stream.Open(Table, Partition);
+            var a = Stream.Open(Partition);
+            var b = Stream.Open(Partition);
 
-            Stream.SetProperties(Table, a, 
-                new Dictionary<string, EntityProperty>{{"A", new EntityProperty("42")}});
+            Stream.SetProperties(a, StreamProperties.From(new {A = 42}));
 
             try
             {
-                Stream.SetProperties(Table, b,
-                    new Dictionary<string, EntityProperty> {{"A", new EntityProperty("56")}});
+                Stream.SetProperties(b, StreamProperties.From(new {A = 56}));
             }
             catch (ConcurrencyConflictException)
             {
@@ -69,9 +65,9 @@ namespace Example.Scenarios
 
         void SequentiallyWritingToStreamIgnoringReturnedStreamHeader()
         {
-            var stream = Stream.Open(Table, Partition);
+            var stream = Stream.Open(Partition);
 
-            var result = Stream.Write(Table, stream, new[]{new Event("AAA")});
+            var result = Stream.Write(stream, new EventData(EventId.From("AAA")));
             
             // a new stream header is returned after each write, it contains new Etag
             // and it should be used for subsequent operations
@@ -79,7 +75,7 @@ namespace Example.Scenarios
             
             try
             {
-                Stream.Write(Table, stream, new[]{new Event("BBB")});
+                Stream.Write(stream, new EventData(EventId.From("BBB")));
             }
             catch (ConcurrencyConflictException)
             {

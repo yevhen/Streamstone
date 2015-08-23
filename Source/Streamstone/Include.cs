@@ -5,56 +5,91 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
+    /// <summary>
+    /// Specifies the type of included entity operation
+    /// </summary>
     public enum IncludeType
     {
+        /// <summary>
+        /// The insert operation
+        /// </summary>
         Insert,
-        InsertOrReplace,
-        InsertOrMerge,
+        
+        /// <summary>
+        /// The replace operation
+        /// </summary>
+        Replace,
+
+        /// <summary>
+        /// The delete operation
+        /// </summary>
         Delete
     }
 
+    /// <summary>
+    /// Represents  included entity operation
+    /// </summary>
     public sealed class Include
     {
-        public readonly ITableEntity Entity;
-        public readonly IncludeType Type;
-        readonly TableOperation operation;
-
-        Include(IncludeType type, ITableEntity entity, TableOperation operation)
-        {
-            Entity = entity;
-            Type = type;
-            this.operation = operation;            
-        }
-
-        internal TableOperation Apply(string partition, int version)
-        {
-            Entity.PartitionKey = partition;
-
-            var versioned = Entity as IVersionedEntity;
-            if (versioned != null)
-                versioned.Version = version;
-
-            return operation;
-        }
-
-        public static Include Delete(ITableEntity entity)
-        {
-            return new Include(IncludeType.Delete, entity, TableOperation.Delete(entity));
-        }
-        
+        /// <summary>
+        /// Inserts the specified entity.
+        /// </summary>
+        /// <param name="entity">The entity.</param>
+        /// <returns>A new instance of <see cref="Include"/> class</returns>
+        /// <exception cref="ArgumentNullException">If given <paramref name="entity"/> is <c>null</c>.</exception>
         public static Include Insert(ITableEntity entity)
         {
-            return new Include(IncludeType.Insert, entity, TableOperation.Insert(entity));
+            Requires.NotNull(entity, "entity");
+            return new Include(IncludeType.Insert, new EntityOperation.Insert(entity));
         }
-        
-        public static Include InsertOrMerge(ITableEntity entity)
+
+        /// <summary>
+        /// Replaces the specified entity.
+        /// </summary>
+        /// <param name="entity">The entity.</param>
+        /// <returns>A new instance of <see cref="Include"/> class</returns>
+        /// <exception cref="ArgumentNullException">If given <paramref name="entity"/> is <c>null</c>.</exception>
+        public static Include Replace(ITableEntity entity)
         {
-            return new Include(IncludeType.InsertOrMerge, entity, TableOperation.InsertOrMerge(entity));
+            Requires.NotNull(entity, "entity");
+            return new Include(IncludeType.Replace, new EntityOperation.Replace(entity));
         }
-        
-        public static Include InsertOrReplace(ITableEntity entity)
+
+        /// <summary>
+        /// Deletes the specified entity.
+        /// </summary>
+        /// <param name="entity">The entity.</param>
+        /// <returns>A new instance of <see cref="Include"/> class</returns>
+        /// <exception cref="ArgumentNullException">If given <paramref name="entity"/> is <c>null</c>.</exception>
+        public static Include Delete(ITableEntity entity)
         {
-            return new Include(IncludeType.InsertOrReplace, entity, TableOperation.InsertOrReplace(entity));
+            Requires.NotNull(entity, "entity");
+            return new Include(IncludeType.Delete, new EntityOperation.Delete(entity));
+        }
+ 
+        Include(IncludeType type, EntityOperation operation)
+        {
+            Type = type;
+            Operation = operation;
+        }
+
+        /// <summary> Gets the type of this include.  </summary>
+        /// <value> The type of include operation. </value>
+        public IncludeType Type
+        {
+            get; private set;
+        }
+
+        /// <summary> Gets the included entity. </summary>
+        /// <value> The table entity. </value>
+        public ITableEntity Entity
+        {
+            get { return Operation.Entity; }
+        }
+
+        internal EntityOperation Operation
+        {
+            get; private set;
         }
     }
 }

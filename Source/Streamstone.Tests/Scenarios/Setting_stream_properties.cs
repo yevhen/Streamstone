@@ -12,13 +12,14 @@ namespace Streamstone.Scenarios
     [TestFixture]
     public class Setting_stream_properties
     {
-        const string partition = "test";
+        Partition partition;
         CloudTable table;
 
         [SetUp]
         public void SetUp()
         {
-            table = StorageModel.SetUp();
+            table = Storage.SetUp();
+            partition = new Partition(table, "test");
         }
 
         [Test]
@@ -26,8 +27,8 @@ namespace Streamstone.Scenarios
         {
             var properties = new Dictionary<string, EntityProperty>();
 
-            var previous = await Stream.ProvisionAsync(table, partition);
-            var current  = await Stream.SetPropertiesAsync(table, previous, properties);
+            var previous = await Stream.ProvisionAsync(partition);
+            var current  = await Stream.SetPropertiesAsync(previous, StreamProperties.From(properties));
             
             Assert.That(current.ETag, Is.Not.EqualTo(previous.ETag));
             StreamProperties.From(properties).ToExpectedObject().ShouldEqual(current.Properties);
@@ -36,11 +37,11 @@ namespace Streamstone.Scenarios
         [Test]
         public async void When_concurrency_conflict()
         {
-            var stream = await Stream.ProvisionAsync(table, partition);
-            table.UpdateStreamEntity(partition);
+            var stream = await Stream.ProvisionAsync(partition);
+            partition.UpdateStreamEntity();
 
             Assert.Throws<ConcurrencyConflictException>(
-                async ()=> await Stream.SetPropertiesAsync(table, stream, new Dictionary<string, EntityProperty>()));
+                async ()=> await Stream.SetPropertiesAsync(stream, StreamProperties.None));
         }
 
         [Test]
@@ -52,7 +53,7 @@ namespace Streamstone.Scenarios
                 {"P2", new EntityProperty("42")}
             };
 
-            var stream = await Stream.ProvisionAsync(table, new Stream(partition, properties));
+            var stream = await Stream.ProvisionAsync(partition, StreamProperties.From(properties));
 
             var newProperties = new Dictionary<string, EntityProperty>
             {
@@ -60,10 +61,10 @@ namespace Streamstone.Scenarios
                 {"P2", new EntityProperty("56")}
             };
 
-            var newStream = await Stream.SetPropertiesAsync(table, stream, newProperties);
+            var newStream = await Stream.SetPropertiesAsync(stream, StreamProperties.From(newProperties));
             StreamProperties.From(newProperties).ToExpectedObject().ShouldEqual(newStream.Properties);
 
-            var storedEntity = table.RetrieveStreamEntity(partition);
+            var storedEntity = partition.RetrieveStreamEntity();
             var storedProperties = storedEntity.Properties;
 
             StreamProperties.From(newProperties).ToExpectedObject().ShouldEqual(storedProperties);
@@ -74,10 +75,10 @@ namespace Streamstone.Scenarios
         {
             var stream = new Stream(partition);           
 
-            table.CaptureContents(partition, contents =>
+            partition.CaptureContents(contents =>
             {
                 Assert.Throws<ArgumentException>(
-                    async ()=> await Stream.SetPropertiesAsync(table, stream, new Dictionary<string, EntityProperty>()));
+                    async ()=> await Stream.SetPropertiesAsync(stream, StreamProperties.None));
 
                 contents.AssertNothingChanged();
             });

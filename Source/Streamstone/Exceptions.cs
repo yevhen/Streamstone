@@ -4,95 +4,147 @@ using System.Linq;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 
-using Streamstone.Annotations;
+using Newtonsoft.Json;
 
 namespace Streamstone
 {
+    using Annotations;
+
+    /// <summary>
+    /// Represents errors thrown by Streamstone itself.
+    /// </summary>
     public abstract class StreamstoneException : Exception
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StreamstoneException"/> class.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="args">The arguments.</param>
         [StringFormatMethod("message")]
         protected StreamstoneException(string message, params object[] args)
-            : base(string.Format(message, args))
+            : base(args.Length > 0 ? string.Format(message, args) : message)
         {}
     }
 
+    /// <summary>
+    /// This exception is thrown when opening stream that doesn't exist 
+    /// </summary>
     public sealed class StreamNotFoundException : StreamstoneException
     {
-        public readonly CloudTable Table;
-        public readonly string Partition;
+        /// <summary>
+        /// The target partition
+        /// </summary>
+        public readonly Partition Partition;
 
-        public StreamNotFoundException(CloudTable table, string partition)
+        internal StreamNotFoundException(Partition partition)
             : base("Stream header was not found in partition '{1}' which resides in '{0}' table located at {2}",
-                   table, partition, table.StorageUri)
+                   partition.Table, partition, partition.Table.StorageUri)
         {
-            Table = table;
             Partition = partition;
         }
     }
 
+    /// <summary>
+    /// This exception is thrown when duplicate event is detected
+    /// </summary>
     public sealed class DuplicateEventException : StreamstoneException
     {
-        public readonly CloudTable Table;
-        public readonly string Partition;
+        /// <summary>
+        /// The target partition
+        /// </summary>
+        public readonly Partition Partition;
+
+        /// <summary>
+        /// The id of duplicate event
+        /// </summary>
         public readonly string Id;
 
-        public DuplicateEventException(CloudTable table, string partition, string id)
+        internal DuplicateEventException(Partition partition, string id)
             : base("Found existing event with id '{3}' in partition '{1}' which resides in '{0}' table located at {2}",
-                   table, partition, table.StorageUri, id)
+                   partition.Table, partition, partition.Table.StorageUri, id)
         {
-            Table = table;
             Partition = partition;
             Id = id;
         }
-    }    
-    
+    }
+
+    /// <summary>
+    /// This exception is thrown when included entity operation has conflicts in a partition
+    /// </summary>
     public sealed class IncludedOperationConflictException : StreamstoneException
     {
-        public readonly CloudTable Table;
-        public readonly string Partition;
-        public readonly Include Include;
+        /// <summary>
+        /// The target partition
+        /// </summary>
+        public readonly Partition Partition;
 
-        public IncludedOperationConflictException(CloudTable table, string partition, Include include)
-            : base("Included operation '{3}' had conflicts in partition '{1}' which resides in '{0}' table located at {2}",
-                   table, partition, table.StorageUri, include.Type)
+        /// <summary>
+        /// The included entity
+        /// </summary>
+        public readonly ITableEntity Entity;
+
+        IncludedOperationConflictException(Partition partition, ITableEntity entity, string message)
+            : base(message)
         {
-            Table = table;
             Partition = partition;
-            Include = include;
+            Entity = entity;
+        }
+
+        internal static IncludedOperationConflictException Create(Partition partition, EntityOperation include)
+        {
+            var dump = JsonConvert.SerializeObject(include.Entity, Formatting.Indented);
+
+            var message = string.Format(
+                "Included '{3}' operation had conflicts in partition '{1}' which resides in '{0}' table located at {2}\n" +
+                "Dump of conflicting [{5}] contents follows: \n\t{4}",
+                partition.Table, partition, partition.Table.StorageUri, 
+                include.GetType().Name, dump, include.Entity.GetType());
+
+            return new IncludedOperationConflictException(partition, include.Entity, message);
         }
     }
 
+    /// <summary>
+    /// This exception is thrown when stream write/povision operation has conflicts in a partition
+    /// </summary>
     public sealed class ConcurrencyConflictException : StreamstoneException
     {
-        public readonly CloudTable Table;
-        public readonly string Partition;
+        /// <summary>
+        /// The target partition
+        /// </summary>
+        public readonly Partition Partition;
 
-        public ConcurrencyConflictException(CloudTable table, string partition, string details)
+        internal ConcurrencyConflictException(Partition partition, string details)
             : base("Concurrent write detected for partition '{1}' which resides in table '{0}' located at {2}. See details below.\n{3}",
-                   table, partition, table.StorageUri, details)
+                   partition.Table, partition, partition.Table.StorageUri, details)
         {
-            Table = table;
             Partition = partition;
         }
 
-        internal static Exception EventVersionExists(CloudTable table, string partition, int version)
+        internal static Exception EventVersionExists(Partition partition, int version)
         {
-            return new ConcurrencyConflictException(table, partition, string.Format("Event with version '{0}' is already exists", version));            
+            return new ConcurrencyConflictException(partition, string.Format("Event with version '{0}' is already exists", version));            
         }
 
-        internal static Exception StreamChanged(CloudTable table, string partition)
+        internal static Exception StreamChanged(Partition partition)
         {
-            return new ConcurrencyConflictException(table, partition, "Stream header has been changed in a storage");
+            return new ConcurrencyConflictException(partition, "Stream header has been changed in a storage");
         }
 
-        internal static Exception StreamChangedOrExists(CloudTable table, string partition)
+        internal static Exception StreamChangedOrExists(Partition partition)
         {
-            return new ConcurrencyConflictException(table, partition, "Stream header has been changed or already exists in a storage");
+            return new ConcurrencyConflictException(partition, "Stream header has been changed or already exists in a storage");
         }
     }
 
+    /// <summary>
+    /// This exception is thrown when Streamstone receives unexpected response from underlying WATS layer.
+    /// </summary>
     public sealed class UnexpectedStorageResponseException : StreamstoneException
     {
+        /// <summary>
+        /// The error information
+        /// </summary>
         public readonly StorageExtendedErrorInformation Error;
 
         UnexpectedStorageResponseException(StorageExtendedErrorInformation error, string details)

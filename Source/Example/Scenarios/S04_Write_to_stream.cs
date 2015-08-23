@@ -20,7 +20,7 @@ namespace Example.Scenarios
 
         void WriteToExistingOrCreateNewStream()
         {
-            var existent = Stream.TryOpen(Table, Partition);
+            var existent = Stream.TryOpen(Partition);
 
             var stream = existent.Found 
                 ? existent.Stream 
@@ -28,11 +28,10 @@ namespace Example.Scenarios
 
             Console.WriteLine("Writing to new stream in partition '{0}'", stream.Partition);
 
-            var result = Stream.Write(Table, stream, new[]
-            {
-                Event(new InventoryItemCreated(Partition, "iPhone6")),
-                Event(new InventoryItemCheckedIn(Partition, 100)),
-            });
+            var result = Stream.Write(stream,
+                Event(new InventoryItemCreated(Id, "iPhone6")),
+                Event(new InventoryItemCheckedIn(Id, 100))
+            );
 
             Console.WriteLine("Succesfully written to new stream.\r\nEtag: {0}, Version: {1}", 
                               result.Stream.ETag, result.Stream.Version);
@@ -40,17 +39,16 @@ namespace Example.Scenarios
 
         void WriteSequentiallyToExistingStream()
         {
-            var stream = Stream.Open(Table, Partition);
+            var stream = Stream.Open(Partition);
 
             Console.WriteLine("Writing sequentially to existing stream in partition '{0}'", stream.Partition);
             Console.WriteLine("Etag: {0}, Version: {1}", stream.ETag, stream.Version);
 
             for (int i = 1; i <= 10; i++)
             {
-                var result = Stream.Write(Table, stream, new[]
-                {
-                    Event(new InventoryItemCheckedIn(Partition, i*100)),
-                });
+                var result = Stream.Write(stream, 
+                    Event(new InventoryItemCheckedIn(Id, i*100))
+                );
 
                 Console.WriteLine("Succesfully written event '{0}' under version '{1}'",
                                    result.Events[0].Id, result.Events[0].Version);
@@ -87,19 +85,19 @@ namespace Example.Scenarios
                 });
         }
 
-        static Event Event(object e)
+        static EventData Event(object e)
         {
             var id = Guid.NewGuid();
 
-            var data = new
+            var properties = new
             {
-                Id = id,                 // id that you specify for Event ctor is used only for idempotency
+                Id = id,                 // id that you specify for Event ctor is used only for duplicate event detection
                 Type = e.GetType().Name, // you can include any number of custom properties along with event
                 Data = JSON(e),          // you're free to choose any name you like for data property
                 Bin = BSON(e)            // and any storage format: binary, string, whatever (any EdmType)
             };
 
-            return new Event(id.ToString("D"), data.Props());
+            return new EventData(EventId.From(id), EventProperties.From(properties));
         }
 
         static string JSON(object data)

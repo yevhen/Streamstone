@@ -2,33 +2,44 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.WindowsAzure.Storage.Table;
-
 namespace Streamstone
 {
+    /// <summary>
+    /// Represents an event stream. Instances of this class enapsulate stream header information such as version, etag,  metadata, etc;
+    /// while static methods are used to manipulate stream.
+    /// </summary>
     public sealed partial class Stream
     {
-        public readonly string Partition;
-        public readonly string ETag;
-        public readonly int Version;
+        /// <summary>
+        /// The additional properties (metadata) of this stream
+        /// </summary>
+        public readonly StreamProperties Properties;
 
-        readonly StreamProperties properties;
+        /// <summary>
+        /// The partition in which this stream resides.
+        /// </summary>
+        public readonly Partition Partition;
         
         /// <summary>
-        /// The readonly map of additional properties which this stream has.
+        /// The latest etag
         /// </summary>
-        public IEnumerable<KeyValuePair<string, EntityProperty>> Properties
-        {
-            get { return properties; }
-        }
+        public readonly string ETag;
+        
+        /// <summary>
+        /// The version of the stream. Sequential, monotonically increasing, no gaps.
+        /// </summary>
+        public readonly int Version;
 
         /// <summary>
         /// Constructs a new <see cref="Stream"/> instance which doesn't have any additional properties.
         /// </summary>
         /// <param name="partition">
-        /// The partition key in which this stream will reside. 
+        /// The partition in which this stream will reside. 
         /// </param>
-        public Stream(string partition) 
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        public Stream(Partition partition) 
             : this(partition, StreamProperties.None)
         {}
 
@@ -36,50 +47,69 @@ namespace Streamstone
         /// Constructs a new <see cref="Stream"/> instance with the given additional properties.
         /// </summary>
         /// <param name="partition">
-        /// The partition key in which this stream will reside. 
+        /// The partition in which this stream will reside. 
         /// </param>
         /// <param name="properties">
         /// The additional properties for this stream.
         /// </param>
-        public Stream(string partition, IDictionary<string, EntityProperty> properties)
-            : this(partition, StreamProperties.From(properties))
-        {}
-
-        Stream(string partition, StreamProperties properties)
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="properties"/> is <c>null</c>
+        /// </exception>
+        public Stream(Partition partition, StreamProperties properties)
         {
-            Requires.NotNullOrEmpty(partition, "partition");
+            Requires.NotNull(partition, "partition");
             Requires.NotNull(properties, "properties");
 
             Partition = partition;
-            this.properties = properties;
+            Properties = properties;
         }
 
-        internal Stream(string partition, string etag, int version, StreamProperties properties)
+        internal Stream(Partition partition, string etag, int version, StreamProperties properties)
         {
             Partition = partition;
             ETag = etag;
             Version = version;
-            this.properties = properties;
+            Properties = properties;
         }
-        
-        bool IsTransient
+
+        /// <summary>
+        /// Gets a value indicating whether this stream header represents a transient stream.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this stream header was newed; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsTransient
         {
             get { return ETag == null; }
         }
 
-        bool IsPersistent
+        /// <summary>
+        /// Gets a value indicating whether this stream header represents a persistent stream.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this stream header has been obtained from storage; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsPersistent
         {
             get { return !IsTransient; }
         }
 
-        static Stream From(StreamEntity entity)
+        static Stream From(Partition partition, StreamEntity entity)
         {
-            return new Stream(entity.PartitionKey, entity.ETag, entity.Version, entity.Properties);
+            return new Stream(partition, entity.ETag, entity.Version, entity.Properties);
         }
 
         StreamEntity Entity()
         {
-            return new StreamEntity(Partition, ETag, Version, properties);
+            return new StreamEntity(Partition, ETag, Version, Properties);
+        }
+
+        IEnumerable<RecordedEvent> Record(IEnumerable<EventData> events)
+        {
+            return events.Select((e, i) => e.Record(Partition, Version + i + 1));
         }
     }
 }

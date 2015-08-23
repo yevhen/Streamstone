@@ -2,7 +2,6 @@
 using System.Linq;
 
 using Streamstone;
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Example.Scenarios
 {
@@ -23,14 +22,14 @@ namespace Example.Scenarios
                 .Select(Event)
                 .ToArray();
 
-            Stream.Write(Table, new Stream(Partition), events);
+            Stream.Write(new Stream(Partition), events);
         }
 
         void ReadSlice()
         {
             Console.WriteLine("Reading single slice from specified start version and using specified slice size");
 
-            var slice = Stream.Read<EventEntity>(Table, Partition, startVersion: 2, sliceSize: 2);
+            var slice = Stream.Read<EventEntity>(Partition, startVersion: 2, sliceSize: 2);
             foreach (var @event in slice.Events)
                 Console.WriteLine("{0}: {1}-{2}", @event.Version, @event.Type, @event.Data);
 
@@ -47,30 +46,29 @@ namespace Example.Scenarios
 
             do
             {
-                slice = Stream.Read<EventEntity>(Table, Partition, nextSliceStart, sliceSize: 1);
+                slice = Stream.Read<EventEntity>(Partition, nextSliceStart, sliceSize: 1);
 
                 foreach (var @event in slice.Events)
-                    Console.WriteLine("{0}: {1}-{2}", @event.Version, @event.Type, @event.Data);
+                    Console.WriteLine("{0}:{1} {2}-{3}", @event.Id, @event.Version, @event.Type, @event.Data);
 
                 nextSliceStart = slice.NextEventNumber;
             }
             while (!slice.IsEndOfStream);
         }
 
-        static Event Event(int id)
+        static EventData Event(int id)
         {
-            var data = new
+            var properties = new
             {
                 Id = id,
                 Type = "<type>",
                 Data = "{some}"
             };
 
-            return new Event(id.ToString(), data.Props());
+            return new EventData(EventId.From(id.ToString()), EventProperties.From(properties));
         }
 
-        /// define entity that will hold event properties
-        class EventEntity : TableEntity     
+        class EventEntity
         {
             public string Id   { get; set; }
             public string Type { get; set; }
