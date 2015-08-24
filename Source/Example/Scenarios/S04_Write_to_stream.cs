@@ -78,7 +78,7 @@ namespace Example.Scenarios
                     Console.WriteLine("Writing to new stream in partition '{0}'", partition);
                     var stopwatch = Stopwatch.StartNew();
 
-                    for(int i=0; i<30; ++i)
+                    for (int i = 1; i <= 30; i++)
                     {
                         var events = Enumerable.Range(1, 10)
                             .Select(_ => Event(new InventoryItemCheckedIn(partition.Key, i * 1000 + streamIndex)))
