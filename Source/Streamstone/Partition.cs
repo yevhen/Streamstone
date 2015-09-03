@@ -6,7 +6,8 @@ using Microsoft.WindowsAzure.Storage.Table;
 namespace Streamstone
 {
     /// <summary>
-    /// Represents table partition. Virtual partitions are created by using <c>`|`</c> split separator in a key.
+    /// Represents table partition. Virtual partitions are created 
+    /// by using <c>`|`</c> split separator in a key.
     /// </summary>
     public sealed class Partition
     {
@@ -37,6 +38,7 @@ namespace Streamstone
         /// </summary>
         /// <param name="table">The cloud table.</param>
         /// <param name="key">The full key.</param>
+        /// <remarks>Use "partitionkey|rowkeyprefix" key syntax to create virtual partition</remarks>
         public Partition(CloudTable table, string key)
         {
             Requires.NotNull(table, "table");
@@ -52,6 +54,30 @@ namespace Streamstone
                             ? parts[1] + separator[0] 
                             : "";
             Key = key;
+        }
+
+        /// <summary>
+        /// Creates virtual partition using provided partition key and row key prefix.
+        /// </summary>
+        /// <param name="table">The cloud table.</param>
+        /// <param name="partitionKey">The partition's own key.</param>
+        /// <param name="rowKeyPrefix">The row's key prefix.</param>
+        public Partition(CloudTable table, string partitionKey, string rowKeyPrefix)
+        {
+            Requires.NotNull(table, "table");
+            Requires.NotNullOrEmpty(partitionKey, "partitionKey");
+            Requires.NotNullOrEmpty(rowKeyPrefix, "rowKeyPrefix");
+
+            if (partitionKey.Contains(separator[0]))
+                throw new ArgumentException(
+                    "Partition key cannot contain virtual partition separator", "partitionKey");
+
+            Table = table;
+
+            PartitionKey = partitionKey;
+            RowKeyPrefix = rowKeyPrefix;
+
+            Key = string.Format("{0}{1}{2}", partitionKey, separator[0], rowKeyPrefix);
         }
 
         internal string StreamRowKey()

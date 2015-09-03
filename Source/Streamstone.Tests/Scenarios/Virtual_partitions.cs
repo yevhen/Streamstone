@@ -23,7 +23,7 @@ namespace Streamstone.Scenarios
 
             partition = new Partition(table, "test");
             virtual1  = new Partition(table, "test|123");
-            virtual2  = new Partition(table, "test|456");
+            virtual2  = new Partition(table, "test", "456");
         }
 
         [Test]
