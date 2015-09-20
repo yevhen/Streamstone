@@ -37,7 +37,7 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 {
     Clean(outDir);
     
-    Exec(@"$ProgramFiles(x86)$\MSBuild\12.0\Bin\MSBuild.exe", 
+    Exec(@"$ProgramFiles(x86)$\MSBuild\14.0\Bin\MSBuild.exe", 
           "{Project}.sln /p:Configuration={config};OutDir={outDir};ReferencePath={outDir}");
 }
 
