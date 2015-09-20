@@ -238,7 +238,39 @@ namespace Streamstone.Scenarios
             var eventEntities = partition.RetrieveEventEntities();
             Assert.That(eventEntities.Length, Is.EqualTo(events.Length));
         }
-  
+
+        [Test]
+        public void When_writing_using_expected_version()
+        {
+            var expectedVersion = 0;
+
+            Stream.Write(partition, expectedVersion,
+                         CreateEvent("e1"), CreateEvent("e2"));
+
+            expectedVersion = 2;
+
+            Stream.Write(partition, expectedVersion,
+                         CreateEvent("e3"), CreateEvent("e4"));
+
+            var eventEntities = partition.RetrieveEventEntities();
+            Assert.That(eventEntities.Length, Is.EqualTo(4));
+        }
+
+        [Test]
+        public async void When_writing_using_expected_version_and_stream_was_changed()
+        {
+            var expectedVersion = 0;
+
+            await Stream.WriteAsync(partition, expectedVersion,
+                                    CreateEvent("e1"), CreateEvent("e2"));
+
+            expectedVersion = 0;
+
+            Assert.Throws<ConcurrencyConflictException>(async ()=>
+                await Stream.WriteAsync(partition, expectedVersion,
+                                        CreateEvent("e1"), CreateEvent("e2")));
+        }
+
         void AssertNewStream(StreamWriteResult actual, int version, object properties = null)
         {
             var newStream = actual.Stream;
