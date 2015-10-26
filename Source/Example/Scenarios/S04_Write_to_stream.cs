@@ -67,7 +67,7 @@ namespace Example.Scenarios
             Enumerable.Range(1, streamsToWrite).AsParallel()
                 .ForAll(streamIndex =>
                 {
-                    var partition = new Partition(Partition.Table, streamIndex.ToString());
+                    var partition = new Partition(Partition.Table, $"WriteMultipleStreamsInParallel-{streamIndex}");
 
                     var existent = Stream.TryOpen(partition);
 

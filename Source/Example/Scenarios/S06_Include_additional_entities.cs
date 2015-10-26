@@ -12,7 +12,8 @@ namespace Example.Scenarios
     {
         public override void Run()
         {
-            var stream = new Stream(Partition);
+            var existent = Stream.TryOpen(Partition);
+	        var stream = existent.Found ? existent.Stream : new Stream(Partition);
 
             Console.WriteLine("Writing to new stream along with making snapshot in partition '{0}'", 
                               stream.Partition);

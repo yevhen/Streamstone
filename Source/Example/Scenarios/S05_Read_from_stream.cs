@@ -22,7 +22,9 @@ namespace Example.Scenarios
                 .Select(Event)
                 .ToArray();
 
-            Stream.Write(new Stream(Partition), events);
+            var existent = Stream.TryOpen(Partition);
+	        var stream = existent.Found ? existent.Stream : new Stream(Partition);
+	        Stream.Write(stream, events);
         }
 
         void ReadSlice()
