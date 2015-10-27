@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.WindowsAzure.Storage.Table;
 using Streamstone;
 
 namespace Example.Scenarios
