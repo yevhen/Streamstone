@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-
+using Microsoft.WindowsAzure.Storage.Table;
 using Streamstone;
 
 namespace Example.Scenarios
@@ -72,7 +72,7 @@ namespace Example.Scenarios
 
         class EventEntity
         {
-            public string Id   { get; set; }
+            public int Id { get; set; }
             public string Type { get; set; }
             public string Data { get; set; }
             public int Version { get; set; }
