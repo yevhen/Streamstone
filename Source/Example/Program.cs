@@ -30,17 +30,19 @@ namespace Example
 
             for (int i = 0; i < scenarios.Length; i++)
             {
-                var scenario = scenarios[i];
 
-                Console.WriteLine("{0}", scenario.GetType().Name.Replace("_", " "));
+                var scenario = scenarios[i];
+	            var scenarioName = scenario.GetType().Name;
+
+                Console.WriteLine("{0}", scenarioName.Replace("_", " "));
                 Console.WriteLine(new string('-', 40));
 
-                scenario.Initialize(table, i.ToString());
+                scenario.Initialize(table, scenarioName);
                 scenario.Run();
 
                 Console.WriteLine();
             }
-            Console.WriteLine("You can check out the contents of Example table using Server Explorer in VS");
+            Console.WriteLine(string.Format("You can check out the contents of '{0}' table using Server Explorer in VS", table.Name));
             Console.WriteLine("Press any key to exit ...");
 
             Console.ReadKey(true);
