@@ -22,7 +22,6 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 /// Builds sources in Debug mode
 [Task] void Default()
 {
-	Install();
     Build();
 }
 
@@ -35,6 +34,8 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 /// Builds sources using specified configuration and output path
 [Step] void Build(string config = "Debug", string outDir = OutputPath)
 {
+    Install();
+
     Clean(outDir);
     
     Exec(@"$ProgramFiles(x86)$\MSBuild\14.0\Bin\MSBuild.exe", 
@@ -86,16 +87,6 @@ string Version()
 /// Installs dependencies (packages) from NuGet 
 [Task] void Install()
 {
-    var packagesDir = @"{RootPath}\Packages";
-
-    var configs = XElement
-        .Load(packagesDir + @"\repositories.config")
-        .Descendants("repository")
-        .Select(x => x.Attribute("path").Value.Replace("..", RootPath)); 
-
-    foreach (var config in configs)
-        Cmd(@"Tools\NuGet.exe install {config} -o {packagesDir}");
-
-	// install packages required for building/testing/publishing package
-    Cmd(@"Tools\NuGet.exe install Build/Packages.config -o {packagesDir}");
+    Cmd(@"Tools\NuGet.exe restore {Project}.sln");
+    Cmd(@"Tools\NuGet.exe install Build/Packages.config -o {RootPath}\Packages");
 }
