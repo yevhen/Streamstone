@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Linq;
+using System.Text;
 
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
-
-using Newtonsoft.Json;
 
 namespace Streamstone
 {
@@ -92,7 +90,7 @@ namespace Streamstone
 
         internal static IncludedOperationConflictException Create(Partition partition, EntityOperation include)
         {
-            var dump = JsonConvert.SerializeObject(include.Entity, Formatting.Indented);
+            var dump = Dump(include.Entity);
 
             var message = string.Format(
                 "Included '{3}' operation had conflicts in partition '{1}' which resides in '{0}' table located at {2}\n" +
@@ -101,6 +99,16 @@ namespace Streamstone
                 include.GetType().Name, dump, include.Entity.GetType());
 
             return new IncludedOperationConflictException(partition, include.Entity, message);
+        }
+
+        static string Dump(ITableEntity entity)
+        {
+            var result = new StringBuilder();
+
+            foreach (var property in entity.WriteEntity(new OperationContext()))
+                result.Append($"\"{property.Key}\" : {property.Value}");
+
+            return result.ToString();
         }
     }
 
