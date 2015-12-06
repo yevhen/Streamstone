@@ -43,7 +43,7 @@ Optimistic concurrency is implemented by making version part of RowKey identifie
 
 ---
 
-<a href="https://raw.githubusercontent.com/yevhen/Streamstone/master/Schema_VP.png" target="_blank" title="Click to view full size"><img src="https://raw.githubusercontent.com/yevhen/Streamstone/master/Doc/Schema_VP.png" alt="Schema for virtual partitions" style="max-width:100%;"/></a>
+<a href="https://raw.githubusercontent.com/yevhen/Streamstone/master/Doc/Schema_VP.png" target="_blank" title="Click to view full size"><img src="https://raw.githubusercontent.com/yevhen/Streamstone/master/Doc/Schema_VP.png" alt="Schema for virtual partitions" style="max-width:100%;"/></a>
 
 ## Usage
 
