@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace Streamstone
+﻿namespace Streamstone
 {
     /// <summary>
     /// Represents the result of a single stream read operation.
@@ -9,8 +6,6 @@ namespace Streamstone
     /// <typeparam name="T">The type of entity this slice will return</typeparam>
     public sealed class StreamSlice<T> where T : class, new()
     {
-        static readonly T[] Empty = new T[0];
-
         /// <summary>
         /// The stream header which has been read
         /// </summary>
@@ -19,12 +14,12 @@ namespace Streamstone
         /// <summary>
         /// The events that has been read (page)
         /// </summary>
-        public readonly T[] Events = Empty;
+        public readonly T[] Events;
 
         /// <summary>
-        /// The next event number that can be read.
+        /// Whether this slice has read any events
         /// </summary>
-        public readonly int NextEventNumber;
+        public readonly bool HasEvents;
 
         /// <summary>
         ///  A boolean flag representing whether or not this is the end of the stream.
@@ -33,13 +28,11 @@ namespace Streamstone
 
         internal StreamSlice(Stream stream, T[] events, int startVersion, int sliceSize)
         {
-            const int endOfStream = -1;
-
             Stream = stream;
             Events = events;
 
+            HasEvents = Events.Length > 0;
             IsEndOfStream = (startVersion + sliceSize - 1) >= stream.Version;
-            NextEventNumber = IsEndOfStream ? endOfStream : startVersion + sliceSize;
         }
     }
 }

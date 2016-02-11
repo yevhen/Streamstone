@@ -43,7 +43,7 @@ namespace Example.Scenarios
             Console.WriteLine("If slice size is > than WATS limit, continuation token will be managed automatically");
 
             StreamSlice<EventEntity> slice;
-            int nextSliceStart = 1;
+            var nextSliceStart = 1;
 
             do
             {
@@ -52,7 +52,9 @@ namespace Example.Scenarios
                 foreach (var @event in slice.Events)
                     Console.WriteLine("{0}:{1} {2}-{3}", @event.Id, @event.Version, @event.Type, @event.Data);
 
-                nextSliceStart = slice.NextEventNumber;
+                nextSliceStart = slice.HasEvents 
+                    ? slice.Events.Last().Version + 1 
+                    : -1;
             }
             while (!slice.IsEndOfStream);
         }
@@ -71,7 +73,7 @@ namespace Example.Scenarios
 
         class EventEntity
         {
-            public int Id { get; set; }
+            public int Id      { get; set; }
             public string Type { get; set; }
             public string Data { get; set; }
             public int Version { get; set; }

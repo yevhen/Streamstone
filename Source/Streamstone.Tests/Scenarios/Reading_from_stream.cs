@@ -84,7 +84,7 @@ namespace Streamstone.Scenarios
             Assert.That(slice.Events.Length, Is.EqualTo(1));
             Assert.That(slice.Events[0].Version, Is.EqualTo(1));
 
-            slice = await Stream.ReadAsync<TestRecordedEventEntity>(partition, slice.NextEventNumber);
+            slice = await Stream.ReadAsync<TestRecordedEventEntity>(partition, slice.Events.Last().Version + 1);
 
             Assert.That(slice.IsEndOfStream, Is.True);
             Assert.That(slice.Events.Length, Is.EqualTo(1));
