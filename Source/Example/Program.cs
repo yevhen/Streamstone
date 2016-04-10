@@ -26,11 +26,11 @@ namespace Example
                 new S08_Concurrency_conflicts(),
                 new S09_Handling_duplicates(),
                 new S10_Stream_directory(),
+                new S11_Sharding_streams(),
             };
 
-            for (int i = 0; i < scenarios.Length; i++)
+            for (var i = 0; i < scenarios.Length; i++)
             {
-
                 var scenario = scenarios[i];
 	            var scenarioName = scenario.GetType().Name;
 
@@ -42,7 +42,7 @@ namespace Example
 
                 Console.WriteLine();
             }
-            Console.WriteLine(string.Format("You can check out the contents of '{0}' table using Server Explorer in VS", table.Name));
+            Console.WriteLine("You can check out the contents of '{0}' table using Server Explorer in VS", table.Name);
             Console.WriteLine("Press any key to exit ...");
 
             Console.ReadKey(true);

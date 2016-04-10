@@ -79,6 +79,7 @@
     <Compile Include="Scenarios\Custom_stream_properties.cs" />
     <Compile Include="Scenarios\Custom_event_properties.cs" />
     <Compile Include="Scenarios\Checking_stream_exists.cs" />
+    <Compile Include="Scenarios\Sharding_function.cs" />
     <Compile Include="Scenarios\Tracking_entity_changes.cs" />
     <Compile Include="Scenarios\Including_additional_entities.cs" />
     <Compile Include="Scenarios\Reading_from_stream.cs" />

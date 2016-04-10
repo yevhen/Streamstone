@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-using Streamstone;
+﻿using Streamstone;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Example
