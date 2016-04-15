@@ -94,4 +94,4 @@ Other limitations of the underlying Azure Table Storage API:
 
 ## License
 
-Apache 2 License
+MIT License
