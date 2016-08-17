@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
@@ -481,7 +485,8 @@ namespace Streamstone
             Requires.GreaterThanOrEqualToOne(startVersion, "startVersion");
             Requires.GreaterThanOrEqualToOne(sliceSize, "sliceSize");
             
-            return new ReadOperation<T>(partition, startVersion, sliceSize).Execute();
+            return new ReadOperation<T>(partition, startVersion, sliceSize)
+                .Execute(BuildEntity<T>());
         }
 
         /// <summary>
@@ -517,7 +522,95 @@ namespace Streamstone
             Requires.GreaterThanOrEqualToOne(startVersion, "startVersion");
             Requires.GreaterThanOrEqualToOne(sliceSize, "sliceSize");
 
-            return new ReadOperation<T>(partition, startVersion, sliceSize).ExecuteAsync();
+            return new ReadOperation<T>(partition, startVersion, sliceSize)
+                .ExecuteAsync(BuildEntity<T>());
+        }
+
+        /// <summary>
+        /// Reads the events from a stream in a specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <param name="startVersion">The start version.</param>
+        /// <param name="sliceSize">Size of the slice.</param>
+        /// <returns>
+        ///     The slice of the stream, which contains events that has been read
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     If <paramref name="startVersion"/> &lt; 1
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     If <paramref name="sliceSize"/> &lt; 1
+        /// </exception>       
+        /// <exception cref="StreamNotFoundException">
+        ///     If there is no stream in a given partition
+        /// </exception>
+        public static StreamSlice<EventProperties> Read(
+            Partition partition,
+            int startVersion = 1,
+            int sliceSize = DefaultSliceSize)
+        {
+            Requires.NotNull(partition, "partition");
+            Requires.GreaterThanOrEqualToOne(startVersion, "startVersion");
+            Requires.GreaterThanOrEqualToOne(sliceSize, "sliceSize");
+
+            return new ReadOperation<EventProperties>(partition, startVersion, sliceSize)
+                .Execute(BuildEventProperties);
+        }
+
+        /// <summary>
+        /// Initiates an asynchronous operation that reads the events from a stream in a specified partition.
+        /// </summary>
+        /// <param name="partition">The partition.</param>
+        /// <param name="startVersion">The start version.</param>
+        /// <param name="sliceSize">Size of the slice.</param>
+        /// <returns>
+        ///     The promise, that wil eventually return the slice of the stream, 
+        ///     which contains events that has been read; or will fail with exception
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     If <paramref name="startVersion"/> &lt; 1
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     If <paramref name="sliceSize"/> &lt; 1
+        /// </exception>       
+        /// <exception cref="StreamNotFoundException">
+        ///     If there is no stream in a given partition
+        /// </exception>
+        public static Task<StreamSlice<EventProperties>> ReadAsync(
+            Partition partition,
+            int startVersion = 1,
+            int sliceSize = DefaultSliceSize)
+        {
+            Requires.NotNull(partition, "partition");
+            Requires.GreaterThanOrEqualToOne(startVersion, "startVersion");
+            Requires.GreaterThanOrEqualToOne(sliceSize, "sliceSize");
+
+            return new ReadOperation<EventProperties>(partition, startVersion, sliceSize)
+                .ExecuteAsync(BuildEventProperties);
+        }
+
+        static Func<DynamicTableEntity, T> BuildEntity<T>() where T : class, new()
+        {
+            if (typeof(T) == typeof(DynamicTableEntity))
+                return e => e as T;
+
+            return e =>
+            {
+                var t = new T();
+                TableEntity.ReadUserObject(t, e.Properties, new OperationContext());
+                return t;
+            };
+        }
+
+        static EventProperties BuildEventProperties(DynamicTableEntity e)
+        {
+            return EventProperties.ReadEntity(e.Properties);
         }
     }
 }

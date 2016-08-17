@@ -47,6 +47,28 @@ namespace Streamstone
             return ((IEnumerable)properties).GetEnumerator();
         }
 
+        /// <summary>
+        ///  Gets property with specified key.
+        /// </summary>
+        /// <param name="key">The key of the property to get</param>
+        /// <returns>
+        ///  The element with the specified key.
+        /// </returns>
+        /// <exception cref="T:System.ArgumentNullException"><paramref name="key"/> is null.</exception>
+        /// <exception cref="T:System.Collections.Generic.KeyNotFoundException">The property is retrieved and <paramref name="key"/> is not found.</exception>
+        /// <filterpriority>1</filterpriority>
+        public EntityProperty this[string key] => properties[key];
+
+        /// <summary>
+        ///  Determines whether the <see cref="PropertyMap"/> contains a property with the specified key.
+        /// </summary>
+        /// <returns>
+        ///  <c>true</c> if the <see cref="PropertyMap"/> contains an element with the key; otherwise, <c>false</c>.
+        /// </returns>
+        /// <param name="key">The key to locate in the <see cref="PropertyMap"/>.</param>
+        /// <exception cref="T:System.ArgumentNullException"><paramref name="key"/> is null.</exception>
+        public bool ContainsKey(string key) => properties.ContainsKey(key);
+
         internal void WriteTo(IDictionary<string, EntityProperty> target)
         {
             foreach (var property in properties)

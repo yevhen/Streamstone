@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using NUnit.Framework;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -114,6 +115,38 @@ namespace Streamstone.Scenarios
 
             Assert.That(slice.IsEndOfStream, Is.True);
             Assert.That(slice.Events.Length, Is.EqualTo(1500));
+        }
+
+        [Test]
+        public async Task When_requested_result_is_EventProperties()
+        {
+            EventData[] events = { CreateEvent("e1"), CreateEvent("e2") };
+            await Stream.WriteAsync(new Stream(partition), events);
+
+            var slice = await Stream.ReadAsync(partition, sliceSize: 2);
+
+            Assert.That(slice.IsEndOfStream, Is.True);
+            Assert.That(slice.Events.Length, Is.EqualTo(2));
+
+            var e = slice.Events[0];
+            Assert.That(e["Type"].StringValue, Is.EqualTo("StreamChanged"));
+            Assert.That(e["Data"].StringValue, Is.EqualTo("{}"));
+        }
+
+        [Test]
+        public async Task When_requested_result_is_DynamicTableEntity()
+        {
+            EventData[] events = { CreateEvent("e1"), CreateEvent("e2") };
+            await Stream.WriteAsync(new Stream(partition), events);
+
+            var slice = await Stream.ReadAsync<DynamicTableEntity>(partition, sliceSize: 2);
+
+            Assert.That(slice.IsEndOfStream, Is.True);
+            Assert.That(slice.Events.Length, Is.EqualTo(2));
+
+            var e = slice.Events[0];
+            Assert.That(e["Type"].StringValue, Is.EqualTo("StreamChanged"));
+            Assert.That(e["Data"].StringValue, Is.EqualTo("{}"));
         }
 
         static EventData CreateEvent(string id)

@@ -4,7 +4,7 @@
     /// Represents the result of a single stream read operation.
     /// </summary>
     /// <typeparam name="T">The type of entity this slice will return</typeparam>
-    public sealed class StreamSlice<T> where T : class, new()
+    public sealed class StreamSlice<T> where T : class
     {
         /// <summary>
         /// The stream header which has been read

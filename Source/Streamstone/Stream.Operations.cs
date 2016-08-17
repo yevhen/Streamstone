@@ -446,7 +446,7 @@ namespace Streamstone
             }
         }
 
-        class ReadOperation<T> where T : class, new()
+        class ReadOperation<T> where T : class
         {
             readonly Partition partition;
             readonly CloudTable table;
@@ -462,23 +462,23 @@ namespace Streamstone
                 table = partition.Table;
             }
 
-            public StreamSlice<T> Execute()
+            public StreamSlice<T> Execute(Func<DynamicTableEntity, T> transform)
             {
-                return Result(ExecuteQuery(PrepareQuery()));
+                return Result(ExecuteQuery(PrepareQuery()), transform);
             }
 
-            public async Task<StreamSlice<T>> ExecuteAsync()
+            public async Task<StreamSlice<T>> ExecuteAsync(Func<DynamicTableEntity, T> transform)
             {
-                return Result(await ExecuteQueryAsync(PrepareQuery()));
+                return Result(await ExecuteQueryAsync(PrepareQuery()), transform);
             }
 
-            StreamSlice<T> Result(ICollection<DynamicTableEntity> entities)
+            StreamSlice<T> Result(ICollection<DynamicTableEntity> entities, Func<DynamicTableEntity, T> transform)
             {
                 var streamEntity = FindStreamEntity(entities);
                 entities.Remove(streamEntity);
 
                 var stream = BuildStream(streamEntity);
-                var events = BuildEvents(entities);
+                var events = BuildEvents(entities, transform);
 
                 return new StreamSlice<T>(stream, events, startVersion, sliceSize);
             }
@@ -548,15 +548,9 @@ namespace Streamstone
                 return From(partition, StreamEntity.From(entity));
             }
 
-            static T[] BuildEvents(IEnumerable<DynamicTableEntity> entities)
+            static T[] BuildEvents(IEnumerable<DynamicTableEntity> entities, Func<DynamicTableEntity, T> transform)
             {
-                return entities.Select(e => e.Properties).Select(properties =>
-                {
-                    var t = new T();
-                    TableEntity.ReadUserObject(t, properties, new OperationContext());
-                    return t;
-                })
-                .ToArray();
+                return entities.Select(transform).ToArray();
             }
         }
     }
