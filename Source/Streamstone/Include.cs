@@ -23,7 +23,13 @@ namespace Streamstone
         /// <summary>
         /// The delete operation
         /// </summary>
-        Delete
+        Delete,
+
+        /// <summary>
+        /// The insert or merge operation
+        /// </summary>
+        InsertOrMerge,
+        InsertOrReplace
     }
 
     /// <summary>
@@ -66,7 +72,31 @@ namespace Streamstone
             Requires.NotNull(entity, "entity");
             return new Include(IncludeType.Delete, new EntityOperation.Delete(entity));
         }
- 
+
+        /// <summary>
+        /// Inserts or merges the specified entity.
+        /// </summary>
+        /// <param name="entity">The entity.</param>
+        /// <returns>A new instance of <see cref="Include"/> class</returns>
+        /// <exception cref="ArgumentNullException">If given <paramref name="entity"/> is <c>null</c>.</exception>
+        public static Include InsertOrMerge(ITableEntity entity)
+        {
+            Requires.NotNull(entity, "entity");
+            return new Include(IncludeType.InsertOrMerge, new EntityOperation.InsertOrMerge(entity));
+        }
+
+        /// <summary>
+        /// Inserts or replace the specified entity.
+        /// </summary>
+        /// <param name="entity">The entity.</param>
+        /// <returns>A new instance of <see cref="Include"/> class</returns>
+        /// <exception cref="ArgumentNullException">If given <paramref name="entity"/> is <c>null</c>.</exception>
+        public static Include InsertOrReplace(ITableEntity entity)
+        {
+            Requires.NotNull(entity, "entity");
+            return new Include(IncludeType.InsertOrReplace, new EntityOperation.InsertOrReplace(entity));
+        }
+
         Include(IncludeType type, EntityOperation operation)
         {
             Type = type;
