@@ -36,7 +36,7 @@ Streamstone is just a thin layer (library, not a server) on top of Windows Azure
 
 The api is stateless and all exposed objects are immutable, once fully constructed. Streamstone doesn't dictate payload serialization protocol, so you are free to choose any protocol you want.
 
-Optimistic concurrency is implemented by making version part of RowKey identifier. Duplicate event detection is done by automatically creating additional entity for every event, with RowKey value set to a unique identifier of a source event (consistent secondary index).     
+Optimistic concurrency is implemented by always including stream header entity with every write, making it impossible to append to a stream without first having a latest Etag. Duplicate event detection is done by automatically creating additional entity for every event, with RowKey value set to a unique identifier of a source event (consistent secondary index).     
 
 ## Schema
 
