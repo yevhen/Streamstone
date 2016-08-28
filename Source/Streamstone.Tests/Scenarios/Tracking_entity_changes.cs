@@ -211,18 +211,19 @@ namespace Streamstone.Scenarios
                     "Insert of entity with Etag=* does not behave like InsertOrReplace");
         }
 
-        /*           Rules for  operation chaining
-                     ----------------------------------------------------
-                         --->    |    Insert    |    Replace    |    Delete    
-                     ----------------------------------------------------
-                     Insert      |      ERR     |       Insert     |     NULL     
-                     ----------------------------------------------------
-                     Replace  |      ERR     |    Replace    |    Delete     
-                     ----------------------------------------------------
-                     Delete     |  Replace  |       ERR       |        ERR      
-                     ----------------------------------------------------
-                     NULL       |    Insert    |      ERR        |        ERR      
-                     ---------------------------------------------------*/
+        
+     /* Rules for  operation chaining
+        ----------------------------------------------------
+            --->    |    Insert    |    Replace     | Delete    
+        ----------------------------------------------------
+         Insert     |      ERR     |     Insert     | NULL     
+        ----------------------------------------------------
+         Replace    |      ERR     |    Replace     | Delete     
+        ----------------------------------------------------
+         Delete     |    Replace   |      ERR       |  ERR      
+        ----------------------------------------------------
+         NULL       |    Insert    |      ERR       |  ERR      
+        --------------------------------------------------- */
 
         /********* Insert followed by XXX ************/
 
