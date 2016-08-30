@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using NUnit.Framework;
@@ -211,19 +212,30 @@ namespace Streamstone.Scenarios
                     "Insert of entity with Etag=* does not behave like InsertOrReplace");
         }
 
+        /*
         
-     /* Rules for  operation chaining
-        ----------------------------------------------------
-            --->    |    Insert    |    Replace     | Delete    
-        ----------------------------------------------------
-         Insert     |      ERR     |     Insert     | NULL     
-        ----------------------------------------------------
-         Replace    |      ERR     |    Replace     | Delete     
-        ----------------------------------------------------
-         Delete     |    Replace   |      ERR       |  ERR      
-        ----------------------------------------------------
-         NULL       |    Insert    |      ERR       |  ERR      
-        --------------------------------------------------- */
+        Rules for  operation chaining
+        -----------------------------------------------------------------------------------
+            --->    |    Insert    |    Replace    |    Delete   |  Upmerge   |  Upsert
+        -----------------------------------------------------------------------------------          
+        Insert      |      ERR     |    Insert     |     NULL    |    ERR     |    ERR    
+        -----------------------------------------------------------------------------------
+        Replace     |      ERR     |    Replace    |    Delete   |    ERR     |    ERR 
+        -----------------------------------------------------------------------------------
+        Delete      |    Replace   |      ERR      |     ERR     |    ERR     |    ERR
+        -----------------------------------------------------------------------------------
+        NULL        |    Insert    |      ERR      |     ERR     |  Upmerge   |   Upsert
+        -----------------------------------------------------------------------------------
+        Upmerge     |      ERR     |      ERR      |     ERR     |  Upmerge   |    ERR
+        ----------------------------------------------------------------------------------- 
+        Upsert      |      ERR     |      ERR      |     ERR     |    ERR     |   Upsert
+        ----------------------------------------------------------------------------------- 
+
+        Upmerge - Insert-Or-Merge
+        Upsert  - Insert-Or-Replace
+
+        */
+
 
         /********* Insert followed by XXX ************/
 
@@ -460,7 +472,124 @@ namespace Streamstone.Scenarios
                 Has.Message.ContainsSubstring("cannot be applied to NULL"));
         }
 
-        void InsertTestEntity(TestEntity entity)
+        /********* Insert-Or-Merge or Insert-Or-Replace followed by XXX ************/
+
+        [TestCaseSource(nameof(GetThrowingOperationsForInsertOrMergeOrReplace))]
+        public void ThrowOnPrecedingInsertOrMergeOrReplaceWithAnything(Include first, Include second)
+        {
+            var events = new[]
+            {
+                CreateEvent(first),
+                CreateEvent(second),
+            };
+
+            Assert.Throws<InvalidOperationException>(() =>
+                    Stream.Write(stream, events));
+        }
+
+        [Test]
+        public void When_Null_followed_by_Insert_Or_Merge()
+        {
+            var entity = new TestEntity(EntityRowKey);
+
+            var events = new[]
+            {
+                CreateEvent(Include.Insert(entity)), // that combination
+                CreateEvent(Include.Delete(entity)), //  produces NULL
+                
+                CreateEvent(Include.InsertOrMerge(entity))
+            };
+
+            Stream.Write(stream, events);
+
+            var stored = RetrieveTestEntity(EntityRowKey);
+            Assert.That(stored, Is.Not.Null);
+        }
+
+        [Test]
+        public void When_Null_followed_by_Insert_Or_Replace()
+        {
+            var entity = new TestEntity(EntityRowKey);
+
+            var events = new[]
+            {
+                CreateEvent(Include.Insert(entity)), // that combination
+                CreateEvent(Include.Delete(entity)), //  produces NULL
+                
+                CreateEvent(Include.InsertOrReplace(entity))
+            };
+
+            Stream.Write(stream, events);
+
+            var stored = RetrieveTestEntity(EntityRowKey);
+            Assert.That(stored, Is.Not.Null);
+        }
+
+        [Test]
+        public void When_Insert_Or_Replace_followed_by_Insert_Or_Replace()
+        {
+            var entity = new TestEntity(EntityRowKey);
+            InsertTestEntity(entity);
+
+            entity.Data = "zzz";
+            var events = new[]
+            {
+                CreateEvent(Include.InsertOrReplace(entity)),
+                CreateEvent(Include.InsertOrReplace(entity))
+            };
+
+            Stream.Write(stream, events);
+
+            var stored = RetrieveTestEntity(EntityRowKey);
+            Assert.That(stored.Data, Is.EqualTo("zzz"));
+        }
+
+        [Test]
+        public void When_Insert_Or_Merge_followed_by_Insert_Or_Merge()
+        {
+            var entity = new ExtendedTestEntity(EntityRowKey)
+            {
+                Data = "zzz"
+            };
+
+            InsertTestEntity(entity);
+
+            entity = new ExtendedTestEntity(EntityRowKey)
+            {
+                AdditionalData = "zzz",
+            };
+
+            var events = new[]
+            {
+                CreateEvent(Include.InsertOrMerge(entity)),
+                CreateEvent(Include.InsertOrMerge(entity))
+            };
+
+            Stream.Write(stream, events);
+
+            var stored = RetrieveEntity<ExtendedTestEntity>(EntityRowKey);
+            Assert.That(stored.Data, Is.EqualTo("zzz"));
+            Assert.That(stored.AdditionalData, Is.EqualTo("zzz"));
+        }
+
+        public static IEnumerable<ITestCaseData> GetThrowingOperationsForInsertOrMergeOrReplace()
+        {
+            var entity = new TestEntity(EntityRowKey);
+            var firstIncludeProducers = new Func<ITableEntity, Include>[] {Include.Insert, Include.Delete, Include.Replace};
+            var secondIncludeProducers = new Func<ITableEntity, Include>[] { Include.InsertOrMerge, Include.InsertOrReplace };
+
+            foreach (var first in firstIncludeProducers)
+            {
+                foreach (var second in secondIncludeProducers)
+                {
+                    yield return
+                        new TestCaseData(first(entity), second(entity)).SetName(
+                            $"When_{first.Method.Name}_followed_by_{second.Method.Name}");
+                }
+            }
+        }
+
+        void InsertTestEntity(ITableEntity entity)
         {
             entity.PartitionKey = partition.PartitionKey;
             table.Execute(TableOperation.Insert(entity));
@@ -468,7 +597,13 @@ namespace Streamstone.Scenarios
 
         TestEntity RetrieveTestEntity(string rowKey)
         {
-            return table.CreateQuery<TestEntity>()
+            return RetrieveEntity<TestEntity>(rowKey);
+        }
+
+        TEntity RetrieveEntity<TEntity>(string rowKey)
+            where TEntity : TableEntity, new()
+        {
+            return table.CreateQuery<TEntity>()
                         .Where(x =>
                                x.PartitionKey == partition.PartitionKey
                                && x.RowKey == rowKey)
@@ -493,6 +628,21 @@ namespace Streamstone.Scenarios
             }
 
             public string Data { get; set; }            
+        }
+
+        public class ExtendedTestEntity : TableEntity
+        {
+            public ExtendedTestEntity()
+            {
+            }
+
+            public ExtendedTestEntity(string rowKey)
+            {
+                RowKey = rowKey;
+            }
+
+            public string Data { get; set; }
+            public string AdditionalData { get; set; }
         }
     }
 }
