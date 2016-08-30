@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.WindowsAzure.Storage;
+
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
@@ -43,8 +43,7 @@ namespace Streamstone
         {
             public Insert(ITableEntity entity)
                 : base(entity)
-            {
-            }
+            {}
 
             protected override TableOperation AsTableOperation()
             {
@@ -76,8 +75,7 @@ namespace Streamstone
         {
             public Replace(ITableEntity entity)
                 : base(entity)
-            {
-            }
+            {}
 
             protected override TableOperation AsTableOperation()
             {
@@ -109,8 +107,7 @@ namespace Streamstone
         {
             public Delete(ITableEntity entity)
                 : base(entity)
-            {
-            }
+            {}
 
             protected override TableOperation AsTableOperation()
             {
@@ -142,8 +139,7 @@ namespace Streamstone
         {
             public InsertOrMerge(ITableEntity entity)
                 : base(entity)
-            {
-            }
+            {}
 
             protected override TableOperation AsTableOperation()
             {
@@ -175,8 +171,7 @@ namespace Streamstone
         {
             public InsertOrReplace(ITableEntity entity)
                 : base(entity)
-            {
-            }
+            {}
 
             protected override TableOperation AsTableOperation()
             {
@@ -208,8 +203,7 @@ namespace Streamstone
         {
             internal Null()
                 : base(null)
-            {
-            }
+            {}
 
             protected override TableOperation AsTableOperation()
             {
@@ -228,6 +222,9 @@ namespace Streamstone
                     throw InvalidMerge(other);
 
                 if (other is InsertOrMerge)
+                    return other;
+
+                if (other is InsertOrReplace)
                     return other;
 
                 throw new InvalidOperationException("Unsupported operation type: " + other.GetType());

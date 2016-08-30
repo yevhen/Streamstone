@@ -473,6 +473,7 @@ namespace Streamstone.Scenarios
         }
 
         /********* Insert-Or-Merge or Insert-Or-Replace followed by XXX ************/
+
         [TestCaseSource(nameof(GetThrowingOperationsForInsertOrMergeOrReplace))]
         public void ThrowOnPrecedingInsertOrMergeOrReplaceWithAnything(Include first, Include second)
         {
@@ -515,7 +516,7 @@ namespace Streamstone.Scenarios
                 CreateEvent(Include.Insert(entity)), // that combination
                 CreateEvent(Include.Delete(entity)), //  produces NULL
                 
-                CreateEvent(Include.InsertOrMerge(entity))
+                CreateEvent(Include.InsertOrReplace(entity))
             };
 
             Stream.Write(stream, events);
