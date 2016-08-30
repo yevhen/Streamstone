@@ -29,6 +29,10 @@ namespace Streamstone
         /// The insert or merge operation
         /// </summary>
         InsertOrMerge,
+
+        /// <summary>
+        /// The insert or replace operation
+        /// </summary>
         InsertOrReplace
     }
 

@@ -544,10 +544,18 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_Insert_Or_Merge_followed_by_Insert_Or_Merge()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new ExtendedTestEntity(EntityRowKey)
+            {
+                Data = "zzz"
+            };
+
             InsertTestEntity(entity);
 
-            entity.Data = "zzz";
+            entity = new ExtendedTestEntity(EntityRowKey)
+            {
+                AdditionalData = "zzz",
+                ETag = "*"
+            };
             var events = new[]
             {
                 CreateEvent(Include.InsertOrMerge(entity)),
@@ -556,8 +564,9 @@ namespace Streamstone.Scenarios
 
             Stream.Write(stream, events);
 
-            var stored = RetrieveTestEntity(EntityRowKey);
+            var stored = RetrieveEntity<ExtendedTestEntity>(EntityRowKey);
             Assert.That(stored.Data, Is.EqualTo("zzz"));
+            Assert.That(stored.AdditionalData, Is.EqualTo("zzz"));
         }
 
         public static IEnumerable<ITestCaseData> GetThrowingOperationsForInsertOrMergeOrReplace()
@@ -577,7 +586,7 @@ namespace Streamstone.Scenarios
             }
         }
 
-        void InsertTestEntity(TestEntity entity)
+        void InsertTestEntity(ITableEntity entity)
         {
             entity.PartitionKey = partition.PartitionKey;
             table.Execute(TableOperation.Insert(entity));
@@ -585,7 +594,13 @@ namespace Streamstone.Scenarios
 
         TestEntity RetrieveTestEntity(string rowKey)
         {
-            return table.CreateQuery<TestEntity>()
+            return RetrieveEntity<TestEntity>(rowKey);
+        }
+
+        TEntity RetrieveEntity<TEntity>(string rowKey)
+            where TEntity : TableEntity, new()
+        {
+            return table.CreateQuery<TEntity>()
                         .Where(x =>
                                x.PartitionKey == partition.PartitionKey
                                && x.RowKey == rowKey)
@@ -610,6 +625,21 @@ namespace Streamstone.Scenarios
             }
 
             public string Data { get; set; }            
+        }
+
+        public class ExtendedTestEntity : TableEntity
+        {
+            public ExtendedTestEntity()
+            {
+            }
+
+            public ExtendedTestEntity(string rowKey)
+            {
+                RowKey = rowKey;
+            }
+
+            public string Data { get; set; }
+            public string AdditionalData { get; set; }
         }
     }
 }
