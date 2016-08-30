@@ -554,8 +554,8 @@ namespace Streamstone.Scenarios
             entity = new ExtendedTestEntity(EntityRowKey)
             {
                 AdditionalData = "zzz",
-                ETag = "*"
             };
+
             var events = new[]
             {
                 CreateEvent(Include.InsertOrMerge(entity)),
