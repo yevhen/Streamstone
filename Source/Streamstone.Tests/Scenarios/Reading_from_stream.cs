@@ -32,10 +32,10 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        [ExpectedException(typeof(StreamNotFoundException))]
-        public async void When_stream_doesnt_exist()
+        //[ExpectedException(typeof(StreamNotFoundException))]
+        public void When_stream_doesnt_exist()
         {
-            await Stream.ReadAsync<TestEventEntity>(partition);
+            Assert.ThrowsAsync<StreamNotFoundException>(async () => await Stream.ReadAsync<TestEventEntity>(partition));
         }
 
         [Test]

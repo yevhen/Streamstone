@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.25914.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Streamstone", "Source.vNext\Streamstone\Streamstone.csproj", "{BF652556-8225-4014-8AE5-83965276DFD0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Streamstone.Tests", "Source.vNext\Streamstone.Tests\Streamstone.Tests.csproj", "{EACB9715-D12A-4516-B1D8-58319A5928A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Source.vNext\Example\Example.csproj", "{1E32E72F-9371-4A62-9C12-6371A7657C85}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BF652556-8225-4014-8AE5-83965276DFD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF652556-8225-4014-8AE5-83965276DFD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF652556-8225-4014-8AE5-83965276DFD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF652556-8225-4014-8AE5-83965276DFD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EACB9715-D12A-4516-B1D8-58319A5928A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EACB9715-D12A-4516-B1D8-58319A5928A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EACB9715-D12A-4516-B1D8-58319A5928A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EACB9715-D12A-4516-B1D8-58319A5928A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E32E72F-9371-4A62-9C12-6371A7657C85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E32E72F-9371-4A62-9C12-6371A7657C85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E32E72F-9371-4A62-9C12-6371A7657C85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E32E72F-9371-4A62-9C12-6371A7657C85}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

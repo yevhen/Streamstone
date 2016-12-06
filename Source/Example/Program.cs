@@ -55,8 +55,8 @@ namespace Example
                 .CreateCloudTableClient()
                 .GetTableReference("Example");
 
-            table.DeleteIfExists();
-            table.CreateIfNotExists();
+            table.DeleteIfExistsAsync().Wait();
+            table.CreateIfNotExistsAsync().Wait();
 
             return table;
         }
