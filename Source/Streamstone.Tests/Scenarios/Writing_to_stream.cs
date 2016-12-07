@@ -6,6 +6,7 @@ using NUnit.Framework;
 using ExpectedObjects;
 
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Threading.Tasks;
 
 namespace Streamstone.Scenarios
 {
@@ -54,9 +55,9 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public void When_writing_together_with_creating_stream_and_stream_already_exists()
+        public async Task When_writing_together_with_creating_stream_and_stream_already_exists()
         {
-            Stream.Provision(partition);
+            await Stream.ProvisionAsync(partition);
 
             partition.CaptureContents(contents =>
             {
@@ -240,16 +241,16 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public void When_writing_using_expected_version()
+        public async Task When_writing_using_expected_version()
         {
             var expectedVersion = 0;
 
-            Stream.Write(partition, expectedVersion,
+            await Stream.WriteAsync(partition, expectedVersion,
                          CreateEvent("e1"), CreateEvent("e2"));
 
             expectedVersion = 2;
 
-            Stream.Write(partition, expectedVersion,
+            await Stream.WriteAsync(partition, expectedVersion,
                          CreateEvent("e3"), CreateEvent("e4"));
 
             var eventEntities = partition.RetrieveEventEntities();
@@ -257,7 +258,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_writing_using_expected_version_and_stream_was_changed()
+        public async Task When_writing_using_expected_version_and_stream_was_changed()
         {
             var expectedVersion = 0;
 

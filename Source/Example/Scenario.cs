@@ -1,5 +1,6 @@
 ﻿using Streamstone;
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Threading.Tasks;
 
 namespace Example
 {
@@ -16,6 +17,6 @@ namespace Example
             Partition = new Partition(table, id);
         }
 
-        public abstract void Run();
+        public abstract Task Run();
     }
 }

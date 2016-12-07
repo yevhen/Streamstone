@@ -24,23 +24,7 @@ namespace Streamstone
                 this.stream = stream;
                 table = stream.Partition.Table;
             }
-
-            public Stream Execute()
-            {
-                var insert = new Insert(stream);
-
-                try
-                {
-                    table.ExecuteAsync(insert.Prepare()).Wait();
-                }
-                catch (StorageException e)
-                {
-                    insert.Handle(table, e);
-                }
-
-                return insert.Result();
-            }
-
+            
             public async Task<Stream> ExecuteAsync()
             {
                 var insert = new Insert(stream);
@@ -101,29 +85,6 @@ namespace Streamstone
                 this.stream = stream;
                 this.events = stream.Record(events);
                 table = stream.Partition.Table;
-            }
-
-            public StreamWriteResult Execute()
-            {
-                var current = stream;
-
-                foreach (var chunk in Chunks())
-                {
-                    var batch = chunk.ToBatch(current);
-
-                    try
-                    {
-                        table.ExecuteBatchAsync(batch.Prepare()).Wait();
-                    }
-                    catch (StorageException e)
-                    {
-                        batch.Handle(table, e);
-                    }
-
-                    current = batch.Result();
-                }
-
-                return new StreamWriteResult(current, events.ToArray());
             }
 
             public async Task<StreamWriteResult> ExecuteAsync()
@@ -346,22 +307,6 @@ namespace Streamstone
                 table = stream.Partition.Table;
             }
 
-            public Stream Execute()
-            {
-                var replace = new Replace(stream, properties);
-
-                try
-                {
-                    table.ExecuteAsync(replace.Prepare()).Wait();
-                }
-                catch (StorageException e)
-                {
-                    replace.Handle(table, e);
-                }
-
-                return replace.Result();
-            }
-
             public async Task<Stream> ExecuteAsync()
             {
                 var replace = new Replace(stream, properties);
@@ -420,12 +365,7 @@ namespace Streamstone
                 this.partition = partition;
                 table = partition.Table;
             }
-
-            public StreamOpenResult Execute()
-            {
-                return Result(table.ExecuteAsync(Prepare()).Result);
-            }
-
+            
             public async Task<StreamOpenResult> ExecuteAsync()
             {
                 return Result(await table.ExecuteAsync(Prepare()));
@@ -461,12 +401,7 @@ namespace Streamstone
                 this.sliceSize = sliceSize;
                 table = partition.Table;
             }
-
-            public StreamSlice<T> Execute(Func<DynamicTableEntity, T> transform)
-            {
-                return Result(ExecuteQuery(PrepareQuery()), transform);
-            }
-
+            
             public async Task<StreamSlice<T>> ExecuteAsync(Func<DynamicTableEntity, T> transform)
             {
                 return Result(await ExecuteQueryAsync(PrepareQuery()), transform);
@@ -510,22 +445,6 @@ namespace Streamstone
                 var query = new TableQuery<DynamicTableEntity>().Where(tableFilter);
 
                 return query;
-            }
-
-            List<DynamicTableEntity> ExecuteQuery(TableQuery<DynamicTableEntity> query)
-            {
-                var result = new List<DynamicTableEntity>();
-                TableContinuationToken token = null;
-
-                do
-                {
-                    var segment = table.ExecuteQuerySegmentedAsync(query, token).Result;
-                    token = segment.ContinuationToken;
-                    result.AddRange(segment.Results);
-                }
-                while (token != null);
-
-                return result;
             }
 
             async Task<List<DynamicTableEntity>> ExecuteQueryAsync(TableQuery<DynamicTableEntity> query)

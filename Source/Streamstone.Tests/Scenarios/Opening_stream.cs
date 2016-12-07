@@ -27,7 +27,6 @@ namespace Streamstone.Scenarios
         }
         
         [Test]
-        //[ExpectedException(typeof(StreamNotFoundException))]
         public void When_stream_does_not_exist()
         {
             Assert.ThrowsAsync<StreamNotFoundException>(async ()=> await Stream.OpenAsync(partition));

@@ -7,12 +7,13 @@ using Microsoft.WindowsAzure.Storage.Table;
 namespace Example.Scenarios
 {
     using Streamstone;
+    using System.Threading.Tasks;
 
     public class S06_Include_additional_entities : Scenario
     {
-        public override void Run()
+        public override async Task Run()
         {
-            var existent = Stream.TryOpen(Partition);
+            var existent = await Stream.TryOpenAsync(Partition);
 	        var stream = existent.Found ? existent.Stream : new Stream(Partition);
 
             Console.WriteLine("Writing to new stream along with making snapshot in partition '{0}'", 
@@ -35,7 +36,7 @@ namespace Example.Scenarios
                 Event(new InventoryItemCheckedOut(Id, 40), snapshot)
             };
 
-            var result = Stream.Write(stream, events);
+            var result = await Stream.WriteAsync(stream, events);
 
             Console.WriteLine("Succesfully written to new stream.\r\nEtag: {0}, Version: {1}",
                               result.Stream.ETag, result.Stream.Version);

@@ -2,14 +2,15 @@
 using System.Linq;
 
 using Streamstone;
+using System.Threading.Tasks;
 
 namespace Example.Scenarios
 {
     public class S09_Handling_duplicates : Scenario
     {
-        public override void Run()
+        public override async Task Run()
         {
-            var result = Stream.Write(new Stream(Partition), new EventData(EventId.From("42")));
+            var result = await Stream.WriteAsync(new Stream(Partition), new EventData(EventId.From("42")));
 
             try
             {
@@ -19,7 +20,7 @@ namespace Example.Scenarios
                     new EventData(EventId.From("42"))  // conflicting (duplicate) event
                 };
 
-                Stream.Write(result.Stream, events);
+                await Stream.WriteAsync(result.Stream, events);
             }
             catch (DuplicateEventException e)
             {

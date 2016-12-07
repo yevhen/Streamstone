@@ -2,22 +2,23 @@
 using System.Linq;
 
 using Streamstone;
+using System.Threading.Tasks;
 
 namespace Example.Scenarios
 {
     public class S02_Open_stream_for_writing : Scenario
     {
-        public override void Run()
+        public override async Task Run()
         {
-            OpenNonExistingStream();
-            OpenExistingStream();
+            await OpenNonExistingStream();
+            await OpenExistingStream();
         }
 
-        void OpenNonExistingStream()
+        async Task OpenNonExistingStream()
         {
             try
             {
-                Stream.Open(Partition);
+                await Stream.OpenAsync(Partition);
             }
             catch (StreamNotFoundException)
             {
@@ -25,11 +26,11 @@ namespace Example.Scenarios
             }
         }
 
-        void OpenExistingStream()
+        async Task OpenExistingStream()
         {
-            Stream.Provision(Partition);
+            await Stream.ProvisionAsync(Partition);
 
-            var stream = Stream.Open(Partition);
+            var stream = await Stream.OpenAsync(Partition);
 
             Console.WriteLine("Opened existing (empty) stream in partition '{0}'", stream.Partition);
             Console.WriteLine("Etag: {0}", stream.ETag);

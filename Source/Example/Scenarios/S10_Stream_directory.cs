@@ -6,16 +6,17 @@ using Streamstone;
 using Streamstone.Utility;
 
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Threading.Tasks;
 
 namespace Example.Scenarios
 {
     public class S10_Stream_directory : Scenario
     {
-        public override void Run()
+        public override async Task Run()
         {
-            MultipleStreamsPerPartitionUsingStreamProperties();
-            MultipleStreamsPerPartitionUsingProjection();
-            SingleStreamPerPartitionUsingIndirectionLayer();
+            await MultipleStreamsPerPartitionUsingStreamProperties();
+            await MultipleStreamsPerPartitionUsingProjection();
+            await SingleStreamPerPartitionUsingIndirectionLayer();
         }
 
         /// <summary>
@@ -24,12 +25,12 @@ namespace Example.Scenarios
         /// It's also the slowest approach of all, since all rows in a partition need to scanned. Still, it should 
         /// perform quite well for majority of apps as there won't be too many rows in a single physical partition.
         /// </summary>
-        void MultipleStreamsPerPartitionUsingStreamProperties()
+        async Task MultipleStreamsPerPartitionUsingStreamProperties()
         {
             var properties = StreamProperties.From(new { RowType = "STREAM" });
 
-            Stream.Provision(VirtualPartition("11"), properties);
-            Stream.Provision(VirtualPartition("22"), properties);
+            await Stream.ProvisionAsync(VirtualPartition("11"), properties);
+            await Stream.ProvisionAsync(VirtualPartition("22"), properties);
 
             // the below code will scan all rows in a single physical partition
             // also, if there more than 1000 streams (header rows), pagination need to be utilized as per regular ATS limits
@@ -54,13 +55,13 @@ namespace Example.Scenarios
         /// performant than this one.  The only downside, it could only be used along with Stream.Write since at the moment Streamstone doesn't support 
         /// inclusion of additional entities when provisioning streams.
         /// </summary>
-        void MultipleStreamsPerPartitionUsingProjection()
+        async Task MultipleStreamsPerPartitionUsingProjection()
         {
-            Stream.Write(
+            await Stream.WriteAsync(
                 new Stream(VirtualPartition("sid-33")),
                 Event(Include.Insert(new StreamHeaderEntity("sid-33"))));
 
-            Stream.Write(
+            await Stream.WriteAsync(
                 new Stream(VirtualPartition("sid-44")),
                 Event(Include.Insert(new StreamHeaderEntity("sid-44"))));
 
@@ -83,15 +84,15 @@ namespace Example.Scenarios
         /// transactions in WATS.  But that should be a really rare case (failure to write stream after recording it in directory) and can be resolved 
         /// with manual intervention.
         /// </summary>
-        void SingleStreamPerPartitionUsingIndirectionLayer()
+        async Task SingleStreamPerPartitionUsingIndirectionLayer()
         {
             var store = new EventStore(new Partition(Table, "DIR"));
 
-            store.Provision(VirtualPartition("vs-111"));
-            store.Provision(VirtualPartition("vs-222"));
+            await store.Provision(VirtualPartition("vs-111"));
+            await store.Provision(VirtualPartition("vs-222"));
 
-            store.Write(new Stream(new Partition(Partition.Table, "ps-333")), Event());
-            store.Write(new Stream(new Partition(Partition.Table, "ps-444")), Event());
+            await store.Write(new Stream(new Partition(Partition.Table, "ps-333")), Event());
+            await store.Write(new Stream(new Partition(Partition.Table, "ps-444")), Event());
 
             var count = store.Streams().Count();
             Console.WriteLine(count);
@@ -132,24 +133,24 @@ namespace Example.Scenarios
                 this.directory.Table.CreateIfNotExistsAsync().Wait();
             }
 
-            public Stream Provision(Partition partition)
+            public Task<Stream> Provision(Partition partition)
             {
                 Record(partition);
-                return Stream.Provision(partition);
+                return Stream.ProvisionAsync(partition);
             }
 
-            public StreamWriteResult Write(Stream stream, params EventData[] events)
+            public Task<StreamWriteResult> Write(Stream stream, params EventData[] events)
             {
                 if (stream.IsTransient)
                     Record(stream.Partition);
 
-                return Stream.Write(stream, events);
+                return Stream.WriteAsync(stream, events);
             }
 
-            void Record(Partition partition)
+            Task Record(Partition partition)
             {
                 var header = new DynamicTableEntity(directory.PartitionKey, partition.ToString());
-                directory.Table.ExecuteAsync(TableOperation.Insert(header)).Wait();
+                return directory.Table.ExecuteAsync(TableOperation.Insert(header));
             }
 
             public IEnumerable<string> Streams()

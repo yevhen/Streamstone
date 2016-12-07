@@ -1,43 +1,44 @@
 ﻿using System;
 using System.Linq;
 using Streamstone;
+using System.Threading.Tasks;
 
 namespace Example.Scenarios
 {
     public class S05_Read_from_stream : Scenario
     {
-        public override void Run()
+        public override async Task Run()
         {
-            Prepare();
+            await Prepare();
 
-            ReadSlice();
-            ReadAll();
+            await ReadSlice();
+            await ReadAll();
         }
 
-        void Prepare()
+        async Task Prepare()
         {
             var events = Enumerable
                 .Range(1, 10)
                 .Select(Event)
                 .ToArray();
 
-            var existent = Stream.TryOpen(Partition);
+            var existent = await Stream.TryOpenAsync(Partition);
 	        var stream = existent.Found ? existent.Stream : new Stream(Partition);
-	        Stream.Write(stream, events);
+	        await Stream.WriteAsync(stream, events);
         }
 
-        void ReadSlice()
+        async Task ReadSlice()
         {
             Console.WriteLine("Reading single slice from specified start version and using specified slice size");
 
-            var slice = Stream.Read<EventEntity>(Partition, startVersion: 2, sliceSize: 2);
+            var slice = await Stream.ReadAsync<EventEntity>(Partition, startVersion: 2, sliceSize: 2);
             foreach (var @event in slice.Events)
                 Console.WriteLine("{0}: {1}-{2}", @event.Version, @event.Type, @event.Data);
 
             Console.WriteLine();
         }
 
-        void ReadAll()
+        async Task ReadAll()
         {
             Console.WriteLine("Reading all events in a stream");
             Console.WriteLine("If slice size is > than WATS limit, continuation token will be managed automatically");
@@ -47,7 +48,7 @@ namespace Example.Scenarios
 
             do
             {
-                slice = Stream.Read<EventEntity>(Partition, nextSliceStart, sliceSize: 1);
+                slice = await Stream.ReadAsync<EventEntity>(Partition, nextSliceStart, sliceSize: 1);
 
                 foreach (var @event in slice.Events)
                     Console.WriteLine("{0}:{1} {2}-{3}", @event.Id, @event.Version, @event.Type, @event.Data);

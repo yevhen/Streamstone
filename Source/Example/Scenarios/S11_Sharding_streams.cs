@@ -3,6 +3,7 @@
 namespace Example.Scenarios
 {
     using Microsoft.WindowsAzure.Storage;
+    using System.Threading.Tasks;
 
     public class S11_Sharding_streams : Scenario
     {
@@ -12,13 +13,13 @@ namespace Example.Scenarios
             CloudStorageAccount.DevelopmentStorageAccount // pretend this is some other account
         };
 
-        public override void Run()
+        public override async Task Run()
         {
             var partition1 = Resolve("shard-test-1");
             var partition2 = Resolve("shard-test-2");
 
-            Stream.Provision(partition1);
-            Stream.Provision(partition2);
+            await Stream.ProvisionAsync(partition1);
+            await Stream.ProvisionAsync(partition2);
         }
 
         Partition Resolve(string stream)

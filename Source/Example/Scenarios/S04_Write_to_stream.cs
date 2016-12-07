@@ -6,21 +6,22 @@ using Newtonsoft.Json.Bson;
 
 using Streamstone;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Example.Scenarios
 {
     public class S04_Write_to_stream : Scenario
     {
-        public override void Run()
+        public override async Task Run()
         {
-            WriteToExistingOrCreateNewStream();
-            WriteSequentiallyToExistingStream();
+            await WriteToExistingOrCreateNewStream();
+            await WriteSequentiallyToExistingStream();
             WriteMultipleStreamsInParallel();
         }
 
-        void WriteToExistingOrCreateNewStream()
+        async Task WriteToExistingOrCreateNewStream()
         {
-            var existent = Stream.TryOpen(Partition);
+            var existent = await Stream.TryOpenAsync(Partition);
 
             var stream = existent.Found 
                 ? existent.Stream 
@@ -28,7 +29,7 @@ namespace Example.Scenarios
 
             Console.WriteLine("Writing to new stream in partition '{0}'", stream.Partition);
 
-            var result = Stream.Write(stream,
+            var result = await Stream.WriteAsync(stream,
                 Event(new InventoryItemCreated(Id, "iPhone6")),
                 Event(new InventoryItemCheckedIn(Id, 100))
             );
@@ -37,16 +38,16 @@ namespace Example.Scenarios
                               result.Stream.ETag, result.Stream.Version);
         }
 
-        void WriteSequentiallyToExistingStream()
+        async Task WriteSequentiallyToExistingStream()
         {
-            var stream = Stream.Open(Partition);
+            var stream = await Stream.OpenAsync(Partition);
 
             Console.WriteLine("Writing sequentially to existing stream in partition '{0}'", stream.Partition);
             Console.WriteLine("Etag: {0}, Version: {1}", stream.ETag, stream.Version);
 
             for (int i = 1; i <= 10; i++)
             {
-                var result = Stream.Write(stream, 
+                var result = await Stream.WriteAsync(stream, 
                     Event(new InventoryItemCheckedIn(Id, i*100))
                 );
 
@@ -65,11 +66,11 @@ namespace Example.Scenarios
             const int streamsToWrite = 10;
 
             Enumerable.Range(1, streamsToWrite).AsParallel()
-                .ForAll(streamIndex =>
+                .ForAll(async streamIndex =>
                 {
                     var partition = new Partition(Partition.Table, $"WriteMultipleStreamsInParallel-{streamIndex}");
 
-                    var existent = Stream.TryOpen(partition);
+                    var existent = await Stream.TryOpenAsync(partition);
 
                     var stream = existent.Found
                         ? existent.Stream
@@ -84,7 +85,7 @@ namespace Example.Scenarios
                             .Select(_ => Event(new InventoryItemCheckedIn(partition.Key, i * 1000 + streamIndex)))
                             .ToArray();
 
-                        var result = Stream.Write(stream, events);
+                        var result = await Stream.WriteAsync(stream, events);
 
                         stream = result.Stream;
                     }

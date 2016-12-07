@@ -4,6 +4,7 @@ using System.Linq;
 
 using NUnit.Framework;
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Threading.Tasks;
 
 namespace Streamstone.Scenarios
 {
@@ -21,7 +22,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public void When_include_has_no_conflicts_happy_path()
+        public async Task When_include_has_no_conflicts_happy_path()
         {
             var entity1 = new TestEntity("INV-0001");
             var entity2 = new TestEntity("INV-0002");
@@ -32,7 +33,7 @@ namespace Streamstone.Scenarios
                 CreateEvent("e2", Include.Insert(entity2))
             };
 
-            var result = Stream.Write(new Stream(partition), events);
+            var result = await Stream.WriteAsync(new Stream(partition), events);
 
             var stored = RetrieveTestEntity(entity1.RowKey);
             Assert.That(stored, Is.Not.Null);
