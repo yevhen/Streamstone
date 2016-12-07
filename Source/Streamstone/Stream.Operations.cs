@@ -31,7 +31,7 @@ namespace Streamstone
 
                 try
                 {
-                    table.Execute(insert.Prepare());
+                    table.ExecuteAsync(insert.Prepare()).Wait();
                 }
                 catch (StorageException e)
                 {
@@ -113,7 +113,7 @@ namespace Streamstone
 
                     try
                     {
-                        table.ExecuteBatch(batch.Prepare());
+                        table.ExecuteBatchAsync(batch.Prepare()).Wait();
                     }
                     catch (StorageException e)
                     {
@@ -352,7 +352,7 @@ namespace Streamstone
 
                 try
                 {
-                    table.Execute(replace.Prepare());
+                    table.ExecuteAsync(replace.Prepare()).Wait();
                 }
                 catch (StorageException e)
                 {
@@ -423,7 +423,7 @@ namespace Streamstone
 
             public StreamOpenResult Execute()
             {
-                return Result(table.Execute(Prepare()));
+                return Result(table.ExecuteAsync(Prepare()).Result);
             }
 
             public async Task<StreamOpenResult> ExecuteAsync()
@@ -490,15 +490,26 @@ namespace Streamstone
 
                 // ReSharper disable StringCompareToIsCultureSpecific
 
-                var query = table
-                    .CreateQuery<DynamicTableEntity>()
-                    .Where(x =>
-                           x.PartitionKey == partition.PartitionKey
-                           && (x.RowKey == partition.StreamRowKey()
-                               || (x.RowKey.CompareTo(rowKeyStart)  >= 0
-                                   && x.RowKey.CompareTo(rowKeyEnd) <= 0)));
+                var partitionKeyFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal,
+                    partition.PartitionKey);
 
-                return (TableQuery<DynamicTableEntity>) query;
+                var exactRowKeyFilter = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal,
+                    partition.StreamRowKey());
+
+                var rowKeyStartFilter = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThanOrEqual,
+                    rowKeyStart);
+
+                var rowKeyEndFilter = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.LessThanOrEqual,
+                    rowKeyEnd);
+
+                var rowKeyBetweenFilter = TableQuery.CombineFilters(rowKeyStartFilter, TableOperators.Or, rowKeyEndFilter);
+                var rowKeyFilter = TableQuery.CombineFilters(exactRowKeyFilter, TableOperators.Or, rowKeyBetweenFilter);
+
+                var tableFilter = TableQuery.CombineFilters(partitionKeyFilter, TableOperators.And, rowKeyFilter);
+
+                var query = new TableQuery<DynamicTableEntity>().Where(tableFilter);
+
+                return query;
             }
 
             List<DynamicTableEntity> ExecuteQuery(TableQuery<DynamicTableEntity> query)
@@ -508,7 +519,7 @@ namespace Streamstone
 
                 do
                 {
-                    var segment = table.ExecuteQuerySegmented(query, token);
+                    var segment = table.ExecuteQuerySegmentedAsync(query, token).Result;
                     token = segment.ContinuationToken;
                     result.AddRange(segment.Results);
                 }

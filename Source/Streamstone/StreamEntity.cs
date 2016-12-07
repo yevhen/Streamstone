@@ -50,7 +50,7 @@ namespace Streamstone
                 RowKey = entity.RowKey,
                 ETag = entity.ETag,
                 Timestamp = entity.Timestamp,
-                Version = (int)entity["Version"].PropertyAsObject,
+                Version = (int)entity.Properties["Version"].PropertyAsObject,
                 Properties = StreamProperties.From(entity)
             };
         }

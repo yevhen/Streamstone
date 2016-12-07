@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Collections.Generic;
 
 namespace Streamstone
 {
@@ -21,12 +22,12 @@ namespace Streamstone
             /// <param name="partition">The partition.</param>
             /// <param name="prefix">The row key prefix.</param>
             /// <returns>An instance of <see cref="IQueryable"/> that alllow further criterias to be added</returns>
-            public static IQueryable<TEntity> RowKeyPrefixQuery<TEntity>(this Partition partition, string prefix) where TEntity : ITableEntity, new()
+            public static TableQuery<TEntity> RowKeyPrefixQuery<TEntity>(this Partition partition, string prefix) where TEntity : ITableEntity, new()
             {
-                var table = partition.Table;
-                return table.CreateQuery<TEntity>()
-                            .Where(x => x.PartitionKey == partition.PartitionKey)
-                            .WhereRowKeyPrefix(prefix);
+                var filter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal,
+                    partition.PartitionKey);
+                var query = new TableQuery<TEntity>().Where(filter);
+                return query.WhereRowKeyPrefix(prefix);
             }
 
             /// <summary>
@@ -36,13 +37,71 @@ namespace Streamstone
             /// <param name="queryable">The queryable.</param>
             /// <param name="prefix">The row key prefix.</param>
             /// <returns>An instance of <see cref="IQueryable"/> that alllow further criterias to be added</returns>
-            public static IQueryable<TEntity> WhereRowKeyPrefix<TEntity>(this IQueryable<TEntity> queryable, string prefix) where TEntity : ITableEntity, new()
+            public static TableQuery<TEntity> WhereRowKeyPrefix<TEntity>(this TableQuery<TEntity> queryable, string prefix) where TEntity : ITableEntity, new()
             {
                 var range = new PrefixRange(prefix);
 
-                return queryable.Where(x => 
-                            x.RowKey.CompareTo(range.Start) >= 0
-                            && x.RowKey.CompareTo(range.End) < 0);
+                var rowKeyStartFilter = TableQuery.GenerateFilterCondition("RowKey",
+                    QueryComparisons.GreaterThanOrEqual, range.Start);
+
+                var rowKeyEndFilter = TableQuery.GenerateFilterCondition("RowKey",
+                    QueryComparisons.LessThan, range.End);
+
+                var rowKeyBetweenFilter = TableQuery.CombineFilters(rowKeyStartFilter, TableOperators.Or, rowKeyEndFilter);
+
+                return queryable.Where(rowKeyBetweenFilter);
+            }
+
+            /// <summary>
+            /// Gets all the entities for a given <see cref="TableQuery{TEntity}">query</see>.
+            /// </summary>
+            /// <typeparam name="TEntity">The entity type to return</typeparam>
+            /// <param name="table">The table on which to run the query</param>
+            /// <param name="query">The query</param>
+            /// <returns>All the entities in a <paramref name="table"/> for a given
+            /// <see cref="TableQuery{TEntity}">query</see>.</returns>
+            public static List<TEntity> RetrieveAll<TEntity>(this CloudTable table, TableQuery<TEntity> query)
+                where TEntity : ITableEntity, new()
+            {
+                var entities = new List<TEntity>();
+                TableContinuationToken token = null;
+
+                do
+                {
+                    var page = query.Take(512);
+
+                    var segment = table.ExecuteQuerySegmentedAsync(page, token).Result;
+                    token = segment.ContinuationToken;
+
+                    entities.AddRange(segment.Results);
+                }
+                while (token != null);
+
+                return entities;
+            }
+
+            /// <summary>
+            /// Gets all entity for a partition key/row key combination.
+            /// </summary>
+            /// <typeparam name="TEntity">The entity type to return</typeparam>
+            /// <param name="partition">The partition from which to run the query</param>
+            /// <param name="rowKey">The row's key in the partition</param>
+            /// <returns>The entity corresponding to the partition key/row key combination.</returns>
+            public static TEntity RetrieveEntity<TEntity>(this Partition partition, string rowKey)
+                where TEntity : TableEntity, new()
+            {
+                var partitionKeyFilter = TableQuery.GenerateFilterCondition("PartitionKey",
+                    QueryComparisons.Equal, partition.PartitionKey);
+
+                var rowKeyFilter = TableQuery.GenerateFilterCondition("RowKey",
+                    QueryComparisons.Equal, rowKey);
+
+                var filter = TableQuery.CombineFilters(
+                    partitionKeyFilter, TableOperators.And, rowKeyFilter);
+
+                TableQuery<TEntity> query = new TableQuery<TEntity>().Where(filter);
+
+                return partition.Table.RetrieveAll(query).SingleOrDefault();
             }
         }
 

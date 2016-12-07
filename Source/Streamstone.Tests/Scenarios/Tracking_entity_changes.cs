@@ -254,7 +254,7 @@ namespace Streamstone.Scenarios
                 Stream.Write(stream, events));
 
             Assert.That(exception,
-                Has.Message.ContainsSubstring("cannot be followed by"));
+                Has.Message.Contains("cannot be followed by"));
         }
                 
         [Test]
@@ -309,7 +309,7 @@ namespace Streamstone.Scenarios
                 Stream.Write(stream, events));
 
             Assert.That(exception,
-                Has.Message.ContainsSubstring("cannot be followed by"));
+                Has.Message.Contains("cannot be followed by"));
         }
 
         [Test]
@@ -390,7 +390,7 @@ namespace Streamstone.Scenarios
                 Stream.Write(stream, events));
 
             Assert.That(exception,
-                Has.Message.ContainsSubstring("cannot be followed by"));
+                Has.Message.Contains("cannot be followed by"));
         }
         
         [Test]
@@ -408,7 +408,7 @@ namespace Streamstone.Scenarios
                 Stream.Write(stream, events));
 
             Assert.That(exception,
-                Has.Message.ContainsSubstring("cannot be followed by"));
+                Has.Message.Contains("cannot be followed by"));
         }
 
         /********* NULL followed by XXX ************/
@@ -449,7 +449,7 @@ namespace Streamstone.Scenarios
                 Stream.Write(stream, events));
 
             Assert.That(exception,
-                Has.Message.ContainsSubstring("cannot be applied to NULL"));
+                Has.Message.Contains("cannot be applied to NULL"));
         }        
         
         [Test]
@@ -469,7 +469,7 @@ namespace Streamstone.Scenarios
                 Stream.Write(stream, events));
 
             Assert.That(exception,
-                Has.Message.ContainsSubstring("cannot be applied to NULL"));
+                Has.Message.Contains("cannot be applied to NULL"));
         }
 
         /********* Insert-Or-Merge or Insert-Or-Replace followed by XXX ************/
@@ -572,7 +572,7 @@ namespace Streamstone.Scenarios
             Assert.That(stored.AdditionalData, Is.EqualTo("zzz"));
         }
 
-        public static IEnumerable<ITestCaseData> GetThrowingOperationsForInsertOrMergeOrReplace()
+        public static IEnumerable<TestCaseData> GetThrowingOperationsForInsertOrMergeOrReplace()
         {
             var entity = new TestEntity(EntityRowKey);
             var firstIncludeProducers = new Func<ITableEntity, Include>[] {Include.Insert, Include.Delete, Include.Replace};

@@ -38,8 +38,11 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 
     Clean(outDir);
     
-    Exec(@"$ProgramFiles(x86)$\MSBuild\14.0\Bin\MSBuild.exe", 
+    Exec(@"dotnet build", 
           "{Project}.sln /p:Configuration={config};OutDir={outDir};ReferencePath={outDir}");
+
+    //Exec(@"$ProgramFiles(x86)$\MSBuild\14.0\Bin\MSBuild.exe",
+    //      "{Project}.sln /p:Configuration={config};OutDir={outDir};ReferencePath={outDir}");
 }
 
 /// Runs unit tests 
