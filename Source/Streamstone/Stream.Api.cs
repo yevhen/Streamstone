@@ -603,7 +603,13 @@ namespace Streamstone
             return e =>
             {
                 var t = new T();
-                TableEntity.ReadUserObject(t, e.Properties, new OperationContext());
+
+                var entity = t as ITableEntity;
+                if (entity != null)
+                    entity.ReadEntity(e.Properties, new OperationContext());
+                else
+                    TableEntity.ReadUserObject(t, e.Properties, new OperationContext());
+
                 return t;
             };
         }
