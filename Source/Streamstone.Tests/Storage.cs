@@ -44,12 +44,19 @@ namespace Streamstone
             var table = client.GetTableReference(TableName);
             table.CreateIfNotExists();
 
-            var query = table.CreateQuery<DynamicTableEntity>();
-            var entities = RetrieveAll(table, query);
+            var entities = RetrieveAll(table, table.CreateQuery<DynamicTableEntity>());
+            if (entities.Count == 0)
+                return table;
 
-            var batch = new TableBatchOperation();
-            entities.ForEach(batch.Delete);
-            table.ExecuteBatch(batch);
+            const int maxBatchSize = 100;
+            var batches = (int)Math.Ceiling((double)entities.Count / maxBatchSize);
+            foreach (var batch in Enumerable.Range(0, batches))
+            {
+                var operation = new TableBatchOperation();
+                var slice = entities.Skip(batch * maxBatchSize).Take(maxBatchSize).ToList();
+                slice.ForEach(operation.Delete);
+                table.ExecuteBatch(operation);
+            }
 
             return table;
         }
