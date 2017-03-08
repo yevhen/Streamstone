@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone.Scenarios
