@@ -24,11 +24,13 @@ To install Streamstone via NuGet, run this command in NuGet package manager cons
 
 ## Building from source [![Build status](https://ci.appveyor.com/api/projects/status/3rsmwblor11b6inq/branch/master?svg=true)](https://ci.appveyor.com/project/yevhen/streamstone/branch/master)
 
-To build Streamstone's binaries, just clone the repository and build solution from Visual Studio, Alternatively, run the following command from solution's root directory:
+To build Streamstone's binaries, just clone the repository and build solution from Visual Studio (2015, 2017, .NET 4.6), Alternatively, run the following command from solution's root directory:
 
     > Nake.bat
 
-For a list of available commands run `Nake.bat -T`. 
+For a list of available commands run `Nake.bat -T`.
+
+> NOTE: To run unit tests you will need to have Azure Storage Emulator 5.1 or higher. Alternatively, you could run unit tests against real storage by setting storage account connection string to **Streamstone-Test-Storage** user-level environment variable.
 
 ## Design
 
