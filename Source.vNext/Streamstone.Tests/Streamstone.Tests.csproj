@@ -1,0 +1,100 @@
+﻿<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup Label="Configuration">
+    <DefineConstants>NETSTANDARD;NETSTANDARD_TODO</DefineConstants>
+    <RootNamespace>Streamstone.Tests</RootNamespace>
+    <AssemblyName>Streamstone.Tests</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net462</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <RuntimeIdentifier>win</RuntimeIdentifier>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="**\*.cs" />
+    <EmbeddedResource Include="**\*.resx" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Sdk">
+      <Version>1.0.0-alpha-20161104-2</Version>
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="WindowsAzure.Storage">
+      <Version>7.2.1</Version>
+    </PackageReference>
+    <PackageReference Include="NUnit">
+      <Version>3.5.0</Version>
+    </PackageReference>
+    <PackageReference Include="ExpectedObjects">
+      <Version>1.2.1</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Streamstone\Streamstone.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Source\Streamstone.Tests\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Scenarios\Checking_stream_exists.cs">
+      <Link>Scenarios\Checking_stream_exists.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Scenarios\Custom_event_properties.cs">
+      <Link>Scenarios\Custom_event_properties.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Scenarios\Custom_stream_properties.cs">
+      <Link>Scenarios\Custom_stream_properties.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Scenarios\Including_additional_entities.cs">
+      <Link>Scenarios\Including_additional_entities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Scenarios\Opening_stream.cs">
+      <Link>Scenarios\Opening_stream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Scenarios\Provisioning_stream.cs">
+      <Link>Scenarios\Provisioning_stream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Scenarios\Reading_from_stream.cs">
+      <Link>Scenarios\Reading_from_stream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Scenarios\Setting_stream_properties.cs">
+      <Link>Scenarios\Setting_stream_properties.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Scenarios\Sharding_function.cs">
+      <Link>Scenarios\Sharding_function.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Scenarios\Tracking_entity_changes.cs">
+      <Link>Scenarios\Tracking_entity_changes.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Scenarios\Virtual_partitions.cs">
+      <Link>Scenarios\Virtual_partitions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Scenarios\Writing_to_stream.cs">
+      <Link>Scenarios\Writing_to_stream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Api.cs">
+      <Link>Api.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Model.cs">
+      <Link>Model.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\Streamstone.Tests\Storage.cs">
+      <Link>Storage.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

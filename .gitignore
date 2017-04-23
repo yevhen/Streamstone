@@ -32,6 +32,7 @@ obj/
 *.debug.css
 *.sln.ide/
 _ReSharper*
+.vs/
 
 #ignore certain folders
 /Output/
