@@ -145,8 +145,45 @@ namespace Streamstone.Scenarios
             Assert.That(slice.Events.Length, Is.EqualTo(2));
 
             var e = slice.Events[0];
+            AssertSystemProperties(e);
+
+            Assert.That(e["Id"].StringValue, Is.EqualTo("e1"));
             Assert.That(e["Type"].StringValue, Is.EqualTo("StreamChanged"));
             Assert.That(e["Data"].StringValue, Is.EqualTo("{}"));
+        }
+
+        [Test]
+        public async Task When_requested_result_is_custom_TableEntity()
+        {
+            EventData[] events = { CreateEvent("e1"), CreateEvent("e2") };
+            await Stream.WriteAsync(new Stream(partition), events);
+
+            var slice = await Stream.ReadAsync<CustomTableEntity>(partition, sliceSize: 2);
+
+            Assert.That(slice.IsEndOfStream, Is.True);
+            Assert.That(slice.Events.Length, Is.EqualTo(2));
+
+            var e = slice.Events[0];
+            AssertSystemProperties(e);
+
+            Assert.That(e.Id, Is.EqualTo("e1"));
+            Assert.That(e.Type, Is.EqualTo("StreamChanged"));
+            Assert.That(e.Data, Is.EqualTo("{}"));
+        }
+
+        void AssertSystemProperties(ITableEntity e)
+        {
+            Assert.That(e.PartitionKey, Is.EqualTo(partition.Key));
+            Assert.That(e.RowKey, Is.EqualTo(partition.EventVersionRowKey(1)));
+            Assert.That(e.ETag, Is.Not.Null.Or.Empty);
+            Assert.That(e.Timestamp, Is.Not.EqualTo(DateTimeOffset.MinValue));
+        }
+
+        class CustomTableEntity : TableEntity
+        {
+            public string Id   { get; set; }
+            public string Type { get; set; }
+            public string Data { get; set; }
         }
 
         static EventData CreateEvent(string id)

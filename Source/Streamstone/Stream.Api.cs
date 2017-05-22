@@ -604,12 +604,17 @@ namespace Streamstone
             {
                 var t = new T();
 
-                var entity = t as ITableEntity;
-                if (entity != null)
+                if (t is ITableEntity entity)
+                {
                     entity.ReadEntity(e.Properties, new OperationContext());
-                else
-                    TableEntity.ReadUserObject(t, e.Properties, new OperationContext());
+                    entity.PartitionKey = e.PartitionKey;
+                    entity.RowKey = e.RowKey;
+                    entity.ETag = e.ETag;
+                    entity.Timestamp = e.Timestamp;
+                    return t;
+                }
 
+                TableEntity.ReadUserObject(t, e.Properties, new OperationContext());
                 return t;
             };
         }
