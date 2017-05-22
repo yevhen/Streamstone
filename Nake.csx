@@ -56,7 +56,7 @@ var AppVeyor = Var["APPVEYOR"] == "True";
         @"/xml:{results} /framework:net-4.6 /noshadow /nologo {tests}");
 
     if (AppVeyor)
-        new WebClient().UploadFile("https://ci.appveyor.com/api/testresults/nunit/$APPVEYOR_JOB_ID$", results);
+        new WebClient().UploadFile("https://ci.appveyor.com/api/testresults/nunit/%APPVEYOR_JOB_ID%", results);
 }
 
 /// Builds official NuGet package 
@@ -76,7 +76,7 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 /// Publishes package to NuGet gallery
 [Step] void Publish()
 {
-    Cmd(@"Tools\Nuget.exe push {PackagePath}\{Project}.{Version()}.nupkg $NuGetApiKey$");
+    Cmd(@"Tools\Nuget.exe push {PackagePath}\{Project}.{Version()}.nupkg %NuGetApiKey%");
 }
 
 string Version()
