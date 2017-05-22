@@ -1,22 +1,25 @@
 ﻿#r "System.Xml"
 #r "System.Xml.Linq"
 
-using Nake.FS;
-using Nake.Run;
-using Nake.Log;
-using Nake.Env;
-
 using System.Linq;
 using System.Net;
 using System.Xml.Linq;
 using System.Diagnostics;
 
+using static Nake.App;
+using static Nake.Env;
+using static Nake.FS;
+using static Nake.Log;
+using static Nake.Run;
+
 const string Project = "Streamstone";
-const string RootPath = "$NakeScriptDirectory$";
+const string RootPath = "%NakeScriptDirectory%";
 const string OutputPath = RootPath + @"\Output";
 const string PackagePath = OutputPath + @"\Package";
 const string ReleasePath = PackagePath + @"\Release";
 
+var Vs17Versions = new [] {"Community", "Enterprise", "Professional"};
+var MsBuildExe = GetVisualStudio17MSBuild();
 var AppVeyor = Var["APPVEYOR"] == "True";
 
 /// Builds sources in Debug mode
@@ -38,8 +41,7 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 
     Clean(outDir);
     
-    Exec(@"$ProgramFiles(x86)$\MSBuild\14.0\Bin\MSBuild.exe", 
-          "{Project}.sln /p:Configuration={config};OutDir={outDir};ReferencePath={outDir}");
+    Exec(MsBuildExe, "{Project}.sln /p:Configuration={config};OutDir={outDir};ReferencePath={outDir}");
 }
 
 /// Runs unit tests 
@@ -51,7 +53,7 @@ var AppVeyor = Var["APPVEYOR"] == "True";
     var results = @"{outDir}\nunit-test-results.xml";
     
     Cmd(@"Packages\NUnit.Runners.2.6.3\tools\nunit-console.exe " + 
-        @"/xml:{results} /framework:net-4.0 /noshadow /nologo {tests}");
+        @"/xml:{results} /framework:net-4.6 /noshadow /nologo {tests}");
 
     if (AppVeyor)
         new WebClient().UploadFile("https://ci.appveyor.com/api/testresults/nunit/$APPVEYOR_JOB_ID$", results);
@@ -89,4 +91,19 @@ string Version()
 {
     Cmd(@"Tools\NuGet.exe restore {Project}.sln");
     Cmd(@"Tools\NuGet.exe install Build/Packages.config -o {RootPath}\Packages");
+}
+
+string GetVisualStudio17MSBuild()
+{
+    foreach (var each in Vs17Versions) 
+    {
+        var msBuildPath = @"%ProgramFiles(x86)%\Microsoft Visual Studio\2017\{each}\MSBuild\15.0\Bin\MSBuild.exe";
+        if (File.Exists(msBuildPath))
+            return msBuildPath;
+    }
+
+    Error("MSBuild not found!");
+    Exit();
+
+    return null;
 }
