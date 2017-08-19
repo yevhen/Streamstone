@@ -44,7 +44,7 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 [Step] void Test(string outDir = OutputPath)
 {  
 	Console.WriteLine(outDir); 	
-	Exec("dotnet", "test Source/Streamstone.Tests/Streamstone.Tests.csproj -l:trx;LogFileName=nunit-test-results.trx -r:\"{outDir}\"");
+	Exec("dotnet", "test Source/Streamstone.Tests/Streamstone.Tests.csproj -l:trx;LogFileName=nunit-test-results.trx --results-directory \"{outDir}\"");
     
     var results = @"{outDir}\nunit-test-results.trx";
     if (AppVeyor)
