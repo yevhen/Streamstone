@@ -5,6 +5,7 @@ using System.Linq;
 
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Reflection;
 
 namespace Streamstone
 {
@@ -98,7 +99,7 @@ namespace Streamstone
         {
             Requires.NotNull(obj, "obj");
 
-            return from property in obj.GetType().GetProperties() 
+            return from property in obj.GetType().GetTypeInfo().DeclaredProperties 
                    let key = property.Name 
                    let value = property.GetValue(obj, noargs) 
                    select ToKeyValuePair(key, value, property.PropertyType);
