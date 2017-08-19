@@ -31,7 +31,7 @@ namespace Streamstone
 
                 try
                 {
-                    table.Execute(insert.Prepare());
+                    table.ExecuteAsync(insert.Prepare()).Wait();
                 }
                 catch (StorageException e)
                 {
@@ -113,11 +113,11 @@ namespace Streamstone
 
                     try
                     {
-                        table.ExecuteBatch(batch.Prepare());
+                        table.ExecuteBatchAsync(batch.Prepare()).Wait();
                     }
-                    catch (StorageException e)
+                    catch (AggregateException e) when (e.InnerException is StorageException se)
                     {
-                        batch.Handle(table, e);
+                        batch.Handle(table, se);
                     }
 
                     current = batch.Result();
@@ -352,7 +352,7 @@ namespace Streamstone
 
                 try
                 {
-                    table.Execute(replace.Prepare());
+                    table.ExecuteAsync(replace.Prepare()).Wait();
                 }
                 catch (StorageException e)
                 {
@@ -423,7 +423,7 @@ namespace Streamstone
 
             public StreamOpenResult Execute()
             {
-                return Result(table.Execute(Prepare()));
+                return Result(table.ExecuteAsync(Prepare()).Result);
             }
 
             public async Task<StreamOpenResult> ExecuteAsync()
@@ -490,13 +490,32 @@ namespace Streamstone
 
                 // ReSharper disable StringCompareToIsCultureSpecific
 
-                var query = table
-                    .CreateQuery<DynamicTableEntity>()
-                    .Where(x =>
-                           x.PartitionKey == partition.PartitionKey
-                           && (x.RowKey == partition.StreamRowKey()
-                               || (x.RowKey.CompareTo(rowKeyStart)  >= 0
-                                   && x.RowKey.CompareTo(rowKeyEnd) <= 0)));
+                var filter = TableQuery.CombineFilters(
+                   //x.PartitionKey == partition.PartitionKey
+                   TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.PartitionKey), QueryComparisons.Equal, partition.PartitionKey),
+                   TableOperators.And,
+                       TableQuery.CombineFilters(
+                           //x.RowKey == partition.StreamRowKey()
+                           TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.RowKey), QueryComparisons.Equal, partition.StreamRowKey()),
+                           TableOperators.Or,
+                           TableQuery.CombineFilters(
+                                //x.RowKey.CompareTo(rowKeyStart) >= 0
+                                TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.RowKey), QueryComparisons.GreaterThanOrEqual, rowKeyStart),
+                                TableOperators.And,
+                                //x.RowKey.CompareTo(rowKeyEnd) <= 0
+                                TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.RowKey), QueryComparisons.LessThanOrEqual, rowKeyEnd)
+                           )
+                       )
+               );
+
+                var query = new TableQuery<DynamicTableEntity>().Where(filter);
+                    //table
+                    //.CreateQuery<DynamicTableEntity>()
+                    //.Where(x =>
+                    //       x.PartitionKey == partition.PartitionKey
+                    //       && (x.RowKey == partition.StreamRowKey()
+                    //           || (x.RowKey.CompareTo(rowKeyStart)  >= 0
+                    //               && x.RowKey.CompareTo(rowKeyEnd) <= 0)));
 
                 return (TableQuery<DynamicTableEntity>) query;
             }
@@ -508,7 +527,7 @@ namespace Streamstone
 
                 do
                 {
-                    var segment = table.ExecuteQuerySegmented(query, token);
+                    var segment = table.ExecuteQuerySegmentedAsync(query, token).Result;
                     token = segment.ContinuationToken;
                     result.AddRange(segment.Results);
                 }

@@ -6,6 +6,8 @@ using NUnit.Framework;
 
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
+using NUnit.Framework.Interfaces;
+using Streamstone.Utility;
 
 namespace Streamstone.Scenarios
 {
@@ -254,7 +256,7 @@ namespace Streamstone.Scenarios
                 Stream.Write(stream, events));
 
             Assert.That(exception,
-                Has.Message.ContainsSubstring("cannot be followed by"));
+                Has.Message.Contains("cannot be followed by"));
         }
                 
         [Test]
@@ -309,7 +311,7 @@ namespace Streamstone.Scenarios
                 Stream.Write(stream, events));
 
             Assert.That(exception,
-                Has.Message.ContainsSubstring("cannot be followed by"));
+                Has.Message.Contains("cannot be followed by"));
         }
 
         [Test]
@@ -390,7 +392,7 @@ namespace Streamstone.Scenarios
                 Stream.Write(stream, events));
 
             Assert.That(exception,
-                Has.Message.ContainsSubstring("cannot be followed by"));
+                Has.Message.Contains("cannot be followed by"));
         }
         
         [Test]
@@ -408,7 +410,7 @@ namespace Streamstone.Scenarios
                 Stream.Write(stream, events));
 
             Assert.That(exception,
-                Has.Message.ContainsSubstring("cannot be followed by"));
+                Has.Message.Contains("cannot be followed by"));
         }
 
         /********* NULL followed by XXX ************/
@@ -449,7 +451,7 @@ namespace Streamstone.Scenarios
                 Stream.Write(stream, events));
 
             Assert.That(exception,
-                Has.Message.ContainsSubstring("cannot be applied to NULL"));
+                Has.Message.Contains("cannot be applied to NULL"));
         }        
         
         [Test]
@@ -469,7 +471,7 @@ namespace Streamstone.Scenarios
                 Stream.Write(stream, events));
 
             Assert.That(exception,
-                Has.Message.ContainsSubstring("cannot be applied to NULL"));
+                Has.Message.Contains("cannot be applied to NULL"));
         }
 
         /********* Insert-Or-Merge or Insert-Or-Replace followed by XXX ************/
@@ -592,7 +594,7 @@ namespace Streamstone.Scenarios
         void InsertTestEntity(ITableEntity entity)
         {
             entity.PartitionKey = partition.PartitionKey;
-            table.Execute(TableOperation.Insert(entity));
+            table.ExecuteAsync(TableOperation.Insert(entity)).Wait();
         }
 
         TestEntity RetrieveTestEntity(string rowKey)
@@ -603,12 +605,18 @@ namespace Streamstone.Scenarios
         TEntity RetrieveEntity<TEntity>(string rowKey)
             where TEntity : TableEntity, new()
         {
-            return table.CreateQuery<TEntity>()
-                        .Where(x =>
-                               x.PartitionKey == partition.PartitionKey
-                               && x.RowKey == rowKey)
-                        .ToList()
-                        .SingleOrDefault();
+            var filter = TableQuery.CombineFilters(
+                TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partition.PartitionKey),
+                TableOperators.And,
+                TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, rowKey));
+
+            return table.ExecuteQuery<TEntity>(filter).SingleOrDefault();
+            //return table.CreateQuery<TEntity>()
+            //            .Where(x =>
+            //                   x.PartitionKey == partition.PartitionKey
+            //                   && x.RowKey == rowKey)
+            //            .ToList()
+            //            .SingleOrDefault();
         }
 
         static EventData CreateEvent(params Include[] includes)

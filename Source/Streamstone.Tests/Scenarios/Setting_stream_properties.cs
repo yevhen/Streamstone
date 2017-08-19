@@ -6,6 +6,7 @@ using ExpectedObjects;
 using NUnit.Framework;
 
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Threading.Tasks;
 
 namespace Streamstone.Scenarios
 {
@@ -23,7 +24,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_property_map_is_empty()
+        public async Task When_property_map_is_empty()
         {
             var properties = new Dictionary<string, EntityProperty>();
 
@@ -35,17 +36,17 @@ namespace Streamstone.Scenarios
         } 
 
         [Test]
-        public async void When_concurrency_conflict()
+        public async Task When_concurrency_conflict()
         {
             var stream = await Stream.ProvisionAsync(partition);
             partition.UpdateStreamEntity();
 
-            Assert.Throws<ConcurrencyConflictException>(
+            Assert.ThrowsAsync<ConcurrencyConflictException>(
                 async ()=> await Stream.SetPropertiesAsync(stream, StreamProperties.None));
         }
 
         [Test]
-        public async void When_set_successfully()
+        public async Task When_set_successfully()
         {
             var properties = new Dictionary<string, EntityProperty>
             {
@@ -77,7 +78,7 @@ namespace Streamstone.Scenarios
 
             partition.CaptureContents(contents =>
             {
-                Assert.Throws<ArgumentException>(
+                Assert.ThrowsAsync<ArgumentException>(
                     async ()=> await Stream.SetPropertiesAsync(stream, StreamProperties.None));
 
                 contents.AssertNothingChanged();

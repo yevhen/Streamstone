@@ -1,18 +1,16 @@
-﻿using System;
-using System.Linq;
-
+﻿using Example.Scenarios;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
+using System;
+using System.Threading.Tasks;
 
 namespace Example
 {
-    using Scenarios;
-
-    public static class Program
+    class Program
     {
-        public static void Main()
+        static void Main(string[] args)
         {
-            var table = Prepare();
+            var table = Prepare().Result;
 
             var scenarios = new Scenario[]
             {
@@ -32,7 +30,7 @@ namespace Example
             for (var i = 0; i < scenarios.Length; i++)
             {
                 var scenario = scenarios[i];
-	            var scenarioName = scenario.GetType().Name;
+                var scenarioName = scenario.GetType().Name;
 
                 Console.WriteLine("{0}", scenarioName.Replace("_", " "));
                 Console.WriteLine(new string('-', 40));
@@ -48,15 +46,15 @@ namespace Example
             Console.ReadKey(true);
         }
 
-        static CloudTable Prepare()
+        static async Task<CloudTable> Prepare()
         {
             var table = CloudStorageAccount
                 .DevelopmentStorageAccount
                 .CreateCloudTableClient()
                 .GetTableReference("Example");
 
-            table.DeleteIfExists();
-            table.CreateIfNotExists();
+            await table.DeleteIfExistsAsync();
+            await table.CreateIfNotExistsAsync();
 
             return table;
         }

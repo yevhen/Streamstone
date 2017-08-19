@@ -34,11 +34,15 @@ namespace Example.Scenarios
             // the below code will scan all rows in a single physical partition
             // also, if there more than 1000 streams (header rows), pagination need to be utilized as per regular ATS limits
 
-            var count = Partition.Table.CreateQuery<StreamHeaderEntity>()
-                                 .Where(x => x.PartitionKey == Partition.PartitionKey &&
-                                             x.RowType == "STREAM")
-                                 .ToList()
-                                 .Count();
+            var filter = TableQuery.CombineFilters(
+                    // x.PartitionKey == Partition.PartitionKey
+                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, Partition.PartitionKey),
+                    TableOperators.And,
+                    // x.RowType == "STREAM"
+                    TableQuery.GenerateFilterCondition(nameof(StreamHeaderEntity.RowType), QueryComparisons.Equal, "STREAM")
+                );
+
+            var count = Partition.Table.ExecuteQuery<StreamHeaderEntity>(filter).Count();
 
             Console.WriteLine(count);
         }
@@ -128,7 +132,7 @@ namespace Example.Scenarios
             public EventStore(Partition directory)
             {
                 this.directory = directory;
-                this.directory.Table.CreateIfNotExists();
+                this.directory.Table.CreateIfNotExistsAsync().Wait();
             }
 
             public Stream Provision(Partition partition)
@@ -148,17 +152,17 @@ namespace Example.Scenarios
             void Record(Partition partition)
             {
                 var header = new DynamicTableEntity(directory.PartitionKey, partition.ToString());
-                directory.Table.Execute(TableOperation.Insert(header));
+                directory.Table.ExecuteAsync(TableOperation.Insert(header)).Wait();
             }
 
             public IEnumerable<string> Streams()
             {
                 // NOTE: if there more than 1000 streams (header rows) in directory,
                 //            pagination need to be implemented as per regular ATS limits
+                var filter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, directory.PartitionKey);
 
-                return directory.Table.CreateQuery<DynamicTableEntity>()
-                                .Where(x => x.PartitionKey == directory.PartitionKey)
-                                .ToArray()
+
+                return directory.Table.ExecuteQuery<DynamicTableEntity>(filter)
                                 .Select(x => x.RowKey);
             }
         }

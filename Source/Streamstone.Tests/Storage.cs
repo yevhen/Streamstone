@@ -6,11 +6,10 @@ using ExpectedObjects;
 
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
+using Streamstone.Utility;
 
 namespace Streamstone
 {
-    using Utility;
-
     static class Storage
     {
         const string TableName = "Streams";
@@ -30,8 +29,8 @@ namespace Streamstone
                 .CreateCloudTableClient();
 
             var table = client.GetTableReference(TableName);
-            table.DeleteIfExists();
-            table.Create();
+            table.DeleteIfExistsAsync().Wait();
+            table.CreateAsync().Wait();
 
             return table;
         }
@@ -42,9 +41,9 @@ namespace Streamstone
                 .CreateCloudTableClient();
 
             var table = client.GetTableReference(TableName);
-            table.CreateIfNotExists();
+            table.CreateIfNotExistsAsync().Wait();
 
-            var entities = RetrieveAll(table, table.CreateQuery<DynamicTableEntity>());
+            var entities = RetrieveAll(table);
             if (entities.Count == 0)
                 return table;
 
@@ -55,7 +54,7 @@ namespace Streamstone
                 var operation = new TableBatchOperation();
                 var slice = entities.Skip(batch * maxBatchSize).Take(maxBatchSize).ToList();
                 slice.ForEach(operation.Delete);
-                table.ExecuteBatch(operation);
+                table.ExecuteBatchAsync(operation).Wait();
             }
 
             return table;
@@ -80,7 +79,7 @@ namespace Streamstone
                 Version = version
             };
 
-            partition.Table.Execute(TableOperation.Insert(entity));
+            partition.Table.ExecuteAsync(TableOperation.Insert(entity)).Wait();
             return entity;
         }
 
@@ -89,18 +88,24 @@ namespace Streamstone
             var entity = RetrieveStreamEntity(partition);
             entity.Version = version;
 
-            partition.Table.Execute(TableOperation.Replace(entity));
+            partition.Table.ExecuteAsync(TableOperation.Replace(entity)).Wait();
             return entity;
         }
 
         public static StreamEntity RetrieveStreamEntity(this Partition partition)
         {
-            return partition.Table.CreateQuery<StreamEntity>()
-                        .Where(x =>
-                               x.PartitionKey == partition.PartitionKey &&
-                               x.RowKey == Api.StreamRowKey)
-                        .ToList()
-                        .SingleOrDefault();
+            var filter =
+                TableQuery.CombineFilters(
+                    //x.PartitionKey == partition.PartitionKey
+                    TableQuery.GenerateFilterCondition(nameof(StreamEntity.PartitionKey), QueryComparisons.Equal, partition.PartitionKey),
+                    TableOperators.And,
+                    //x.RowKey == Api.StreamRowKey
+                    TableQuery.GenerateFilterCondition(nameof(StreamEntity.RowKey), QueryComparisons.Equal, Api.StreamRowKey));
+
+            var query = new TableQuery<StreamEntity>().Where(filter);
+
+            var segment = partition.Table.ExecuteQuerySegmentedAsync(query, null).Result;
+            return segment.SingleOrDefault();
         }
 
         public static void InsertEventEntities(this Partition partition, params string[] ids)
@@ -113,7 +118,7 @@ namespace Streamstone
                     RowKey = (i+1).FormatEventRowKey()
                 };
 
-                partition.Table.Execute(TableOperation.Insert(e));
+                partition.Table.ExecuteAsync(TableOperation.Insert(e)).Wait();
             }
         }
 
@@ -132,7 +137,7 @@ namespace Streamstone
                     RowKey = ids[i].FormatEventIdRowKey(),
                 };
 
-                partition.Table.Execute(TableOperation.Insert(e));
+                partition.Table.ExecuteAsync(TableOperation.Insert(e)).Wait();
             }
         }
 
@@ -143,22 +148,35 @@ namespace Streamstone
 
         public static List<DynamicTableEntity> RetrieveAll(this Partition partition)
         {
-            var query = partition.Table.CreateQuery<DynamicTableEntity>()
-                                 .Where(x => x.PartitionKey == partition.PartitionKey);
+            var filter = TableQuery.GenerateFilterCondition(nameof(StreamEntity.PartitionKey), QueryComparisons.Equal, partition.PartitionKey);
+            var query = new TableQuery<DynamicTableEntity>().Where(filter);
+            //var query = partition.Table.CreateQuery<DynamicTableEntity>()
+            //                     .Where(x => x.PartitionKey == partition.PartitionKey);
+            var entities = new List<DynamicTableEntity>();
+            TableContinuationToken token = null;
 
-            return RetrieveAll(partition.Table, query);
+            do
+            {
+                var segment = partition.Table.ExecuteQuerySegmentedAsync(query, token).Result;
+                token = segment.ContinuationToken;
+
+                entities.AddRange(segment.Results);
+            }
+            while (token != null);
+
+            return entities;
         }
 
-        static List<DynamicTableEntity> RetrieveAll(CloudTable table, IQueryable<DynamicTableEntity> query)
+        static List<DynamicTableEntity> RetrieveAll(CloudTable table)
         {
             var entities = new List<DynamicTableEntity>();
             TableContinuationToken token = null;
 
             do
             {
-                var page = query.Take(512);
+                var page = new TableQuery<DynamicTableEntity>().Take(512); 
 
-                var segment = table.ExecuteQuerySegmented((TableQuery<DynamicTableEntity>)page, token);
+                var segment = table.ExecuteQuerySegmentedAsync(page, token).Result;
                 token = segment.ContinuationToken;
                 
                 entities.AddRange(segment.Results);
@@ -191,7 +209,7 @@ namespace Streamstone
             public void AssertNothingChanged()
             {
                 var current = partition.RetrieveAll();
-                current.ShouldMatch(captured.ToExpectedObject());
+                captured.ToExpectedObject().ShouldMatch(current);
             }
         }
     }
