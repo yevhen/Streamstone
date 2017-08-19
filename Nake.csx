@@ -55,33 +55,18 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 [Step] void Package()
 {
     Test(PackagePath + @"\Debug");
-    //Build("Release", ReleasePath);
 
-    var version = FileVersionInfo
-        .GetVersionInfo(@"{ReleasePath}\{Project}.dll")
-        .FileVersion;
+    Build("Release", ReleasePath);
 
-	Exec("dotnet", @"pack Source/Streamstone/Streamstone.csproj /p:PackageVersion={version} --configuration Release --output ""{PackagePath}""");
-    //Cmd(@"Tools\Nuget.exe pack Build\{Project}.nuspec -Version {version} " +
-    //    "-OutputDirectory {PackagePath} -BasePath {RootPath} -NoPackageAnalysis");
+	Exec("dotnet", @"pack Source/Streamstone/Streamstone.csproj /p:PackageVersion={Version()} --configuration Release --output ""{PackagePath}""");
 }
 
 /// Publishes package to NuGet gallery
 [Step] void Publish()
 {
-     Cmd(@"Tools\Nuget.exe push {PackagePath}\{Project}.{Version()}.nupkg %NuGetApiKey%");
+    Cmd(@"Tools\Nuget.exe push {PackagePath}\{Project}.{Version()}.nupkg %NuGetApiKey%");
 }
 
-/// Installs dependencies (packages) from NuGet 
-[Task] void Install()
-{
-    //Cmd(@"Tools\NuGet.exe restore {Project}.sln");
-    //Cmd(@"Tools\NuGet.exe install Build/Packages.config -o {RootPath}\Packages");
-}
-
-string Version()
-{
-    return FileVersionInfo
-            .GetVersionInfo(@"{ReleasePath}\{Project}.dll")
-            .FileVersion;
-}
+string Version() => FileVersionInfo
+    .GetVersionInfo(@"{ReleasePath}\{Project}.dll")
+    .FileVersion;
