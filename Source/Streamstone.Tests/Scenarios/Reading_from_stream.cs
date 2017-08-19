@@ -24,22 +24,21 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_start_version_is_less_than_1()
         {
-            Assert.Throws<ArgumentOutOfRangeException>(
+            Assert.ThrowsAsync<ArgumentOutOfRangeException>(
                 async ()=> await Stream.ReadAsync<TestEventEntity>(partition, 0));
 
-            Assert.Throws<ArgumentOutOfRangeException>(
+            Assert.ThrowsAsync<ArgumentOutOfRangeException>(
                 async ()=> await Stream.ReadAsync<TestEventEntity>(partition, -1));
         }
 
         [Test]
-        [ExpectedException(typeof(StreamNotFoundException))]
-        public async void When_stream_doesnt_exist()
+        public void When_stream_doesnt_exist()
         {
-            await Stream.ReadAsync<TestEventEntity>(partition);
+            Assert.ThrowsAsync<StreamNotFoundException>(async () => await Stream.ReadAsync<TestEventEntity>(partition));
         }
 
         [Test]
-        public async void When_stream_is_empty()
+        public async Task When_stream_is_empty()
         {
             await Stream.ProvisionAsync(partition);
 
@@ -50,7 +49,7 @@ namespace Streamstone.Scenarios
         }
         
         [Test]
-        public async void When_version_is_greater_than_current_version_of_stream()
+        public async Task When_version_is_greater_than_current_version_of_stream()
         {
             EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             await Stream.WriteAsync(new Stream(partition), events);
@@ -62,7 +61,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_all_events_fit_to_single_slice()
+        public async Task When_all_events_fit_to_single_slice()
         {
             EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             await Stream.WriteAsync(new Stream(partition), events);
@@ -74,7 +73,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_all_events_do_not_fit_single_slice()
+        public async Task When_all_events_do_not_fit_single_slice()
         {
             EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             await Stream.WriteAsync(new Stream(partition), events);
@@ -93,7 +92,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test, Explicit]
-        public async void When_slice_size_is_bigger_than_azure_storage_page_limit()
+        public async Task When_slice_size_is_bigger_than_azure_storage_page_limit()
         {
             const int sizeOverTheAzureLimit = 1500;
             const int numberOfWriteBatches = 50;
@@ -147,9 +146,9 @@ namespace Streamstone.Scenarios
             var e = slice.Events[0];
             AssertSystemProperties(e);
 
-            Assert.That(e["Id"].StringValue, Is.EqualTo("e1"));
-            Assert.That(e["Type"].StringValue, Is.EqualTo("StreamChanged"));
-            Assert.That(e["Data"].StringValue, Is.EqualTo("{}"));
+            Assert.That(e.Properties["Id"].StringValue, Is.EqualTo("e1"));
+            Assert.That(e.Properties["Type"].StringValue, Is.EqualTo("StreamChanged"));
+            Assert.That(e.Properties["Data"].StringValue, Is.EqualTo("{}"));
         }
 
         [Test]

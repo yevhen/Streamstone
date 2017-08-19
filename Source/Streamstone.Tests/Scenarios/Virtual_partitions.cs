@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Threading.Tasks;
 
 namespace Streamstone.Scenarios
 {
@@ -27,7 +28,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_provisioning()
+        public async Task When_provisioning()
         {
             await Stream.ProvisionAsync(virtual1);
             await Stream.ProvisionAsync(virtual2);
@@ -36,7 +37,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_opening()
+        public async Task When_opening()
         {
             await Stream.ProvisionAsync(virtual1);
 
@@ -45,7 +46,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_writing_and_reading()
+        public async Task When_writing_and_reading()
         {
             var stream1 = new Stream(virtual1);
             var stream2 = new Stream(virtual2);

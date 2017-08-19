@@ -4,6 +4,8 @@ using System.Linq;
 
 using NUnit.Framework;
 using Microsoft.WindowsAzure.Storage.Table;
+using Streamstone.Utility;
+using System.Threading.Tasks;
 
 namespace Streamstone.Scenarios
 {
@@ -48,7 +50,7 @@ namespace Streamstone.Scenarios
         }
         
         [Test]
-        public async void When_include_has_conflict()
+        public async Task When_include_has_conflict()
         {
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
@@ -60,12 +62,12 @@ namespace Streamstone.Scenarios
             include = Include.Insert(entity);
 
             events = new[] {CreateEvent("e3", include)};
-            Assert.Throws<IncludedOperationConflictException>(
+            Assert.ThrowsAsync<IncludedOperationConflictException>(
                 async ()=> await Stream.WriteAsync(result.Stream, events));
         }
 
         [Test]
-        public async void When_include_has_conflict_and_also_duplicate_event_conflict()
+        public async Task When_include_has_conflict_and_also_duplicate_event_conflict()
         {
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
@@ -77,12 +79,12 @@ namespace Streamstone.Scenarios
             include = Include.Insert(entity);
 
             events = new[] {CreateEvent("e1", include)};
-            Assert.Throws<DuplicateEventException>(
+            Assert.ThrowsAsync<DuplicateEventException>(
                 async () => await Stream.WriteAsync(result.Stream, events));
         }
 
         [Test]
-        public async void When_include_has_conflict_and_also_stream_header_has_changed_since_last_read()
+        public async Task When_include_has_conflict_and_also_stream_header_has_changed_since_last_read()
         {
             var entity = new TestEntity("INV-0001");
             var include = Include.Insert(entity);
@@ -96,12 +98,12 @@ namespace Streamstone.Scenarios
             include = Include.Insert(entity);
 
             events = new[] {CreateEvent("e3", include)};
-            Assert.Throws<ConcurrencyConflictException>(
+            Assert.ThrowsAsync<ConcurrencyConflictException>(
                 async () => await Stream.WriteAsync(result.Stream, events));
         }
 
         [Test]
-        public async void When_in_total_with_includes_is_over_WATS_max_batch_size_limit()
+        public async Task When_in_total_with_includes_is_over_WATS_max_batch_size_limit()
         {
             var stream = new Stream(partition);
 
@@ -140,17 +142,18 @@ namespace Streamstone.Scenarios
                 EventIncludes.From(includes)
             );
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsAsync<InvalidOperationException>(
                 async ()=> await Stream.WriteAsync(stream, @event));
         }
 
         TestEntity RetrieveTestEntity(string rowKey)
         {
-            return table.CreateQuery<TestEntity>()
-                        .Where(x =>
-                               x.PartitionKey == partition.PartitionKey
-                               && x.RowKey == rowKey)
-                        .ToList()
+            var filter = TableQuery.CombineFilters(
+                TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partition.PartitionKey),
+                TableOperators.And,
+                TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, rowKey));
+
+            return table.ExecuteQuery<TestEntity>(filter)
                         .SingleOrDefault();
         }
 

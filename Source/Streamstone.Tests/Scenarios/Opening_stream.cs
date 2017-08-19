@@ -3,6 +3,7 @@ using System.Linq;
 
 using NUnit.Framework;
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Threading.Tasks;
 
 namespace Streamstone.Scenarios
 {
@@ -20,21 +21,20 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_stream_does_exists()
+        public async Task When_stream_does_exists()
         {
             await Stream.ProvisionAsync(partition);
             Assert.NotNull(await Stream.OpenAsync(partition));
         }
         
         [Test]
-        [ExpectedException(typeof(StreamNotFoundException))]
-        public async void When_stream_does_not_exist()
+        public  void When_stream_does_not_exist()
         {
-            await Stream.OpenAsync(partition);
+            Assert.ThrowsAsync<StreamNotFoundException>(async ()=>await Stream.OpenAsync(partition));
         }
 
         [Test]
-        public async void When_trying_to_open_and_stream_does_exists()
+        public async Task When_trying_to_open_and_stream_does_exists()
         {
             await Stream.ProvisionAsync(partition);
             
@@ -45,7 +45,7 @@ namespace Streamstone.Scenarios
         }
         
         [Test]
-        public async void When_trying_to_open_and_stream_does_not_exist()
+        public async Task When_trying_to_open_and_stream_does_not_exist()
         {
             var result = await Stream.TryOpenAsync(partition);
             

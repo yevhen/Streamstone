@@ -6,6 +6,7 @@ using NUnit.Framework;
 using ExpectedObjects;
 
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Threading.Tasks;
 
 namespace Streamstone.Scenarios
 {
@@ -29,7 +30,7 @@ namespace Streamstone.Scenarios
         [TestCase(true,  true,  true,  Description = "Header + Event + ID. Concurrent append")]
         [TestCase(false, true,  false, Description = "Only Event with the same version exists. Degenerate case (corruption or manual edit)")]
         [TestCase(false, true,  true,  Description = "Event + ID. Degenerate case (corruption or manual edit)")]
-        public async void When_write_conflict(bool streamHeaderChanged, bool eventEntityExists, bool idEntityExists)
+        public async Task When_write_conflict(bool streamHeaderChanged, bool eventEntityExists, bool idEntityExists)
         {
             var stream = await Stream.ProvisionAsync(partition);
 
@@ -46,7 +47,7 @@ namespace Streamstone.Scenarios
 
             partition.CaptureContents(contents =>
             {
-                Assert.Throws<ConcurrencyConflictException>(
+                Assert.ThrowsAsync<ConcurrencyConflictException>(
                     async ()=> await Stream.WriteAsync(stream, @event));
                 
                 contents.AssertNothingChanged();
@@ -60,7 +61,7 @@ namespace Streamstone.Scenarios
 
             partition.CaptureContents(contents =>
             {
-                Assert.Throws<ConcurrencyConflictException>(
+                Assert.ThrowsAsync<ConcurrencyConflictException>(
                     async () => await Stream.WriteAsync(new Stream(partition), CreateEvent()));
 
                 contents.AssertNothingChanged();
@@ -77,7 +78,7 @@ namespace Streamstone.Scenarios
             {
                 var duplicate = CreateEvent("e2");
 
-                Assert.Throws<DuplicateEventException>(
+                Assert.ThrowsAsync<DuplicateEventException>(
                     async () => await Stream.WriteAsync(stream, CreateEvent("e3"), duplicate));
 
                 contents.AssertNothingChanged();  
@@ -85,7 +86,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_successfully_written_events_to_an_existing_stream()
+        public async Task When_successfully_written_events_to_an_existing_stream()
         {
             var stream = new Stream(partition);
 
@@ -118,7 +119,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_writing_to_nonexisting_stream()
+        public async Task When_writing_to_nonexisting_stream()
         {
             EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(new Stream(partition), events);
@@ -149,7 +150,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_writing_events_without_id()
+        public async Task When_writing_events_without_id()
         {
             var stream = new Stream(partition);
 
@@ -179,7 +180,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_writing_to_nonexisting_stream_along_with_stream_properties()
+        public async Task When_writing_to_nonexisting_stream_along_with_stream_properties()
         {
             var properties = new
             {
@@ -218,7 +219,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_writing_over_WATS_max_batch_size_limit()
+        public async Task When_writing_over_WATS_max_batch_size_limit()
         {
             var stream = new Stream(partition);
 
@@ -257,7 +258,7 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
-        public async void When_writing_using_expected_version_and_stream_was_changed()
+        public async Task When_writing_using_expected_version_and_stream_was_changed()
         {
             var expectedVersion = 0;
 
@@ -266,9 +267,7 @@ namespace Streamstone.Scenarios
 
             expectedVersion = 0;
 
-            Assert.Throws<ConcurrencyConflictException>(async ()=>
-                await Stream.WriteAsync(partition, expectedVersion,
-                                        CreateEvent("e1"), CreateEvent("e2")));
+            Assert.ThrowsAsync<ConcurrencyConflictException>(async ()=> await Stream.WriteAsync(partition, expectedVersion, CreateEvent("e1"), CreateEvent("e2")));
         }
 
         void AssertNewStream(StreamWriteResult actual, int version, object properties = null)
@@ -277,7 +276,7 @@ namespace Streamstone.Scenarios
             var newStreamEntity = partition.RetrieveStreamEntity();
 
             var expectedStream = CreateStream(version, newStreamEntity.ETag, properties);
-            newStream.ShouldEqual(expectedStream.ToExpectedObject());
+            expectedStream.ToExpectedObject().ShouldEqual(newStream);
         }
 
         void AssertModifiedStream(Stream previous, StreamWriteResult actual, int version)
@@ -288,7 +287,7 @@ namespace Streamstone.Scenarios
             Assert.That(actualStream.ETag, Is.Not.EqualTo(previous.ETag));
             
             var expectedStream = CreateStream(version, actualStreamEntity.ETag);
-            actualStream.ShouldEqual(expectedStream.ToExpectedObject());
+            expectedStream.ToExpectedObject().ShouldEqual(actualStream);
         }
 
         Stream CreateStream(int version, string etag, object properties = null)
@@ -313,13 +312,13 @@ namespace Streamstone.Scenarios
                 Version = version,
             };
 
-            newStreamEntity.ShouldMatch(expectedEntity.ToExpectedObject());
+            expectedEntity.ToExpectedObject().ShouldMatch(newStreamEntity);
         }
 
         void AssertRecordedEvent(int version, EventData source, RecordedEvent actual)
         {
             var expected = source.Record(partition, version);
-            actual.ShouldMatch(expected.ToExpectedObject());
+            expected.ToExpectedObject().ShouldMatch(actual);
         }
 
         static void AssertEventEntity(int version, EventEntity actual)
@@ -335,7 +334,7 @@ namespace Streamstone.Scenarios
                 Version = version,
             };
 
-            actual.ShouldMatch(expected.ToExpectedObject());
+            expected.ToExpectedObject().ShouldMatch(actual);
         }
 
         static void AssertEventIdEntity(string id, int version, EventIdEntity actual)
@@ -346,7 +345,7 @@ namespace Streamstone.Scenarios
                 Version = version,
             };
 
-            actual.ShouldMatch(expected.ToExpectedObject());
+            expected.ToExpectedObject().ShouldMatch(actual);
         }
 
         static EventData CreateEvent(string id = null)

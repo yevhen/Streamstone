@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using NUnit.Framework;
 using ExpectedObjects;
-
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Threading.Tasks;
 
 namespace Streamstone.Scenarios
 {
@@ -27,18 +26,18 @@ namespace Streamstone.Scenarios
         {
             partition.InsertStreamEntity();
 
-            Assert.Throws<ConcurrencyConflictException>(
+            Assert.ThrowsAsync<ConcurrencyConflictException>(
                 async ()=> await Stream.ProvisionAsync(partition));
         }
 
         [Test]
-        public async void When_partition_is_virgin()
+        public async Task When_partition_is_virgin()
         {
             var stream = await Stream.ProvisionAsync(partition);
             var entity = partition.RetrieveStreamEntity();
             
             var expectedStream = new Stream(partition, entity.ETag, 0, StreamProperties.None);
-            stream.ShouldEqual(expectedStream.ToExpectedObject());
+            expectedStream.ToExpectedObject().ShouldEqual(stream);
 
             var expectedEntity = new
             {
@@ -46,11 +45,11 @@ namespace Streamstone.Scenarios
                 Version = 0
             };
 
-            entity.ShouldMatch(expectedEntity.ToExpectedObject());
+            expectedEntity.ToExpectedObject().ShouldMatch(entity);
         }
 
         [Test]
-        public async void When_provisioning_along_with_custom_properties()
+        public async Task When_provisioning_along_with_custom_properties()
         {
             var properties = new Dictionary<string, EntityProperty>
             {
@@ -68,7 +67,7 @@ namespace Streamstone.Scenarios
                 StreamProperties.From(properties)
             );
 
-            stream.ShouldEqual(expectedStream.ToExpectedObject());
+            expectedStream.ToExpectedObject().ShouldEqual(stream);
 
             var expectedEntity = new
             {
@@ -77,7 +76,7 @@ namespace Streamstone.Scenarios
                 Version = 0
             };
 
-            entity.ShouldMatch(expectedEntity.ToExpectedObject());
+            expectedEntity.ToExpectedObject().ShouldMatch(entity);
         }
     }
 }
