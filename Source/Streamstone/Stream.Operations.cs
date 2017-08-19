@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
 using Microsoft.WindowsAzure.Storage;
@@ -78,7 +79,7 @@ namespace Streamstone
                     if (exception.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
                         throw ConcurrencyConflictException.StreamChangedOrExists(partition);
 
-                    throw exception.PreserveStackTrace();
+                    ExceptionDispatchInfo.Capture(exception).Throw();
                 }
 
                 internal Stream Result()
@@ -288,7 +289,7 @@ namespace Streamstone
                         throw ConcurrencyConflictException.StreamChangedOrExists(partition);
 
                     if (exception.RequestInformation.HttpStatusCode != (int)HttpStatusCode.Conflict)
-                        throw exception.PreserveStackTrace();
+                        ExceptionDispatchInfo.Capture(exception).Throw();
 
                     var error = exception.RequestInformation.ExtendedErrorInformation;
                     if (error.ErrorCode != "EntityAlreadyExists")
@@ -400,7 +401,7 @@ namespace Streamstone
                     if (exception.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
                         throw ConcurrencyConflictException.StreamChanged(partition);
 
-                    throw exception.PreserveStackTrace();
+                    ExceptionDispatchInfo.Capture(exception).Throw();
                 }
 
                 internal Stream Result()
