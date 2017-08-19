@@ -68,7 +68,14 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 /// Publishes package to NuGet gallery
 [Step] void Publish()
 {
-    // Cmd(@"Tools\Nuget.exe push {PackagePath}\{Project}.{Version()}.nupkg %NuGetApiKey%");
+     Cmd(@"Tools\Nuget.exe push {PackagePath}\{Project}.{Version()}.nupkg %NuGetApiKey%");
+}
+
+/// Installs dependencies (packages) from NuGet 
+[Task] void Install()
+{
+    //Cmd(@"Tools\NuGet.exe restore {Project}.sln");
+    //Cmd(@"Tools\NuGet.exe install Build/Packages.config -o {RootPath}\Packages");
 }
 
 string Version()
