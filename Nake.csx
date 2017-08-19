@@ -42,10 +42,10 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 
 /// Runs unit tests 
 [Step] void Test(string outDir = OutputPath)
-{   	
-	Exec("dotnet", "test -l:trx;LogFileName=nunit-test-results.trx -r:\"{outDir}\"");
-
-    var tests = new FileSet{@"{outDir}\*.Tests.dll"}.ToString(" ");
+{  
+	Console.WriteLine(outDir); 	
+	Exec("dotnet", "test Source/Streamstone.Tests/Streamstone.Tests.csproj -l:trx;LogFileName=nunit-test-results.trx -r:\"{outDir}\"");
+    
     var results = @"{outDir}\nunit-test-results.trx";
     if (AppVeyor)
         new WebClient().UploadFile("https://ci.appveyor.com/api/testresults/mstest/%APPVEYOR_JOB_ID%", results);
@@ -55,14 +55,15 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 [Step] void Package()
 {
     Test(PackagePath + @"\Debug");
-    Build("Release", ReleasePath);
+    //Build("Release", ReleasePath);
 
     var version = FileVersionInfo
         .GetVersionInfo(@"{ReleasePath}\{Project}.dll")
         .FileVersion;
 
-    Cmd(@"Tools\Nuget.exe pack Build\{Project}.nuspec -Version {version} " +
-        "-OutputDirectory {PackagePath} -BasePath {RootPath} -NoPackageAnalysis");
+	Exec("dotnet", @"pack Source/Streamstone/Streamstone.csproj /p:PackageVersion={version} --configuration Release --output ""{PackagePath}""");
+    //Cmd(@"Tools\Nuget.exe pack Build\{Project}.nuspec -Version {version} " +
+    //    "-OutputDirectory {PackagePath} -BasePath {RootPath} -NoPackageAnalysis");
 }
 
 /// Publishes package to NuGet gallery

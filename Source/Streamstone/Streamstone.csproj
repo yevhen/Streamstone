@@ -3,9 +3,19 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard1.6</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Authors>Yevhen Bobrov</Authors>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageProjectUrl>http://github.com/yevhen/Streamstone</PackageProjectUrl>
+    <PackageLicenseUrl>http://github.com/yevhen/Streamstone/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageIconUrl>https://github.com/yevhen/Streamstone/raw/master/Logo.png</PackageIconUrl>
+    <PackageTags>event store eventstore eventsourcing event-sourcing CQRS azure table storage stream</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
