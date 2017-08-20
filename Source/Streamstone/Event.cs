@@ -12,27 +12,18 @@ namespace Streamstone
         /// <summary>
         /// The unique identifier representing this event.
         /// </summary>
-        public EventId Id
-        {
-            get; private set;
-        }
+        public EventId Id { get; }
 
         /// <summary>
         /// The readonly map of additional properties which this event contains.
         /// Includes both meta and data properties.
         /// </summary>
-        public EventProperties Properties
-        {
-            get; private set;
-        }
+        public EventProperties Properties { get; }
 
         /// <summary>
         /// Additional entity includes to be stored along with this event.
         /// </summary>
-        public EventIncludes Includes
-        {
-            get; private set;
-        }
+        public EventIncludes Includes { get; }
 
         /// <summary>
         /// Constructs a new <see cref="EventData"/> instance which doesn't have any additional properties, includes and id.
@@ -93,18 +84,16 @@ namespace Streamstone
         ///  </param>
         public EventData(EventId id, EventProperties properties, EventIncludes includes)
         {
-            Requires.NotNull(properties, "properties");
-            Requires.NotNull(includes, "includes");
+            Requires.NotNull(properties, nameof(properties));
+            Requires.NotNull(includes, nameof(includes));
             
             Id = id;
             Includes = includes;
             Properties = properties;
         }
 
-        internal RecordedEvent Record(Partition partition, int version)
-        {
-            return new RecordedEvent(Id, Properties, Includes, partition, version);
-        }
+        internal RecordedEvent Record(Partition partition, int version) => 
+            new RecordedEvent(Id, Properties, Includes, partition, version);
     }
 
     /// <summary>
@@ -115,27 +104,18 @@ namespace Streamstone
         /// <summary>
         /// The unique identifier representing this event
         /// </summary>
-        public EventId Id
-        {
-            get; private set;
-        }
+        public EventId Id { get; }
 
         /// <summary>
         /// The readonly map of additional properties which this event contains.
         /// Includes both meta and data properties.
         /// </summary>
-        public EventProperties Properties
-        {
-            get; private set;
-        }
+        public EventProperties Properties { get; }
 
         /// <summary>
         /// A sequence number assigned by a stream to this event. 
         /// </summary>
-        public int Version
-        {
-            get; private set;
-        }
+        public int Version { get; }
 
         internal readonly EntityOperation[] EventOperations;
         internal readonly EntityOperation[] IncludedOperations;
@@ -169,14 +149,9 @@ namespace Streamstone
             return new EntityOperation.Insert(entity);
         }
 
-        static IEnumerable<EntityOperation> Prepare(IEnumerable<Include> includes, Partition partition)
-        {
-            return includes.Select(include => include.Operation.Apply(partition));
-        }
+        static IEnumerable<EntityOperation> Prepare(IEnumerable<Include> includes, Partition partition) => 
+            includes.Select(include => include.Operation.Apply(partition));
 
-        internal int Operations
-        {
-            get { return EventOperations.Length + IncludedOperations.Length; }
-        }
+        internal int Operations => EventOperations.Length + IncludedOperations.Length;
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-using Microsoft.WindowsAzure.Storage.Table;
+﻿using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone
 {
@@ -49,7 +46,7 @@ namespace Streamstone
         /// <exception cref="ArgumentNullException">If given <paramref name="entity"/> is <c>null</c>.</exception>
         public static Include Insert(ITableEntity entity)
         {
-            Requires.NotNull(entity, "entity");
+            Requires.NotNull(entity, nameof(entity));
             return new Include(IncludeType.Insert, new EntityOperation.Insert(entity));
         }
 
@@ -61,7 +58,7 @@ namespace Streamstone
         /// <exception cref="ArgumentNullException">If given <paramref name="entity"/> is <c>null</c>.</exception>
         public static Include Replace(ITableEntity entity)
         {
-            Requires.NotNull(entity, "entity");
+            Requires.NotNull(entity, nameof(entity));
             return new Include(IncludeType.Replace, new EntityOperation.Replace(entity));
         }
 
@@ -73,7 +70,7 @@ namespace Streamstone
         /// <exception cref="ArgumentNullException">If given <paramref name="entity"/> is <c>null</c>.</exception>
         public static Include Delete(ITableEntity entity)
         {
-            Requires.NotNull(entity, "entity");
+            Requires.NotNull(entity, nameof(entity));
             return new Include(IncludeType.Delete, new EntityOperation.Delete(entity));
         }
 
@@ -85,7 +82,7 @@ namespace Streamstone
         /// <exception cref="ArgumentNullException">If given <paramref name="entity"/> is <c>null</c>.</exception>
         public static Include InsertOrMerge(ITableEntity entity)
         {
-            Requires.NotNull(entity, "entity");
+            Requires.NotNull(entity, nameof(entity));
             return new Include(IncludeType.InsertOrMerge, new EntityOperation.InsertOrMerge(entity));
         }
 
@@ -97,7 +94,7 @@ namespace Streamstone
         /// <exception cref="ArgumentNullException">If given <paramref name="entity"/> is <c>null</c>.</exception>
         public static Include InsertOrReplace(ITableEntity entity)
         {
-            Requires.NotNull(entity, "entity");
+            Requires.NotNull(entity, nameof(entity));
             return new Include(IncludeType.InsertOrReplace, new EntityOperation.InsertOrReplace(entity));
         }
 
@@ -109,21 +106,12 @@ namespace Streamstone
 
         /// <summary> Gets the type of this include.  </summary>
         /// <value> The type of include operation. </value>
-        public IncludeType Type
-        {
-            get; private set;
-        }
+        public IncludeType Type { get; }
 
         /// <summary> Gets the included entity. </summary>
         /// <value> The table entity. </value>
-        public ITableEntity Entity
-        {
-            get { return Operation.Entity; }
-        }
+        public ITableEntity Entity => Operation.Entity;
 
-        internal EntityOperation Operation
-        {
-            get; private set;
-        }
+        internal EntityOperation Operation { get; }
     }
 }

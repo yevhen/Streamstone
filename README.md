@@ -15,6 +15,7 @@ Streamstone is a small library targeted at building scalable event-sourced appli
 + Change tracking support for inline projections
 + Friendly for multi-tenant designs
 + Sharding support (jump consistent hashing)
++ Compatible with .NET Standard 1.6 and higher
 
 ## Installing from NuGet [![NuGet](https://img.shields.io/nuget/v/Streamstone.svg?style=flat)](https://www.nuget.org/packages/Streamstone/)
 
@@ -24,13 +25,15 @@ To install Streamstone via NuGet, run this command in NuGet package manager cons
 
 ## Building from source [![Build status](https://ci.appveyor.com/api/projects/status/3rsmwblor11b6inq/branch/master?svg=true)](https://ci.appveyor.com/project/yevhen/streamstone/branch/master)
 
-To build Streamstone's binaries, just clone the repository and build solution from Visual Studio (2015, 2017, .NET 4.6), Alternatively, run the following command from solution's root directory:
+NOTE: Currently automated build scripts can be run only on Windows but it's possible to produce binary on Linux by using dotnet cli tooling (ie `dotnet build`). To build Streamstone binaries on Windows you will need to have Visual Studio 17 Update 3 or higher, .NET Core SDK 2.0 and .NET Framework 4.6.1 or higher. 
 
-    > Nake.bat
+To build Streamstone from cli on Windows, run the following command from solution's root directory:
+
+    > Nake.bat package
 
 For a list of available commands run `Nake.bat -T`.
 
-> NOTE: To run unit tests you will need to have Azure Storage Emulator 5.1 or higher. Alternatively, you could run unit tests against real storage by setting storage account connection string to **Streamstone-Test-Storage** user-level environment variable.
+> NOTE: To run unit tests you will need to have Azure Storage Emulator 5.2 or higher. Alternatively, you could run unit tests against real storage by setting storage account connection string to **Streamstone-Test-Storage** user-level environment variable.
 
 ## Design
 

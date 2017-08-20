@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using ExpectedObjects;
 using NUnit.Framework;
 
 using Microsoft.WindowsAzure.Storage.Table;
-using System.Threading.Tasks;
 
 namespace Streamstone.Scenarios
 {

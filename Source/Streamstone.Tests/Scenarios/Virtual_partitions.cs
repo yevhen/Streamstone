@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using NUnit.Framework;
 using Microsoft.WindowsAzure.Storage.Table;
-using System.Threading.Tasks;
 
 namespace Streamstone.Scenarios
 {
@@ -41,8 +41,8 @@ namespace Streamstone.Scenarios
         {
             await Stream.ProvisionAsync(virtual1);
 
-            Assert.True(Stream.TryOpen(virtual1).Found);
-            Assert.False(Stream.TryOpen(virtual2).Found);
+            Assert.True((await Stream.TryOpenAsync(virtual1)).Found);
+            Assert.False((await Stream.TryOpenAsync(virtual2)).Found);
         }
 
         [Test]

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Xml.Linq;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 using static Nake.App;
 using static Nake.Env;
@@ -15,38 +16,22 @@ using static Nake.Run;
 const string Project = "Streamstone";
 const string RootPath = "%NakeScriptDirectory%";
 const string OutputPath = RootPath + @"\Output";
-const string PackagePath = OutputPath + @"\Package";
-const string ReleasePath = PackagePath + @"\Release";
 
 var AppVeyor = Var["APPVEYOR"] == "True";
 
 /// Builds sources in Debug mode
-[Task] void Default()
-{
-    Build();
-}
-
-/// Wipeout all build output and temporary build files
-[Step] void Clean(string path = OutputPath)
-{
-    Delete(@"{path}\*.*|-:*.vshost.exe");
-}
+[Task] void Default() => Build();
 
 /// Builds sources using specified configuration and output path
-[Step] void Build(string config = "Debug", string outDir = OutputPath)
-{
-    Clean(outDir);
-    
-    Exec("dotnet", "build {Project}.sln /p:Configuration={config};OutDir={outDir};ReferencePath={outDir}");
-}
+[Step] void Build(string config = "Debug") =>    
+    Exec("dotnet", "build {Project}.sln /p:Configuration={config}");
 
 /// Runs unit tests 
-[Step] void Test(string outDir = OutputPath)
+[Step] void Test()
 {  
-	Console.WriteLine(outDir); 	
-	Exec("dotnet", "test Source/Streamstone.Tests/Streamstone.Tests.csproj -l:trx;LogFileName=nunit-test-results.trx --results-directory \"{outDir}\"");
+	Exec("dotnet", "test Source/Streamstone.Tests/Streamstone.Tests.csproj --configuration Debug -l:trx;LogFileName=nunit-test-results.trx --results-directory \"{OutputPath}\"");
     
-    var results = @"{outDir}\nunit-test-results.trx";
+    var results = @"{OutputPath}\nunit-test-results.trx";
     if (AppVeyor)
         new WebClient().UploadFile("https://ci.appveyor.com/api/testresults/mstest/%APPVEYOR_JOB_ID%", results);
 }
@@ -54,19 +39,18 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 /// Builds official NuGet package 
 [Step] void Package()
 {
-    Test(PackagePath + @"\Debug");
-
-    Build("Release", ReleasePath);
-
-	Exec("dotnet", @"pack Source/Streamstone/Streamstone.csproj /p:PackageVersion={Version()} --configuration Release --output ""{PackagePath}""");
+    Test();
+	Exec("dotnet", @"pack Source/Streamstone/Streamstone.csproj /p:PackageVersion={Version()} --configuration Release --output ""{OutputPath}""");
 }
 
 /// Publishes package to NuGet gallery
-[Step] void Publish()
-{
-    Cmd(@"Tools\Nuget.exe push {PackagePath}\{Project}.{Version()}.nupkg %NuGetApiKey%");
-}
+[Step] void Publish() => Cmd(@"Tools\Nuget.exe push {OutputPath}\{Project}.{Version()}.nupkg %NuGetApiKey% -Source https://nuget.org/");
 
-string Version() => FileVersionInfo
-    .GetVersionInfo(@"{ReleasePath}\{Project}.dll")
-    .FileVersion;
+string Version() 
+{ 
+    var version = File
+        .ReadAllLines(@"{RootPath}\Source\Streamstone.Version.cs")
+        .First(x => x.StartsWith("[assembly: AssemblyVersion("));
+
+    return new Regex(@"AssemblyVersion\(\""([^\""]*)\""\)").Match(version).Groups[1].Value;
+}

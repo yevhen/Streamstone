@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 using NUnit.Framework;
 using Microsoft.WindowsAzure.Storage.Table;
-using System.Threading.Tasks;
 
 namespace Streamstone.Scenarios
 {

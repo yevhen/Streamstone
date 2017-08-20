@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
@@ -26,33 +27,17 @@ namespace Streamstone
                 table = stream.Partition.Table;
             }
 
-            public Stream Execute()
-            {
-                var insert = new Insert(stream);
-
-                try
-                {
-                    table.ExecuteAsync(insert.Prepare()).Wait();
-                }
-                catch (StorageException e)
-                {
-                    insert.Handle(table, e);
-                }
-
-                return insert.Result();
-            }
-
             public async Task<Stream> ExecuteAsync()
             {
                 var insert = new Insert(stream);
 
                 try
                 {
-                    await table.ExecuteAsync(insert.Prepare()).Really();
+                    await table.ExecuteAsync(insert.Prepare()).ConfigureAwait(false);
                 }
                 catch (StorageException e)
                 {
-                    insert.Handle(table, e);
+                    insert.Handle(e);
                 }
 
                 return insert.Result();
@@ -69,12 +54,9 @@ namespace Streamstone
                     partition = stream.Partition;
                 }
 
-                public TableOperation Prepare()
-                {
-                    return TableOperation.Insert(stream);
-                }
+                public TableOperation Prepare() => TableOperation.Insert(stream);
 
-                internal void Handle(CloudTable table, StorageException exception)
+                internal void Handle(StorageException exception)
                 {
                     if (exception.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
                         throw ConcurrencyConflictException.StreamChangedOrExists(partition);
@@ -82,10 +64,7 @@ namespace Streamstone
                     ExceptionDispatchInfo.Capture(exception).Throw();
                 }
 
-                internal Stream Result()
-                {
-                    return From(partition, stream);
-                }
+                internal Stream Result() => From(partition, stream);
             }
         }
 
@@ -104,29 +83,6 @@ namespace Streamstone
                 table = stream.Partition.Table;
             }
 
-            public StreamWriteResult Execute()
-            {
-                var current = stream;
-
-                foreach (var chunk in Chunks())
-                {
-                    var batch = chunk.ToBatch(current);
-
-                    try
-                    {
-                        table.ExecuteBatchAsync(batch.Prepare()).Wait();
-                    }
-                    catch (AggregateException e) when (e.InnerException is StorageException se)
-                    {
-                        batch.Handle(table, se);
-                    }
-
-                    current = batch.Result();
-                }
-
-                return new StreamWriteResult(current, events.ToArray());
-            }
-
             public async Task<StreamWriteResult> ExecuteAsync()
             {
                 var current = stream;
@@ -137,11 +93,11 @@ namespace Streamstone
 
                     try
                     {
-                        await table.ExecuteBatchAsync(batch.Prepare()).Really();
+                        await table.ExecuteBatchAsync(batch.Prepare()).ConfigureAwait(false);
                     }
                     catch (StorageException e)
                     {
-                        batch.Handle(table, e);
+                        batch.Handle(e);
                     }
 
                     current = batch.Result();
@@ -150,10 +106,7 @@ namespace Streamstone
                 return new StreamWriteResult(current, events.ToArray());
             }
 
-            IEnumerable<Chunk> Chunks()
-            {
-                return Chunk.Split(events).Where(s => !s.IsEmpty);
-            }
+            IEnumerable<Chunk> Chunks() => Chunk.Split(events).Where(s => !s.IsEmpty);
 
             class Chunk
             {
@@ -180,10 +133,7 @@ namespace Streamstone
                 Chunk()
                 {}
 
-                Chunk(RecordedEvent first)
-                {
-                    Accomodate(first);
-                }
+                Chunk(RecordedEvent first) => Accomodate(first);
 
                 Chunk Add(RecordedEvent @event)
                 {
@@ -210,10 +160,7 @@ namespace Streamstone
                     return operations + @event.Operations <= MaxOperationsPerChunk;
                 }
 
-                public bool IsEmpty
-                {
-                    get { return events.Count == 0; }
-                }
+                public bool IsEmpty => events.Count == 0;
 
                 public Batch ToBatch(Stream stream)
                 {
@@ -248,15 +195,9 @@ namespace Streamstone
                     return ToBatch();
                 }
 
-                void WriteStream()
-                {
-                    operations.Add(stream.Operation());
-                }
+                void WriteStream() => operations.Add(stream.Operation());
 
-                void WriteEvents()
-                {
-                    operations.AddRange(events.SelectMany(e => e.EventOperations));
-                }
+                void WriteEvents() => operations.AddRange(events.SelectMany(e => e.EventOperations));
 
                 void WriteIncludes()
                 {
@@ -283,7 +224,7 @@ namespace Streamstone
                     return From(partition, stream);
                 }
 
-                internal void Handle(CloudTable table, StorageException exception)
+                internal void Handle(StorageException exception)
                 {
                     if (exception.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
                         throw ConcurrencyConflictException.StreamChangedOrExists(partition);
@@ -347,33 +288,17 @@ namespace Streamstone
                 table = stream.Partition.Table;
             }
 
-            public Stream Execute()
-            {
-                var replace = new Replace(stream, properties);
-
-                try
-                {
-                    table.ExecuteAsync(replace.Prepare()).Wait();
-                }
-                catch (StorageException e)
-                {
-                    replace.Handle(table, e);
-                }
-
-                return replace.Result();
-            }
-
             public async Task<Stream> ExecuteAsync()
             {
                 var replace = new Replace(stream, properties);
 
                 try
                 {
-                    await table.ExecuteAsync(replace.Prepare()).Really();
+                    await table.ExecuteAsync(replace.Prepare()).ConfigureAwait(false);
                 }
                 catch (StorageException e)
                 {
-                    replace.Handle(table, e);
+                    replace.Handle(e);
                 }
 
                 return replace.Result();
@@ -396,7 +321,7 @@ namespace Streamstone
                     return TableOperation.Replace(stream);
                 }
 
-                internal void Handle(CloudTable table, StorageException exception)
+                internal void Handle(StorageException exception)
                 {
                     if (exception.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
                         throw ConcurrencyConflictException.StreamChanged(partition);
@@ -404,10 +329,7 @@ namespace Streamstone
                     ExceptionDispatchInfo.Capture(exception).Throw();
                 }
 
-                internal Stream Result()
-                {
-                    return From(partition, stream);
-                }
+                internal Stream Result() => From(partition, stream);
             }
         }
 
@@ -422,20 +344,10 @@ namespace Streamstone
                 table = partition.Table;
             }
 
-            public StreamOpenResult Execute()
-            {
-                return Result(table.ExecuteAsync(Prepare()).Result);
-            }
+            public async Task<StreamOpenResult> ExecuteAsync() => 
+                Result(await table.ExecuteAsync(Prepare()));
 
-            public async Task<StreamOpenResult> ExecuteAsync()
-            {
-                return Result(await table.ExecuteAsync(Prepare()));
-            }
-
-            TableOperation Prepare()
-            {
-                return TableOperation.Retrieve<StreamEntity>(partition.PartitionKey, partition.StreamRowKey());
-            }
+            TableOperation Prepare() => TableOperation.Retrieve<StreamEntity>(partition.PartitionKey, partition.StreamRowKey());
 
             StreamOpenResult Result(TableResult result)
             {
@@ -463,15 +375,8 @@ namespace Streamstone
                 table = partition.Table;
             }
 
-            public StreamSlice<T> Execute(Func<DynamicTableEntity, T> transform)
-            {
-                return Result(ExecuteQuery(PrepareQuery()), transform);
-            }
-
-            public async Task<StreamSlice<T>> ExecuteAsync(Func<DynamicTableEntity, T> transform)
-            {
-                return Result(await ExecuteQueryAsync(PrepareQuery()), transform);
-            }
+            public async Task<StreamSlice<T>> ExecuteAsync(Func<DynamicTableEntity, T> transform) => 
+                Result(await ExecuteQueryAsync(PrepareQuery()), transform);
 
             StreamSlice<T> Result(ICollection<DynamicTableEntity> entities, Func<DynamicTableEntity, T> transform)
             {
@@ -489,52 +394,21 @@ namespace Streamstone
                 var rowKeyStart = partition.EventVersionRowKey(startVersion);
                 var rowKeyEnd = partition.EventVersionRowKey(startVersion + sliceSize - 1);
 
-                // ReSharper disable StringCompareToIsCultureSpecific
-
                 var filter = TableQuery.CombineFilters(
-                   //x.PartitionKey == partition.PartitionKey
                    TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.PartitionKey), QueryComparisons.Equal, partition.PartitionKey),
                    TableOperators.And,
                        TableQuery.CombineFilters(
-                           //x.RowKey == partition.StreamRowKey()
                            TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.RowKey), QueryComparisons.Equal, partition.StreamRowKey()),
                            TableOperators.Or,
                            TableQuery.CombineFilters(
-                                //x.RowKey.CompareTo(rowKeyStart) >= 0
                                 TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.RowKey), QueryComparisons.GreaterThanOrEqual, rowKeyStart),
                                 TableOperators.And,
-                                //x.RowKey.CompareTo(rowKeyEnd) <= 0
                                 TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.RowKey), QueryComparisons.LessThanOrEqual, rowKeyEnd)
                            )
                        )
                );
 
-                var query = new TableQuery<DynamicTableEntity>().Where(filter);
-                    //table
-                    //.CreateQuery<DynamicTableEntity>()
-                    //.Where(x =>
-                    //       x.PartitionKey == partition.PartitionKey
-                    //       && (x.RowKey == partition.StreamRowKey()
-                    //           || (x.RowKey.CompareTo(rowKeyStart)  >= 0
-                    //               && x.RowKey.CompareTo(rowKeyEnd) <= 0)));
-
-                return (TableQuery<DynamicTableEntity>) query;
-            }
-
-            List<DynamicTableEntity> ExecuteQuery(TableQuery<DynamicTableEntity> query)
-            {
-                var result = new List<DynamicTableEntity>();
-                TableContinuationToken token = null;
-
-                do
-                {
-                    var segment = table.ExecuteQuerySegmentedAsync(query, token).Result;
-                    token = segment.ContinuationToken;
-                    result.AddRange(segment.Results);
-                }
-                while (token != null);
-
-                return result;
+                return new TableQuery<DynamicTableEntity>().Where(filter);
             }
 
             async Task<List<DynamicTableEntity>> ExecuteQueryAsync(TableQuery<DynamicTableEntity> query)
@@ -544,7 +418,7 @@ namespace Streamstone
 
                 do
                 {
-                    var segment = await table.ExecuteQuerySegmentedAsync(query, token).Really();
+                    var segment = await table.ExecuteQuerySegmentedAsync(query, token).ConfigureAwait(false);
                     token = segment.ContinuationToken;
                     result.AddRange(segment.Results);
                 }
@@ -563,15 +437,10 @@ namespace Streamstone
                 return result;
             }
 
-            Stream BuildStream(DynamicTableEntity entity)
-            {
-                return From(partition, StreamEntity.From(entity));
-            }
+            Stream BuildStream(DynamicTableEntity entity) => From(partition, StreamEntity.From(entity));
 
-            static T[] BuildEvents(IEnumerable<DynamicTableEntity> entities, Func<DynamicTableEntity, T> transform)
-            {
-                return entities.Select(transform).ToArray();
-            }
+            static T[] BuildEvents(IEnumerable<DynamicTableEntity> entities, Func<DynamicTableEntity, T> transform) => 
+                entities.Select(transform).ToArray();
         }
     }
 }

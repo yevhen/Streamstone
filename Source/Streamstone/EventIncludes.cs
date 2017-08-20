@@ -30,7 +30,7 @@ namespace Streamstone
         /// <exception cref="ArgumentNullException">If <paramref name="includes"/> is <c>null</c></exception>
         public static EventIncludes From(params Include[] includes)
         {
-            Requires.NotNull(includes, "includes");
+            Requires.NotNull(includes, nameof(includes));
             return new EventIncludes(includes);
         }
 
@@ -43,7 +43,7 @@ namespace Streamstone
         public static EventIncludes From(IEnumerable<Include> includes)
         {
             // ReSharper disable PossibleMultipleEnumeration
-            Requires.NotNull(includes, "includes");
+            Requires.NotNull(includes, nameof(includes));
             return new EventIncludes(includes.ToArray());
             // ReSharper restore PossibleMultipleEnumeration
         }

@@ -11,14 +11,7 @@ namespace Streamstone
         public const string EventRowKeyPrefix = "SS-SE-";
         public const string EventIdRowKeyPrefix = "SS-UID-";
 
-        public static string FormatEventRowKey(this int version)
-        {
-            return string.Format("{0}{1:d10}", EventRowKeyPrefix, version);
-        }
-
-        public static string FormatEventIdRowKey(this string id)
-        {
-            return string.Format("{0}{1}", EventIdRowKeyPrefix, id);
-        }
+        public static string FormatEventRowKey(this int version) => $"{EventRowKeyPrefix}{version:d10}";
+        public static string FormatEventIdRowKey(this string id) => $"{EventIdRowKeyPrefix}{id}";
     }
 }

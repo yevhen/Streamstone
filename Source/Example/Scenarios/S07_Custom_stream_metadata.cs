@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 
-using Streamstone;
 using Microsoft.WindowsAzure.Storage.Table;
+using Streamstone;
 
 namespace Example.Scenarios
 {
     public class S07_Custom_stream_metadata : Scenario
     {
-        public override void Run()
+        public override async Task RunAsync()
         {
-            SpecifyingForExistingStream();
-            SpecifyingDuringWritingToNewStream();
-            UpdatingForExistingStream();
+            await SpecifyingForExistingStream();
+            await SpecifyingDuringWritingToNewStream();
+            await UpdatingForExistingStream();
         }
 
-        void SpecifyingForExistingStream()
+        async Task SpecifyingForExistingStream()
         {
             var partition = new Partition(Table, Id + ".a");
 
@@ -26,16 +26,16 @@ namespace Example.Scenarios
                 {"Active",  new EntityProperty(true)}
             };
             
-            Stream.Provision(partition, StreamProperties.From(properties));
+            await Stream.ProvisionAsync(partition, StreamProperties.From(properties));
             
             Console.WriteLine("Stream metadata specified during provisioning in partition '{0}'", 
                               partition);
 
-            var stream = Stream.Open(partition);
+            var stream = await Stream.OpenAsync(partition);
             Print(stream.Properties);
         }
 
-        void SpecifyingDuringWritingToNewStream()
+        async Task SpecifyingDuringWritingToNewStream()
         {
             var partition = new Partition(Table, Id + ".b");
 
@@ -46,16 +46,16 @@ namespace Example.Scenarios
             };
 
             var stream = new Stream(partition, StreamProperties.From(properties));
-            Stream.Write(stream, new EventData());
+            await Stream.WriteAsync(stream, new EventData());
 
             Console.WriteLine("Stream metadata specified during writing to new stream in partition '{0}'", 
                               partition);
 
-            stream = Stream.Open(partition);
+            stream = await Stream.OpenAsync(partition);
             Print(stream.Properties);
         }
 
-        void UpdatingForExistingStream()
+        async Task UpdatingForExistingStream()
         {
             var partition = new Partition(Table, Id + ".c");
 
@@ -65,20 +65,20 @@ namespace Example.Scenarios
                 {"Active",  new EntityProperty(true)}
             };
 
-            Stream.Provision(partition, StreamProperties.From(properties));
+            await Stream.ProvisionAsync(partition, StreamProperties.From(properties));
 
             Console.WriteLine("Stream metadata specified for stream in partition '{0}'", 
                               partition);
 
-            var stream = Stream.Open(partition);
+            var stream = await Stream.OpenAsync(partition);
             Print(stream.Properties);
 
             properties["Active"] = new EntityProperty(false);
-            Stream.SetProperties(stream, StreamProperties.From(properties));
+            await Stream.SetPropertiesAsync(stream, StreamProperties.From(properties));
 
             Console.WriteLine("Updated stream metadata in partition '{0}'", partition);
 
-            stream = Stream.Open(partition);
+            stream = await Stream.OpenAsync(partition);
             Print(stream.Properties);
         }
 

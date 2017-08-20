@@ -41,8 +41,8 @@ namespace Streamstone
         /// <remarks>Use "partitionkey|rowkeyprefix" key syntax to create virtual partition</remarks>
         public Partition(CloudTable table, string key)
         {
-            Requires.NotNull(table, "table");
-            Requires.NotNullOrEmpty(key, "key");
+            Requires.NotNull(table, nameof(table));
+            Requires.NotNullOrEmpty(key, nameof(key));
 
             var parts = key.Split(separator, 2, 
                 StringSplitOptions.RemoveEmptyEntries);
@@ -64,9 +64,9 @@ namespace Streamstone
         /// <param name="rowKeyPrefix">The row's key prefix.</param>
         public Partition(CloudTable table, string partitionKey, string rowKeyPrefix)
         {
-            Requires.NotNull(table, "table");
-            Requires.NotNullOrEmpty(partitionKey, "partitionKey");
-            Requires.NotNullOrEmpty(rowKeyPrefix, "rowKeyPrefix");
+            Requires.NotNull(table, nameof(table));
+            Requires.NotNullOrEmpty(partitionKey, nameof(partitionKey));
+            Requires.NotNullOrEmpty(rowKeyPrefix, nameof(rowKeyPrefix));
 
             if (partitionKey.Contains(separator[0]))
                 throw new ArgumentException(
@@ -80,20 +80,9 @@ namespace Streamstone
             Key = string.Format("{0}{1}{2}", partitionKey, separator[0], rowKeyPrefix);
         }
 
-        internal string StreamRowKey()
-        {
-            return string.Format("{0}{1}", RowKeyPrefix, StreamEntity.FixedRowKey);
-        }
-
-        internal string EventVersionRowKey(int version)
-        {
-            return string.Format("{0}{1}{2:d10}", RowKeyPrefix, EventEntity.RowKeyPrefix, version);
-        }
-
-        internal string EventIdRowKey(string id)
-        {
-            return string.Format("{0}{1}{2}", RowKeyPrefix, EventIdEntity.RowKeyPrefix, id);
-        }
+        internal string StreamRowKey() => string.Format("{0}{1}", RowKeyPrefix, StreamEntity.FixedRowKey);
+        internal string EventVersionRowKey(int version) => string.Format("{0}{1}{2:d10}", RowKeyPrefix, EventEntity.RowKeyPrefix, version);
+        internal string EventIdRowKey(string id) => string.Format("{0}{1}{2}", RowKeyPrefix, EventIdEntity.RowKeyPrefix, id);
 
         /// <summary>
         /// Returns a string that represents the current object.
@@ -102,9 +91,6 @@ namespace Streamstone
         /// A string that represents the current object.
         /// </returns>
         /// <filterpriority>2</filterpriority>
-        public override string ToString()
-        {
-            return string.Format("{0}.{1}", Table.Name, Key);
-        }
+        public override string ToString() => string.Format("{0}.{1}", Table.Name, Key);
     }
 }

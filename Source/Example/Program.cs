@@ -1,16 +1,18 @@
-﻿using Example.Scenarios;
+﻿using System;
+using System.Threading.Tasks;
+
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
-using System;
-using System.Threading.Tasks;
 
 namespace Example
 {
+    using Scenarios;
+
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            var table = Prepare().Result;
+            var table = await Prepare();
 
             var scenarios = new Scenario[]
             {
@@ -27,19 +29,19 @@ namespace Example
                 new S11_Sharding_streams(),
             };
 
-            for (var i = 0; i < scenarios.Length; i++)
+            foreach (var scenario in scenarios)
             {
-                var scenario = scenarios[i];
                 var scenarioName = scenario.GetType().Name;
 
                 Console.WriteLine("{0}", scenarioName.Replace("_", " "));
                 Console.WriteLine(new string('-', 40));
 
                 scenario.Initialize(table, scenarioName);
-                scenario.Run();
+                await scenario.RunAsync();
 
                 Console.WriteLine();
             }
+
             Console.WriteLine("You can check out the contents of '{0}' table using Server Explorer in VS", table.Name);
             Console.WriteLine("Press any key to exit ...");
 

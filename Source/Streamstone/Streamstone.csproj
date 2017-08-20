@@ -1,10 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard1.6</TargetFrameworks>
+    <LangVersion>7.1</LangVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Authors>Yevhen Bobrov</Authors>
-    <PackageReleaseNotes></PackageReleaseNotes>
     <PackageProjectUrl>http://github.com/yevhen/Streamstone</PackageProjectUrl>
     <PackageLicenseUrl>http://github.com/yevhen/Streamstone/blob/master/LICENSE</PackageLicenseUrl>
     <PackageIconUrl>https://github.com/yevhen/Streamstone/raw/master/Logo.png</PackageIconUrl>
@@ -12,11 +11,14 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TargetFramework>net461</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <TargetFrameworks>netstandard2.0;netstandard1.6</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>bin\Release\Streamstone.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

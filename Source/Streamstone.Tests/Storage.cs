@@ -6,10 +6,10 @@ using ExpectedObjects;
 
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
-using Streamstone.Utility;
 
 namespace Streamstone
 {
+    using Utility;
     static class Storage
     {
         const string TableName = "Streams";
@@ -96,10 +96,8 @@ namespace Streamstone
         {
             var filter =
                 TableQuery.CombineFilters(
-                    //x.PartitionKey == partition.PartitionKey
                     TableQuery.GenerateFilterCondition(nameof(StreamEntity.PartitionKey), QueryComparisons.Equal, partition.PartitionKey),
                     TableOperators.And,
-                    //x.RowKey == Api.StreamRowKey
                     TableQuery.GenerateFilterCondition(nameof(StreamEntity.RowKey), QueryComparisons.Equal, Api.StreamRowKey));
 
             var query = new TableQuery<StreamEntity>().Where(filter);
@@ -129,12 +127,12 @@ namespace Streamstone
 
         public static void InsertEventIdEntities(this Partition partition, params string[] ids)
         {
-            for (int i = 0; i < ids.Length; i++)
+            foreach (var id in ids)
             {
                 var e = new EventIdEntity
                 {
                     PartitionKey = partition.PartitionKey,
-                    RowKey = ids[i].FormatEventIdRowKey(),
+                    RowKey = id.FormatEventIdRowKey(),
                 };
 
                 partition.Table.ExecuteAsync(TableOperation.Insert(e)).Wait();
@@ -150,8 +148,7 @@ namespace Streamstone
         {
             var filter = TableQuery.GenerateFilterCondition(nameof(StreamEntity.PartitionKey), QueryComparisons.Equal, partition.PartitionKey);
             var query = new TableQuery<DynamicTableEntity>().Where(filter);
-            //var query = partition.Table.CreateQuery<DynamicTableEntity>()
-            //                     .Where(x => x.PartitionKey == partition.PartitionKey);
+
             var entities = new List<DynamicTableEntity>();
             TableContinuationToken token = null;
 
@@ -193,13 +190,11 @@ namespace Streamstone
 
         public class PartitionContents
         {
-            readonly CloudTable table;
             readonly Partition partition;
             readonly List<DynamicTableEntity> captured;
 
             public PartitionContents(Partition partition, Action<PartitionContents> continueWith)
             {
-                this.table = partition.Table;
                 this.partition = partition;
 
                 captured = partition.RetrieveAll();

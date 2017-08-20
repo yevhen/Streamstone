@@ -14,7 +14,8 @@ namespace Streamstone
     /// </summary>
     public abstract class PropertyMap : IEnumerable<KeyValuePair<string, EntityProperty>>
     {
-        readonly IDictionary<string, EntityProperty> properties = new Dictionary<string, EntityProperty>();
+        readonly IDictionary<string, EntityProperty> properties = 
+              new Dictionary<string, EntityProperty>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyMap"/> class.
@@ -26,10 +27,8 @@ namespace Streamstone
         /// Initializes a new instance of the <see cref="PropertyMap"/> class.
         /// </summary>
         /// <param name="properties">The properties.</param>
-        protected PropertyMap(IDictionary<string, EntityProperty> properties)
-        {
+        protected PropertyMap(IDictionary<string, EntityProperty> properties) => 
             this.properties = properties;
-        }
 
         /// <summary>
         /// Returns an enumerator that iterates through the collection.
@@ -38,15 +37,8 @@ namespace Streamstone
         /// A <see cref="T:System.Collections.Generic.IEnumerator`1"/> that can be used to iterate through the collection.
         /// </returns>
         /// <filterpriority>1</filterpriority>
-        public IEnumerator<KeyValuePair<string, EntityProperty>> GetEnumerator()
-        {
-            return properties.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return ((IEnumerable)properties).GetEnumerator();
-        }
+        public IEnumerator<KeyValuePair<string, EntityProperty>> GetEnumerator() => properties.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)properties).GetEnumerator();
 
         /// <summary>
         ///  Gets property with specified key.
@@ -76,10 +68,8 @@ namespace Streamstone
                 target.Add(property.Key, property.Value);
         }
 
-        internal static IEnumerable<KeyValuePair<string, EntityProperty>> ToDictionary(ITableEntity entity)
-        {
-            return entity.WriteEntity(new OperationContext());
-        }
+        internal static IEnumerable<KeyValuePair<string, EntityProperty>> ToDictionary(ITableEntity entity) => 
+            entity.WriteEntity(new OperationContext());
 
         static readonly object[] noargs = new object[0];
 
@@ -97,7 +87,7 @@ namespace Streamstone
         /// </exception>
         protected static IEnumerable<KeyValuePair<string, EntityProperty>> ToDictionary(object obj)
         {
-            Requires.NotNull(obj, "obj");
+            Requires.NotNull(obj, nameof(obj));
 
             return from property in obj.GetType().GetTypeInfo().DeclaredProperties 
                    let key = property.Name 
@@ -143,19 +133,13 @@ namespace Streamstone
         }
 
         internal static IEnumerable<KeyValuePair<string, EntityProperty>> Clone(
-                        IEnumerable<KeyValuePair<string, EntityProperty>> properties)
-        {
-            return properties.Select(Clone);
-        }
+                        IEnumerable<KeyValuePair<string, EntityProperty>> properties) => 
+            properties.Select(Clone);
 
-        static KeyValuePair<string, EntityProperty> Clone(KeyValuePair<string, EntityProperty> x)
-        {
-            return new KeyValuePair<string, EntityProperty>(x.Key, Clone(x.Value));
-        }
+        static KeyValuePair<string, EntityProperty> Clone(KeyValuePair<string, EntityProperty> x) => 
+            new KeyValuePair<string, EntityProperty>(x.Key, Clone(x.Value));
 
-        static EntityProperty Clone(EntityProperty source)
-        {
-            return EntityProperty.CreateEntityPropertyFromObject(source.PropertyAsObject);
-        }
+        static EntityProperty Clone(EntityProperty source) => 
+            EntityProperty.CreateEntityPropertyFromObject(source.PropertyAsObject);
     }
 }

@@ -9,18 +9,20 @@ using System.Diagnostics;
 
 namespace Example.Scenarios
 {
+    using System.Threading.Tasks;
+
     public class S04_Write_to_stream : Scenario
     {
-        public override void Run()
+        public override async Task RunAsync()
         {
-            WriteToExistingOrCreateNewStream();
-            WriteSequentiallyToExistingStream();
-            WriteMultipleStreamsInParallel();
+            await WriteToExistingOrCreateNewStream();
+            await WriteSequentiallyToExistingStream();
+            await WriteMultipleStreamsInParallel();
         }
 
-        void WriteToExistingOrCreateNewStream()
+        async Task WriteToExistingOrCreateNewStream()
         {
-            var existent = Stream.TryOpen(Partition);
+            var existent = await Stream.TryOpenAsync(Partition);
 
             var stream = existent.Found 
                 ? existent.Stream 
@@ -28,27 +30,25 @@ namespace Example.Scenarios
 
             Console.WriteLine("Writing to new stream in partition '{0}'", stream.Partition);
 
-            var result = Stream.Write(stream,
+            var result = await Stream.WriteAsync(stream,
                 Event(new InventoryItemCreated(Id, "iPhone6")),
-                Event(new InventoryItemCheckedIn(Id, 100))
-            );
+                Event(new InventoryItemCheckedIn(Id, 100)));
 
             Console.WriteLine("Succesfully written to new stream.\r\nEtag: {0}, Version: {1}", 
                               result.Stream.ETag, result.Stream.Version);
         }
 
-        void WriteSequentiallyToExistingStream()
+        async Task WriteSequentiallyToExistingStream()
         {
-            var stream = Stream.Open(Partition);
+            var stream = await Stream.OpenAsync(Partition);
 
             Console.WriteLine("Writing sequentially to existing stream in partition '{0}'", stream.Partition);
             Console.WriteLine("Etag: {0}, Version: {1}", stream.ETag, stream.Version);
 
-            for (int i = 1; i <= 10; i++)
+            for (var i = 1; i <= 10; i++)
             {
-                var result = Stream.Write(stream, 
-                    Event(new InventoryItemCheckedIn(Id, i*100))
-                );
+                var result = await Stream.WriteAsync(stream, 
+                    Event(new InventoryItemCheckedIn(Id, i*100)));
 
                 Console.WriteLine("Succesfully written event '{0}' under version '{1}'",
                                    result.Events[0].Id, result.Events[0].Version);
@@ -60,38 +60,36 @@ namespace Example.Scenarios
             }
         }
 
-        void WriteMultipleStreamsInParallel()
+        async Task WriteMultipleStreamsInParallel()
         {
-            const int streamsToWrite = 10;
+            const int streamsToWrite = 5;
 
-            Enumerable.Range(1, streamsToWrite).AsParallel()
-                .ForAll(streamIndex =>
+            await Task.WhenAll(Enumerable.Range(1, streamsToWrite).Select(async streamIndex =>
+            {
+                var partition = new Partition(Partition.Table, $"WriteMultipleStreamsInParallel-{streamIndex}");
+
+                var existent = await Stream.TryOpenAsync(partition);
+
+                var stream = existent.Found
+                    ? existent.Stream
+                    : new Stream(partition);
+
+                Console.WriteLine("Writing to new stream in partition '{0}'", partition);
+                var stopwatch = Stopwatch.StartNew();
+
+                for (var i = 1; i <= 5; i++)
                 {
-                    var partition = new Partition(Partition.Table, $"WriteMultipleStreamsInParallel-{streamIndex}");
+                    var events = Enumerable.Range(1, 10)
+                        .Select(_ => Event(new InventoryItemCheckedIn(partition.Key, i * 1000 + streamIndex)))
+                        .ToArray();
 
-                    var existent = Stream.TryOpen(partition);
+                    var result = await Stream.WriteAsync(stream, events);
+                    stream = result.Stream;
+                }
 
-                    var stream = existent.Found
-                        ? existent.Stream
-                        : new Stream(partition);
-
-                    Console.WriteLine("Writing to new stream in partition '{0}'", partition);
-                    var stopwatch = Stopwatch.StartNew();
-
-                    for (int i = 1; i <= 30; i++)
-                    {
-                        var events = Enumerable.Range(1, 10)
-                            .Select(_ => Event(new InventoryItemCheckedIn(partition.Key, i * 1000 + streamIndex)))
-                            .ToArray();
-
-                        var result = Stream.Write(stream, events);
-
-                        stream = result.Stream;
-                    }
-
-                    stopwatch.Stop();
-                    Console.WriteLine("Finished writing 300 events to new stream in partition '{0}' in {1}ms", stream.Partition, stopwatch.ElapsedMilliseconds);
-                });
+                stopwatch.Stop();
+                Console.WriteLine("Finished writing 300 events to new stream in partition '{0}' in {1}ms", stream.Partition, stopwatch.ElapsedMilliseconds);
+            }));
         }
 
         static EventData Event(object e)

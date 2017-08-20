@@ -26,7 +26,7 @@ namespace Streamstone
         /// <exception cref="ArgumentNullException">If <paramref name="id"/> is <c>null</c></exception>
         public static EventId From(string id)
         {
-            Requires.NotNull(id, "id");
+            Requires.NotNull(id, nameof(id));
             return new EventId(id);
         }
 

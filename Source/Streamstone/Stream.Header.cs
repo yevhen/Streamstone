@@ -60,8 +60,8 @@ namespace Streamstone
         /// </exception>
         public Stream(Partition partition, StreamProperties properties)
         {
-            Requires.NotNull(partition, "partition");
-            Requires.NotNull(properties, "properties");
+            Requires.NotNull(partition, nameof(partition));
+            Requires.NotNull(properties, nameof(properties));
 
             Partition = partition;
             Properties = properties;
@@ -81,10 +81,7 @@ namespace Streamstone
         /// <value>
         /// <c>true</c> if this stream header was newed; otherwise, <c>false</c>.
         /// </value>
-        public bool IsTransient
-        {
-            get { return ETag == null; }
-        }
+        public bool IsTransient => ETag == null;
 
         /// <summary>
         /// Gets a value indicating whether this stream header represents a persistent stream.
@@ -92,24 +89,15 @@ namespace Streamstone
         /// <value>
         /// <c>true</c> if this stream header has been obtained from storage; otherwise, <c>false</c>.
         /// </value>
-        public bool IsPersistent
-        {
-            get { return !IsTransient; }
-        }
+        public bool IsPersistent => !IsTransient;
 
-        static Stream From(Partition partition, StreamEntity entity)
-        {
-            return new Stream(partition, entity.ETag, entity.Version, entity.Properties);
-        }
+        static Stream From(Partition partition, StreamEntity entity) => 
+            new Stream(partition, entity.ETag, entity.Version, entity.Properties);
 
-        StreamEntity Entity()
-        {
-            return new StreamEntity(Partition, ETag, Version, Properties);
-        }
+        StreamEntity Entity() => 
+            new StreamEntity(Partition, ETag, Version, Properties);
 
-        IEnumerable<RecordedEvent> Record(IEnumerable<EventData> events)
-        {
-            return events.Select((e, i) => e.Record(Partition, Version + i + 1));
-        }
+        IEnumerable<RecordedEvent> Record(IEnumerable<EventData> events) => 
+            events.Select((e, i) => e.Record(Partition, Version + i + 1));
     }
 }

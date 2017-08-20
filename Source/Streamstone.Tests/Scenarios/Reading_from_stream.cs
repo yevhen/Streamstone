@@ -101,7 +101,7 @@ namespace Streamstone.Scenarios
 
             foreach (var batch in Enumerable.Range(1, numberOfWriteBatches))
             {
-                EventData[] events = Enumerable
+                var events = Enumerable
                     .Range(1, sizeOverTheAzureLimit / numberOfWriteBatches)
                     .Select(i => CreateEvent(batch + "e" + i))
                     .ToArray();

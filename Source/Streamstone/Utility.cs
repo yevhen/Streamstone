@@ -1,10 +1,5 @@
-﻿// ReSharper disable StringCompareToIsCultureSpecific
-
-using System;
-using System.Linq;
-
+﻿using System.Collections.Generic;
 using Microsoft.WindowsAzure.Storage.Table;
-using System.Collections.Generic;
 
 namespace Streamstone
 {
@@ -21,15 +16,13 @@ namespace Streamstone
             /// <typeparam name="TEntity">The type of the entity to return.</typeparam>
             /// <param name="partition">The partition.</param>
             /// <param name="prefix">The row key prefix.</param>
-            /// <returns>An instance of <see cref="IQueryable"/> that allow further criterias to be added</returns>
+            /// <returns>An instance of <see cref="IEnumerable{T}"/> that allow to scroll over all rows</returns>
             public static IEnumerable<TEntity> RowKeyPrefixQuery<TEntity>(this Partition partition, string prefix) where TEntity : ITableEntity, new()
             {
                 var filter = 
                       TableQuery.CombineFilters(
-                          //x.PartitionKey == partition.PartitionKey
                           TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partition.PartitionKey),
                           TableOperators.And,
-                          //x.RowKey == Api.StreamRowKey
                           WhereRowKeyPrefixFilter(prefix));
 
                 var query = new TableQuery<TEntity>().Where(filter);
@@ -42,30 +35,19 @@ namespace Streamstone
                         yield return res;
                 }
                 while (token != null);               
-                //return table.CreateQuery<TEntity>()
-                //            .Where(x => x.PartitionKey == partition.PartitionKey)
-                //            .WhereRowKeyPrefix(prefix);
             }
 
             /// <summary>
-            /// Applies row key prefix criteria to given queryable which allows to query a range of rows
+            /// Applies row key prefix criteria to given table which allows to query a range of rows
             /// </summary>
             /// <typeparam name="TEntity">The type of the entity to return.</typeparam>
-            /// <param name="queryable">The queryable.</param>
-            /// <param name="prefix">The row key prefix.</param>
-            /// <returns>An instance of <see cref="IQueryable"/> that alllow further criterias to be added</returns>
-            //public static IQueryable<TEntity> WhereRowKeyPrefix<TEntity>(this IQueryable<TEntity> queryable, string prefix) where TEntity : ITableEntity, new()
-            //{
-            //    var range = new PrefixRange(prefix);
-
-            //    return queryable.Where(x =>
-            //                x.RowKey.CompareTo(range.Start) >= 0
-            //                && x.RowKey.CompareTo(range.End) < 0);
-            //}
+            /// <param name="table">The table.</param>
+            /// <param name="filter">The row key prefix filter.</param>
+            /// <returns>An instance of <see cref="IEnumerable{T}"/> that alllow further criterias to be added</returns>
             public static IEnumerable<TEntity> ExecuteQuery<TEntity>(this CloudTable table, string filter) where TEntity : ITableEntity, new()
             {
                 var query = new TableQuery<TEntity>().Where(filter);
-                TableContinuationToken token = null;
+                TableContinuationToken token;
                 do
                 {
                     var segment = table.ExecuteQuerySegmentedAsync(query, null).Result;
@@ -75,20 +57,16 @@ namespace Streamstone
                 }
                 while (token != null);
             }
+
             static string WhereRowKeyPrefixFilter(string prefix)
             {
                 var range = new PrefixRange(prefix);
                 var filter =
                      TableQuery.CombineFilters(
-                         //x.RowKey.CompareTo(range.Start) >= 0
                          TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThanOrEqual, range.Start),
                          TableOperators.And,
-                         //x.RowKey.CompareTo(range.End) < 0
                          TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.LessThan, range.End));
 
-                //return queryable.Where(x =>
-                //            x.RowKey.CompareTo(range.Start) >= 0
-                //            && x.RowKey.CompareTo(range.End) < 0);
                 return filter;
             }
         }
@@ -114,7 +92,7 @@ namespace Streamstone
             /// <param name="prefix">The prefix upon which to build a range.</param>
             public PrefixRange(string prefix)
             {
-                Requires.NotNullOrEmpty(prefix, "prefix");
+                Requires.NotNullOrEmpty(prefix, nameof(prefix));
 
                 Start = prefix;
 

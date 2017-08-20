@@ -25,7 +25,7 @@ namespace Streamstone
 
         internal static StreamProperties ReadEntity(IDictionary<string, EntityProperty> properties)
         {
-            Requires.NotNull(properties, "properties");
+            Requires.NotNull(properties, nameof(properties));
             return Build(properties);
         }
 
@@ -39,7 +39,7 @@ namespace Streamstone
         /// </exception>
         public static StreamProperties From(IDictionary<string, EntityProperty> properties)
         {
-            Requires.NotNull(properties, "properties");
+            Requires.NotNull(properties, nameof(properties));
             return Build(Clone(properties));
         }
 
@@ -57,7 +57,7 @@ namespace Streamstone
         /// </exception>
         public static StreamProperties From(object obj)
         {
-            Requires.NotNull(obj, "obj");
+            Requires.NotNull(obj, nameof(obj));
             return Build(ToDictionary(obj));
         }
 
@@ -71,7 +71,7 @@ namespace Streamstone
         /// </exception>
         public static StreamProperties From(ITableEntity entity)
         {
-            Requires.NotNull(entity, "entity");
+            Requires.NotNull(entity, nameof(entity));
             return Build(ToDictionary(entity));
         }
 
