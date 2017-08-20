@@ -40,7 +40,11 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 [Step] void Package()
 {
     Test();
-	Exec("dotnet", @"pack Source/Streamstone/Streamstone.csproj /p:PackageVersion={Version()} --configuration Release --output ""{OutputPath}""");
+
+    Build("Release");
+
+    Cmd(@"Tools\Nuget.exe pack Build\{Project}.nuspec -Version {Version()} " +
+        @"-OutputDirectory {OutputPath} -BasePath {RootPath}\Source\Streamstone\bin\Release -NoPackageAnalysis");
 }
 
 /// Publishes package to NuGet gallery

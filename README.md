@@ -25,7 +25,7 @@ To install Streamstone via NuGet, run this command in NuGet package manager cons
 
 ## Building from source [![Build status](https://ci.appveyor.com/api/projects/status/3rsmwblor11b6inq/branch/master?svg=true)](https://ci.appveyor.com/project/yevhen/streamstone/branch/master)
 
-NOTE: Currently automated build scripts can be run only on Windows but it's possible to produce binary on Linux by using dotnet cli tooling (ie `dotnet build`). To build Streamstone binaries on Windows you will need to have Visual Studio 17 Update 3 or higher, .NET Core SDK 2.0 and .NET Framework 4.6.1 or higher. 
+Currently, automated build scripts can be run only on Windows but it's possible to produce binary on Linux by using dotnet cli tooling (ie `dotnet build`). To build Streamstone binaries on Windows you will need to have Visual Studio 17 Update 3 or higher, .NET Core SDK 2.0 and .NET Framework 4.6.1 or higher. 
 
 To build Streamstone from cli on Windows, run the following command from solution's root directory:
 
@@ -33,7 +33,7 @@ To build Streamstone from cli on Windows, run the following command from solutio
 
 For a list of available commands run `Nake.bat -T`.
 
-> NOTE: To run unit tests you will need to have Azure Storage Emulator 5.2 or higher. Alternatively, you could run unit tests against real storage by setting storage account connection string to **Streamstone-Test-Storage** user-level environment variable.
+> NOTE: Unit tests require Azure Storage Emulator 5.2 or higher. Alternatively, you could run against real storage by setting storage account connection string to **Streamstone-Test-Storage** user-level environment variable.
 
 ## Design
 
