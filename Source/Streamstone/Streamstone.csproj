@@ -2,22 +2,17 @@
 
   <PropertyGroup>
     <LangVersion>7.1</LangVersion>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Authors>Yevhen Bobrov</Authors>
     <PackageProjectUrl>http://github.com/yevhen/Streamstone</PackageProjectUrl>
     <PackageLicenseUrl>http://github.com/yevhen/Streamstone/blob/master/LICENSE</PackageLicenseUrl>
     <PackageIconUrl>https://github.com/yevhen/Streamstone/raw/master/Logo.png</PackageIconUrl>
     <PackageTags>event store eventstore eventsourcing event-sourcing CQRS azure table storage stream</PackageTags>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <TargetFramework>net461</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <TargetFrameworks>netstandard2.0;netstandard1.6</TargetFrameworks>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile>bin\Release\Streamstone.xml</DocumentationFile>
   </PropertyGroup>
 
