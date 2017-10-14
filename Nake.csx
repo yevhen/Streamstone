@@ -43,7 +43,7 @@ var AppVeyor = Var["APPVEYOR"] == "True";
 
     Build("Release");
 
-    Cmd(@"Tools\Nuget.exe pack Build\{Project}.nuspec -Version {Version()} " +
+    Cmd(@"Tools\Nuget.exe pack Source\Streamstone\{Project}.nuspec -Version {Version()} " +
         @"-OutputDirectory {OutputPath} -BasePath {RootPath}\Source\Streamstone\bin\Release -NoPackageAnalysis");
 }
 
