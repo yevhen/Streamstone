@@ -12,10 +12,6 @@
     <description>Streamstone is a lightweight library which implements a low-level mechanics of Event Store on top of Windows Azure Table Storage. Handles concurrency conflicts via optimistic locking. Supports custom event and stream metadata. Optimized for batch processing.</description>
     <tags>event store eventstore eventsourcing event-sourcing CQRS azure table storage stream</tags>
     <dependencies>
-      <group targetFramework=".NETStandard1.6">
-        <dependency id="NETStandard.Library" version="1.6.1" exclude="Build,Analyzers" />
-        <dependency id="WindowsAzure.Storage" version="8.3.0" exclude="Build,Analyzers" />
-      </group>
       <group targetFramework=".NETStandard2.0">
         <dependency id="NETStandard.Library" version="2.0.0" exclude="Build,Analyzers" />
         <dependency id="WindowsAzure.Storage" version="8.3.0" exclude="Build,Analyzers" />
@@ -23,9 +19,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="netstandard1.6\Streamstone.dll" target="lib/netstandard1.6" />
-    <file src="netstandard1.6\Streamstone.pdb" target="lib/netstandard1.6" />
-    <file src="netstandard1.6\Streamstone.xml" target="lib/netstandard1.6" />
     <file src="netstandard2.0\Streamstone.dll" target="lib/netstandard2.0" />
     <file src="netstandard2.0\Streamstone.pdb" target="lib/netstandard2.0" />
     <file src="netstandard2.0\Streamstone.xml" target="lib/netstandard2.0" />
