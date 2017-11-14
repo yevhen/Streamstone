@@ -14,4 +14,4 @@ build_script:
     make package
 test: off
 artifacts:
-- path: Output\Package\*.nupkg
+- path: Output\*.nupkg
