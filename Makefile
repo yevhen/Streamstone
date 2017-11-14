@@ -18,14 +18,15 @@ verify:
 	-l:trx\;LogFileName=${nunit-test-results} \
 	--results-directory ${OUT_DIR}
 
-package: verify build-release
+package:
 	@${nuget} pack ${CURDIR}/Source/${PROJECT}/${PROJECT}.nuspec \
 	-Version ${VERSION} \
 	-OutputDirectory ${OUT_DIR} \
 	-BasePath ${CURDIR}/Source/Streamstone/bin/Release \
 	-NoPackageAnalysis
-	
+
 	$(if $(filter $(APPVEYOR),True), \
+		@echo Uploading test results using job id $(APPVEYOR_JOB_ID), \
 		@curl -XPOST --data-binary $(OUT_DIR)/$(nunit-test-results) \
 		https://ci.appveyor.com/api/testresults/mstest/$(APPVEYOR_JOB_ID))
 

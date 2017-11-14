@@ -11,7 +11,7 @@ build_script:
 - cmd: >-
     "C:\Program Files (x86)\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe" start
     
-    make package
+    make package APPVEYOR=True
 test: off
 artifacts:
 - path: Output\*.nupkg
