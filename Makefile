@@ -26,7 +26,6 @@ package: verify build-release
 	-NoPackageAnalysis
 
 	$(if $(filter $(APPVEYOR),True), \
-		@echo Uploading test results using job id#$(APPVEYOR_JOB_ID), \
 		curl -F '-data=@$(OUT_DIR)/$(nunit-test-results)' \
 		https://ci.appveyor.com/api/testresults/mstest/$(APPVEYOR_JOB_ID))
 
