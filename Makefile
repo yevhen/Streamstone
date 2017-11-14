@@ -18,7 +18,7 @@ verify:
 	-l:trx\;LogFileName=${nunit-test-results} \
 	--results-directory ${OUT_DIR}
 
-package:
+package: verify build-release
 	@${nuget} pack ${CURDIR}/Source/${PROJECT}/${PROJECT}.nuspec \
 	-Version ${VERSION} \
 	-OutputDirectory ${OUT_DIR} \
