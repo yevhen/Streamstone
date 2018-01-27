@@ -16,11 +16,17 @@
         <dependency id="NETStandard.Library" version="2.0.0" exclude="Build,Analyzers" />
         <dependency id="WindowsAzure.Storage" version="8.3.0" exclude="Build,Analyzers" />
       </group>
+      <group targetFramework=".NETFramework4.5">
+        <dependency id="WindowsAzure.Storage" version="8.3.0" exclude="Build,Analyzers" />
+      </group>
     </dependencies>
   </metadata>
   <files>
     <file src="netstandard2.0\Streamstone.dll" target="lib/netstandard2.0" />
     <file src="netstandard2.0\Streamstone.pdb" target="lib/netstandard2.0" />
     <file src="netstandard2.0\Streamstone.xml" target="lib/netstandard2.0" />
+    <file src="net46\Streamstone.dll" target="lib/net46" />
+    <file src="net46\Streamstone.pdb" target="lib/net46" />
+    <file src="net46\Streamstone.xml" target="lib/net46" />
   </files>
 </package>
