@@ -10,7 +10,7 @@ build_script:
 - cmd: >-
     "C:\Program Files (x86)\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe" start
     
-    Nake.bat APPVEYOR=True package
+    Nake.bat APPVEYOR=True pack
 test: off
 artifacts:
 - path: Output\*.nupkg
