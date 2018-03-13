@@ -15,7 +15,7 @@ Streamstone is a small library targeted at building scalable event-sourced appli
 + Change tracking support for inline projections
 + Friendly for multi-tenant designs
 + Sharding support (jump consistent hashing)
-+ Compatible with .NET Standard 1.6 and higher
++ Compatible with .NET Standard 2.0 and .NET Framework 4.6
 
 ## Installing from NuGet [![NuGet](https://img.shields.io/nuget/v/Streamstone.svg?style=flat)](https://www.nuget.org/packages/Streamstone/)
 
