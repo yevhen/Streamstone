@@ -3,8 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <StartupObject>Example.Program</StartupObject>
-    <LangVersion>7.1</LangVersion>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>$(ConsoleProjectTargetFramework)</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 

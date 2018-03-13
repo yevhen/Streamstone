@@ -1,35 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DocumentationFile>$(OutDir)\Streamstone.xml</DocumentationFile>
     <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
-    <LangVersion>7.1</LangVersion>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Authors>Yevhen Bobrov</Authors>
-    <PackageProjectUrl>http://github.com/yevhen/Streamstone</PackageProjectUrl>
-    <PackageLicenseUrl>http://github.com/yevhen/Streamstone/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageIconUrl>https://github.com/yevhen/Streamstone/raw/master/Logo.png</PackageIconUrl>
-    <PackageTags>event store eventstore eventsourcing event-sourcing CQRS azure table storage stream</PackageTags>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageId>Streamstone</PackageId>
+    <Title>Streamstone core library</Title>
+    <Description>Streamstone is a lightweight library which implements a low-level mechanics of Event Store on top of Windows Azure Table Storage. Handles concurrency conflicts via optimistic locking. Supports custom event and stream metadata. Optimized for batch processing.</Description>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\Streamstone.xml</DocumentationFile>
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <SourceLinkCreate>true</SourceLinkCreate>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Product.cs" Link="Properties\Product.cs" />
-    <Compile Include="..\Streamstone.Version.cs" Link="Properties\Streamstone.Version.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="WindowsAzure.Storage" Version="8.6.0" />
+    <PackageReference Include="WindowsAzure.Storage" Version="$(WindowsAzureStorageVersion)" />
   </ItemGroup>
 
 </Project>

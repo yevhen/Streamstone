@@ -6,12 +6,11 @@ install:
     
     dotnet-sdk-2.0.0-win-x64.exe /install /quiet /norestart /log install.log
     
-    choco install make
 build_script:
 - cmd: >-
     "C:\Program Files (x86)\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe" start
     
-    make package APPVEYOR=True
+    Nake.bat APPVEYOR=True package
 test: off
 artifacts:
 - path: Output\*.nupkg
