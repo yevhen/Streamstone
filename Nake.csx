@@ -25,7 +25,7 @@ var RootPath = "%NakeScriptDirectory%";
 var ArtifactsPath = $@"{RootPath}\Artifacts";
 var ReleasePackagesPath = $@"{ArtifactsPath}\Release";
 
-var AppVeyor = Var["APPVEYOR"] == "True";
+var AppVeyor = false;
 var Version = "2.0.0-dev";
 
 /// Installs dependencies and builds sources in Debug mode
