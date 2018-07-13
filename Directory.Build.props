@@ -5,6 +5,11 @@
         <SourceRoot>$(MSBuildThisFileDirectory)</SourceRoot>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <Configurations>Debug;Release</Configurations>    
+        <Platforms>AnyCPU</Platforms>
+    </PropertyGroup>
+
     <!-- Set common properties regarding assembly information and nuget packages -->
     <PropertyGroup>    
         <Authors>Yevhen Bobrov</Authors>
@@ -23,6 +28,8 @@
 
     <!-- Common compile parameters -->
     <PropertyGroup>
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <Prefer32Bit>false</Prefer32Bit>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <NoWarn>$(NoWarn);1591</NoWarn>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -36,7 +43,8 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <ConsoleProjectTargetFramework>netcoreapp2.0</ConsoleProjectTargetFramework>
+        <LibProjectTargetFramework>netstandard2.0</LibProjectTargetFramework>
+        <ConsoleProjectTargetFramework>netcoreapp2.1</ConsoleProjectTargetFramework>
         <TestProjectTargetFramework>$(ConsoleProjectTargetFramework)</TestProjectTargetFramework>
     </PropertyGroup>
 
@@ -44,9 +52,9 @@
     <PropertyGroup>
     	
         <!-- Testing packages -->
-        <NUnitVersion>3.9.0</NUnitVersion>
-        <NUnit3TestAdapterVersion>3.9.0</NUnit3TestAdapterVersion>
-        <MicrosoftNETTestSdkVersion>15.6.0</MicrosoftNETTestSdkVersion>
+        <NUnitVersion>3.10.0</NUnitVersion>
+        <NUnit3TestAdapterVersion>3.10.0</NUnit3TestAdapterVersion>
+        <MicrosoftNETTestSdkVersion>15.7.2</MicrosoftNETTestSdkVersion>
         <ExpectedObjectsVersion>2.3.4</ExpectedObjectsVersion>
 
         <!-- 3rd party packages -->
