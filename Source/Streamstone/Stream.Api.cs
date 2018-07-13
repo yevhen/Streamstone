@@ -90,15 +90,47 @@ namespace Streamstone
         /// <exception cref="ConcurrencyConflictException">
         ///     If write operation has conflicts
         /// </exception>
-        public static Task<StreamWriteResult> WriteAsync(Stream stream, params EventData[] events)
+        public static Task<StreamWriteResult> WriteAsync(Stream stream, params EventData[] events) => 
+            WriteAsync(stream, StreamWriteOptions.Default, events);
+
+        /// <summary>
+        /// Initiates an asynchronous operation that writes the given array of events to a stream using specified stream header.
+        /// </summary>
+        /// <param name="stream">The stream header.</param>
+        /// <param name="options">The stream write options.</param>
+        /// <param name="events">The events to write.</param>
+        /// <returns>
+        ///     The promise, that wil eventually return the result of the stream write operation 
+        ///     containing updated stream header or will fail with exception
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="stream"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="events"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///    If <paramref name="events"/> array is empty
+        /// </exception>
+        /// <exception cref="DuplicateEventException">
+        ///     If event with the given id already exists in a storage
+        /// </exception>
+        /// <exception cref="IncludedOperationConflictException">
+        ///     If included entity operation has conflicts
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If write operation has conflicts
+        /// </exception>
+        public static Task<StreamWriteResult> WriteAsync(Stream stream, StreamWriteOptions options, params EventData[] events)
         {
-            Requires.NotNull(stream, nameof(stream));
-            Requires.NotNull(events, nameof(events));
+            Requires.NotNull(stream,  nameof(stream));
+            Requires.NotNull(options, nameof(options));
+            Requires.NotNull(events,  nameof(events));
 
             if (events.Length == 0)
                 throw new ArgumentOutOfRangeException("events", "Events have 0 items");
 
-            return new WriteOperation(stream, events).ExecuteAsync();
+            return new WriteOperation(stream, options, events).ExecuteAsync();
         }
 
         /// <summary>
@@ -134,6 +166,43 @@ namespace Streamstone
         /// </exception>
         public static async Task<StreamWriteResult> WriteAsync(Partition partition, int expectedVersion, params EventData[] events)
         {
+            return await WriteAsync(partition, StreamWriteOptions.Default, expectedVersion, events);
+        } 
+        
+        /// <summary>
+        /// Initiates an asynchronous operation that writes the given array of events to a partition using specified expected version.
+        /// </summary>
+        /// <remarks>For new stream specify expected version as 0</remarks>
+        /// <param name="partition">The partition.</param>
+        /// <param name="options">The stream write options.</param>
+        /// <param name="expectedVersion">The expected version of the stream.</param>
+        /// <param name="events">The events to write.</param>
+        /// <returns>
+        ///     The result of the stream write operation containing updated stream header
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="events"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///    If <paramref name="expectedVersion"/> is less than 0
+        /// </exception> 
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///    If <paramref name="events"/> array is empty
+        /// </exception>
+        /// <exception cref="DuplicateEventException">
+        ///     If event with the given id already exists in a storage
+        /// </exception>
+        /// <exception cref="IncludedOperationConflictException">
+        ///     If included entity operation has conflicts
+        /// </exception>
+        /// <exception cref="ConcurrencyConflictException">
+        ///     If write operation has conflicts
+        /// </exception>
+        public static async Task<StreamWriteResult> WriteAsync(Partition partition, StreamWriteOptions options, int expectedVersion, params EventData[] events)
+        {
             Requires.NotNull(partition, nameof(partition));
             Requires.GreaterThanOrEqualToZero(expectedVersion, nameof(expectedVersion));
 
@@ -144,7 +213,7 @@ namespace Streamstone
             if (stream.Version != expectedVersion)
                 throw ConcurrencyConflictException.StreamChangedOrExists(partition);
 
-            return await WriteAsync(stream, events);
+            return await WriteAsync(stream, options, events);
         }
         
         /// <summary>

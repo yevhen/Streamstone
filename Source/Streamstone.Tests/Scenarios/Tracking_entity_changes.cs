@@ -30,6 +30,29 @@ namespace Streamstone.Scenarios
         }
 
         [Test]
+        public void When_disabled()
+        {
+            var entity = new TestEntity(EntityRowKey, "*");
+
+            var insert = Include.Insert(entity);
+            var replace = Include.Replace(entity);
+
+            EventData[] events =
+            {
+                CreateEvent(insert), 
+                CreateEvent(replace)
+            };
+
+            var options = new StreamWriteOptions {TrackChanges = false};
+
+            Assert.ThrowsAsync<StorageException>(() => Stream.WriteAsync(stream, options, events),
+                "Should fail since there conflicting operations");
+
+            var stored = RetrieveTestEntity(entity.RowKey);
+            Assert.That(stored, Is.Null, "Should not insert entity due to ETG failure");
+        }
+
+        [Test]
         public void When_normal_flow()
         {
             var entity = new TestEntity(EntityRowKey) { Data = "12" };
@@ -613,12 +636,6 @@ namespace Streamstone.Scenarios
                 TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, rowKey));
 
             return table.ExecuteQuery<TEntity>(filter).SingleOrDefault();
-            //return table.CreateQuery<TEntity>()
-            //            .Where(x =>
-            //                   x.PartitionKey == partition.PartitionKey
-            //                   && x.RowKey == rowKey)
-            //            .ToList()
-            //            .SingleOrDefault();
         }
 
         static EventData CreateEvent(params Include[] includes)
@@ -631,10 +648,11 @@ namespace Streamstone.Scenarios
             public TestEntity()
             {}
 
-            public TestEntity(string rowKey)
+            public TestEntity(string rowKey, string etag = null)
             {
                 RowKey = rowKey;
                 Data = DateTime.UtcNow.ToString();
+                ETag = etag;
             }
 
             public string Data { get; set; }            

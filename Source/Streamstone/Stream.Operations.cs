@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
@@ -73,12 +72,14 @@ namespace Streamstone
             const int MaxOperationsPerChunk = 99;
 
             readonly Stream stream;
+            readonly StreamWriteOptions options;
             readonly CloudTable table;
             readonly IEnumerable<RecordedEvent> events;
 
-            public WriteOperation(Stream stream, IEnumerable<EventData> events)
+            public WriteOperation(Stream stream, StreamWriteOptions options, IEnumerable<EventData> events)
             {
                 this.stream = stream;
+                this.options = options;
                 this.events = stream.Record(events);
                 table = stream.Partition.Table;
             }
@@ -89,7 +90,7 @@ namespace Streamstone
 
                 foreach (var chunk in Chunks())
                 {
-                    var batch = chunk.ToBatch(current);
+                    var batch = chunk.ToBatch(current, options);
 
                     try
                     {
@@ -162,11 +163,11 @@ namespace Streamstone
 
                 public bool IsEmpty => events.Count == 0;
 
-                public Batch ToBatch(Stream stream)
+                public Batch ToBatch(Stream stream, StreamWriteOptions options)
                 {
                     var entity = stream.Entity();
                     entity.Version += events.Count; 
-                    return new Batch(entity, events);
+                    return new Batch(entity, events, options);
                 }
             }
 
@@ -177,12 +178,14 @@ namespace Streamstone
                 
                 readonly StreamEntity stream;
                 readonly List<RecordedEvent> events;
+                readonly StreamWriteOptions options;
                 readonly Partition partition;
 
-                internal Batch(StreamEntity stream, List<RecordedEvent> events)
+                internal Batch(StreamEntity stream, List<RecordedEvent> events, StreamWriteOptions options)
                 {
                     this.stream = stream;
                     this.events = events;
+                    this.options = options;
                     partition = stream.Partition;
                 }
 
@@ -201,6 +204,12 @@ namespace Streamstone
 
                 void WriteIncludes()
                 {
+                    if (!options.TrackChanges)
+                    {
+                        operations.AddRange(events.SelectMany(x => x.IncludedOperations));
+                        return;
+                    }
+                    
                     var tracker = new EntityChangeTracker();
 
                     foreach (var @event in events)
