@@ -199,6 +199,19 @@ namespace Streamstone
             }
         }
 
+        internal class UpdateMerge : EntityOperation
+        {
+            public UpdateMerge(ITableEntity entity)
+                : base(entity)
+            {}
+
+            protected override TableOperation AsTableOperation() => 
+                TableOperation.Merge(Entity);
+
+            public override EntityOperation Merge(EntityOperation other) => 
+                throw new InvalidOperationException("Internal-only stream header merge operation");
+        }
+
         class Null : EntityOperation
         {
             internal Null()

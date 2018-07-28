@@ -58,11 +58,14 @@ namespace Streamstone
         public EntityOperation Operation()
         {
             var isTransient = ETag == null;
+            
+            return isTransient ? Insert() : ReplaceOrMerge();
 
-            return isTransient
-                    ? (EntityOperation) 
-                      new EntityOperation.Insert(this)
-                    : new EntityOperation.Replace(this);
+            EntityOperation.Insert Insert() => new EntityOperation.Insert(this);
+
+            EntityOperation ReplaceOrMerge() => ReferenceEquals(Properties, StreamProperties.None)
+                ? new EntityOperation.UpdateMerge(this)
+                : (EntityOperation)new EntityOperation.Replace(this);
         }
 
         [IgnoreProperty]

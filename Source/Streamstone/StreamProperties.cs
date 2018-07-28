@@ -81,7 +81,7 @@ namespace Streamstone
                 .Where(x => !IsReserved(x.Key))
                 .ToDictionary(p => p.Key, p => p.Value);
 
-            return new StreamProperties(filtered);
+            return filtered.Count != 0 ? new StreamProperties(filtered) : None;
         }
 
         static bool IsReserved(string propertyName)

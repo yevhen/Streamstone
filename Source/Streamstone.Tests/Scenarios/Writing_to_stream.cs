@@ -267,7 +267,59 @@ namespace Streamstone.Scenarios
 
             expectedVersion = 0;
 
-            Assert.ThrowsAsync<ConcurrencyConflictException>(async ()=> await Stream.WriteAsync(partition, expectedVersion, CreateEvent("e1"), CreateEvent("e2")));
+            Assert.ThrowsAsync<ConcurrencyConflictException>(async ()=> await 
+                Stream.WriteAsync(partition, expectedVersion, CreateEvent("e1"), CreateEvent("e2")));
+        }
+
+        [Test]
+        public async Task When_writing_to_existing_stream_null_stream_properties()
+        {
+            var properties = new
+            {
+                Property1 = "Foo",
+                Property2 = 42
+            };
+
+            var stream = new Stream(partition, StreamProperties.From(properties));
+            var result = await Stream.WriteAsync(stream, CreateEvent("e1"), CreateEvent("e2"));
+            stream = result.Stream;
+
+            AssertNewStream(result, 2, properties);
+            AssertStreamEntity(2, properties);
+
+            var restored = Stream.From(partition, stream.ETag, stream.Version, properties: null);
+            result = await Stream.WriteAsync(restored, CreateEvent("e3"));
+
+            AssertNewStream(result, 3, new {});
+            AssertStreamEntity(3, properties);
+        }
+
+        [Test]
+        public async Task When_writing_to_existing_stream_non_null_stream_properties()
+        {
+            var properties = new
+            {
+                Property1 = "Foo",
+                Property2 = 42
+            };
+
+            var stream = new Stream(partition, StreamProperties.From(properties));
+            var result = await Stream.WriteAsync(stream, CreateEvent("e1"), CreateEvent("e2"));
+            stream = result.Stream;
+
+            AssertNewStream(result, 2, properties);
+            AssertStreamEntity(2, properties);
+
+            var replaced = new
+            {
+                Property1 = "Bar"
+            };
+
+            var restored = Stream.From(partition, stream.ETag, stream.Version, StreamProperties.From(replaced));
+            result = await Stream.WriteAsync(restored, CreateEvent("e3"));
+
+            AssertNewStream(result, 3, replaced);
+            AssertStreamEntity(3, replaced);
         }
 
         void AssertNewStream(StreamWriteResult actual, int version, object properties = null)

@@ -11,6 +11,43 @@ namespace Streamstone
     public sealed partial class Stream
     {
         /// <summary>
+        /// Restores a <see cref="Stream"/> instance from particular etag, version and optional properties.
+        /// If properties is <c>null</c> the stream header will be merged, otherwise replaced.
+        /// </summary>
+        /// <param name="partition">
+        /// The partition in which a stream resides.
+        /// </param>
+        /// <param name="etag">
+        /// The latest etag
+        /// </param>
+        /// <param name="version">
+        /// The version of the stream corresponding to <paramref name="etag"/>
+        /// </param>
+        /// <param name="properties">
+        /// The additional properties for this stream.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="partition"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="etag"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     If <paramref name="etag"/> resolves to an empty <c>string</c>
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     If <paramref name="version"/> is less than <c>0</c>
+        /// </exception>
+        public static Stream From(Partition partition, string etag, int version, StreamProperties properties = null)
+        {
+            Requires.NotNull(partition, nameof(partition));
+            Requires.NotNullOrEmpty(etag, nameof(etag));
+            Requires.GreaterThanOrEqualToZero(version, nameof(version));
+
+            return new Stream(partition, etag, version, properties ?? StreamProperties.None);
+        }
+
+        /// <summary>
         /// The additional properties (metadata) of this stream
         /// </summary>
         public readonly StreamProperties Properties;
