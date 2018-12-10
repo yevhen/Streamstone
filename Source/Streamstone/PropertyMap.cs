@@ -111,7 +111,7 @@ namespace Streamstone
             if (type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?))
                 return new EntityProperty((DateTimeOffset?)value);
 
-            if (type == typeof(DateTime))
+            if (type == typeof(DateTime) || type == typeof(DateTime?))
                 return new EntityProperty((DateTime?)value);
 
             if (type == typeof(double) || type == typeof(double?))
