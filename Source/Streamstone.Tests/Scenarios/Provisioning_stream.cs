@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using ExpectedObjects;
 
-using Microsoft.WindowsAzure.Storage.Table;
+using Microsoft.Azure.Cosmos.Table;
 
 namespace Streamstone.Scenarios
 {

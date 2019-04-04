@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Microsoft.Azure.Cosmos.Table;
+
 using Newtonsoft.Json;
-using Microsoft.WindowsAzure.Storage.Table;
 
 using Streamstone;
 

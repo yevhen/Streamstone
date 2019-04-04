@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -6,6 +6,10 @@
     <TargetFramework>$(ConsoleProjectTargetFramework)</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json.Bson" Version="$(NewtonsoftJsonBson)" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Streamstone\Streamstone.csproj" />

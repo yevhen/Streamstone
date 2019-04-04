@@ -116,7 +116,7 @@ namespace Example.Scenarios
         {
             var stream = new System.IO.MemoryStream();
             
-            using (var writer = new BsonWriter(stream))
+            using (var writer = new BsonDataWriter(stream))
             {
                 var serializer = new JsonSerializer();
                 serializer.Serialize(writer, data);
