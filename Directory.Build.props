@@ -58,7 +58,8 @@
         <ExpectedObjectsVersion>2.3.4</ExpectedObjectsVersion>
 
         <!-- 3rd party packages -->
-        <WindowsAzureStorageVersion>8.6.0</WindowsAzureStorageVersion>
+        <MicrosoftAzureCosmosTableVersion>1.0.0</MicrosoftAzureCosmosTableVersion>
+        <NewtonsoftJsonBson>1.0.2</NewtonsoftJsonBson>
 
         <!-- Tooling related packages -->
         <SourceLinkVersion>2.7.6</SourceLinkVersion>

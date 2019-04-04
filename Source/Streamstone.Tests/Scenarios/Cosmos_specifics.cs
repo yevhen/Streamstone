@@ -4,10 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Microsoft.Azure.Cosmos.Table;
 
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
+using NUnit.Framework;
 
 namespace Streamstone.Scenarios
 {

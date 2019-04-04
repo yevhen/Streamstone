@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Microsoft.Azure.Cosmos.Table;
+
 using NUnit.Framework;
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Streamstone.Scenarios
 {

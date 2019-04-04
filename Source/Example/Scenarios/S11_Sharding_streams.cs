@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
+
+using Microsoft.Azure.Cosmos.Table;
 
 using Streamstone;
 

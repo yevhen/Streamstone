@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
 using System.Reflection;
+
+using Microsoft.Azure.Cosmos.Table;
 
 namespace Streamstone
 {
