@@ -2,7 +2,7 @@
   <img src="https://github.com/yevhen/Streamstone/blob/master/Logo.Wide.png?raw=true" alt="Streamstone's logo"/>
 </p>
 
-Streamstone is a small library targeted at building scalable event-sourced applications on top of Azure Table Storage. It has simple, functional style API, heavily inspired by Greg Young's Event Store.
+Streamstone is a tiny embeddable library targeted at building scalable event-sourced applications on top of Azure Table Storage. It has simple, functional style API, heavily inspired by Greg Young's Event Store.
 
 ## Features
 
