@@ -38,7 +38,7 @@ namespace Example.Scenarios
 
             var result = await Stream.WriteAsync(stream, events);
 
-            Console.WriteLine("Succesfully written to new stream.\r\nEtag: {0}, Version: {1}",
+            Console.WriteLine("Successfully written to new stream.\r\nEtag: {0}, Version: {1}",
                               result.Stream.ETag, result.Stream.Version);
         }
 
