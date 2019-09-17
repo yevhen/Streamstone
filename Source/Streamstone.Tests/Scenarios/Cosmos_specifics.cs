@@ -69,6 +69,24 @@ namespace Streamstone.Scenarios
             }));
         }
 
+        [Test]
+        public void When_writing_duplicate_event()
+        {
+            var partition = new Partition(table, "test-cosmos-dupes");
+            var stream = new Stream(partition);
+
+            partition.InsertEventIdEntities("e1", "e2");
+            partition.CaptureContents(contents =>
+            {
+                var duplicate = new EventData(EventId.From("e2"));
+
+                Assert.ThrowsAsync<DuplicateEventException>(
+                    async () => await Stream.WriteAsync(stream, new EventData(EventId.From("e3")), duplicate));
+
+                contents.AssertNothingChanged();
+            });
+        }
+
         static EventData CreateEvent(int num)
         {
             var properties = new Dictionary<string, EntityProperty>
