@@ -266,7 +266,7 @@ namespace Streamstone
 
                 static int ParseConflictingEntityPosition(StorageExtendedErrorInformation error)
                 {
-                    var lines = error.ErrorMessage.Split('\n');
+                    var lines = error.ErrorMessage.Trim().Split('\n');
                     if (lines.Length != 3)
                         throw UnexpectedStorageResponseException.ConflictExceptionMessageShouldHaveExactlyThreeLines(error);
 
