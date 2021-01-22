@@ -383,21 +383,23 @@ namespace Streamstone
                 table = partition.Table;
             }
 
-            public async Task<StreamSlice<T>> ExecuteAsync(Func<DynamicTableEntity, T> transform) => 
-                Result(await ExecuteQueryAsync(PrepareQuery()), transform);
-
-            StreamSlice<T> Result(ICollection<DynamicTableEntity> entities, Func<DynamicTableEntity, T> transform)
+            public async Task<StreamSlice<T>> ExecuteAsync(Func<DynamicTableEntity, T> transform)
             {
-                var streamEntity = FindStreamEntity(entities);
-                entities.Remove(streamEntity);
+                var eventsQuery = ExecuteQueryAsync(EventsQuery());
+                var streamRowQuery = ExecuteQueryAsync(StreamRowQuery());
+                await Task.WhenAll(eventsQuery, streamRowQuery);
+                return Result(await eventsQuery, FindStreamEntity(await streamRowQuery), transform);
+            }
 
+            StreamSlice<T> Result(ICollection<DynamicTableEntity> entities, DynamicTableEntity streamEntity, Func<DynamicTableEntity, T> transform)
+            {
                 var stream = BuildStream(streamEntity);
                 var events = BuildEvents(entities, transform);
 
                 return new StreamSlice<T>(stream, events, startVersion, sliceSize);
             }
 
-            TableQuery<DynamicTableEntity> PrepareQuery()
+            TableQuery<DynamicTableEntity> EventsQuery()
             {
                 var rowKeyStart = partition.EventVersionRowKey(startVersion);
                 var rowKeyEnd = partition.EventVersionRowKey(startVersion + sliceSize - 1);
@@ -405,16 +407,23 @@ namespace Streamstone
                 var filter = TableQuery.CombineFilters(
                    TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.PartitionKey), QueryComparisons.Equal, partition.PartitionKey),
                    TableOperators.And,
-                       TableQuery.CombineFilters(
-                           TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.RowKey), QueryComparisons.Equal, partition.StreamRowKey()),
-                           TableOperators.Or,
-                           TableQuery.CombineFilters(
-                                TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.RowKey), QueryComparisons.GreaterThanOrEqual, rowKeyStart),
-                                TableOperators.And,
-                                TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.RowKey), QueryComparisons.LessThanOrEqual, rowKeyEnd)
-                           )
-                       )
-               );
+                   TableQuery.CombineFilters(
+                        TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.RowKey), QueryComparisons.GreaterThanOrEqual, rowKeyStart),
+                        TableOperators.And,
+                        TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.RowKey), QueryComparisons.LessThanOrEqual, rowKeyEnd)
+                   )
+                );
+
+                return new TableQuery<DynamicTableEntity>().Where(filter);
+            }
+            
+            TableQuery<DynamicTableEntity> StreamRowQuery()
+            {
+                var filter = TableQuery.CombineFilters(
+                    TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.PartitionKey), QueryComparisons.Equal, partition.PartitionKey),
+                    TableOperators.And,
+                    TableQuery.GenerateFilterCondition(nameof(DynamicTableEntity.RowKey), QueryComparisons.Equal, partition.StreamRowKey())
+                );
 
                 return new TableQuery<DynamicTableEntity>().Where(filter);
             }
