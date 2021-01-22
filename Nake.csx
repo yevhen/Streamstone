@@ -65,7 +65,7 @@ var Version = "2.0.0-dev";
 {
     Test(!skipFullCheck);
     Build("Release");
-    Exec("dotnet", $"pack --no-build -c Release -p:PackageVersion={Version} {CoreProject}.sln");
+    Exec("dotnet", $"pack --no-build -c Release -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -p:PackageVersion={Version} {CoreProject}.sln");
 }
 
 /// Publishes package to NuGet gallery
@@ -73,7 +73,7 @@ var Version = "2.0.0-dev";
 
 void Push(string package) => Exec("dotnet", 
     @"nuget push {ReleasePackagesPath}\{package}.{Version}.nupkg " +
-    "-k %NuGetApiKey% -s https://nuget.org/ -ss https://nuget.smbsrc.net");
+    "-k %NuGetApiKey% -s https://nuget.org/ --skip-duplicate");
 
 /// Installs binary dependencies 
 [Task] void Restore() => Exec("dotnet", "restore {CoreProject}.sln");
