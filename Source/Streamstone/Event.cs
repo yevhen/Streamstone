@@ -26,6 +26,11 @@ namespace Streamstone
         public EventIncludes Includes { get; }
 
         /// <summary>
+        /// Explicit stream version assigned to this event if any.
+        /// </summary>
+        public int? Version { get; }
+
+        /// <summary>
         /// Constructs a new <see cref="EventData"/> instance which doesn't have any additional properties, includes and id.
         /// </summary>
         public EventData()
@@ -82,7 +87,10 @@ namespace Streamstone
         /// <param name="includes">
         /// Additional entity includes to be stored along with this event.
         ///  </param>
-        public EventData(EventId id, EventProperties properties, EventIncludes includes)
+        /// <param name="version">
+        /// Explicit stream version assigned to this event
+        /// </param>
+        public EventData(EventId id, EventProperties properties, EventIncludes includes, int? version = null)
         {
             Requires.NotNull(properties, nameof(properties));
             Requires.NotNull(includes, nameof(includes));
@@ -90,6 +98,7 @@ namespace Streamstone
             Id = id;
             Includes = includes;
             Properties = properties;
+            Version = version;
         }
 
         internal RecordedEvent Record(Partition partition, int version) => 

@@ -134,7 +134,31 @@ namespace Streamstone
         StreamEntity Entity() => 
             new StreamEntity(Partition, ETag, Version, Properties);
 
-        IEnumerable<RecordedEvent> Record(IEnumerable<EventData> events) => 
-            events.Select((e, i) => e.Record(Partition, Version + i + 1));
+        IEnumerable<RecordedEvent> Record(EventData[] events)
+        {
+            var lastVersion = events[0].Version ?? Version + 1;
+            if (lastVersion <= Version)
+                throw new InvalidOperationException(
+                    $"The specified version '{lastVersion}' of first event " +
+                    $"should be greater than stream version '{Version}'");
+
+            RecordedEvent last = null;
+            for (var i = 0; i < events.Length; i++)
+            {
+                var @event = events[i];
+
+                var recorded = @event.Record(Partition, @event.Version ?? lastVersion);
+                lastVersion = recorded.Version;
+                lastVersion++;
+                
+                if (last != null && recorded.Version <= last.Version)
+                    throw new InvalidOperationException(
+                        $"The specified version '{recorded.Version}' of event [{i}] " +
+                        $"should be greater than version '{last.Version}' of preceding event");
+
+                last = recorded;
+                yield return recorded;
+            }
+        }
     }
 }

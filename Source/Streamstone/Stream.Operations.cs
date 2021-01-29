@@ -75,7 +75,7 @@ namespace Streamstone
             readonly CloudTable table;
             readonly IEnumerable<RecordedEvent> events;
 
-            public WriteOperation(Stream stream, StreamWriteOptions options, IEnumerable<EventData> events)
+            public WriteOperation(Stream stream, StreamWriteOptions options, EventData[] events)
             {
                 this.stream = stream;
                 this.options = options;
@@ -165,7 +165,8 @@ namespace Streamstone
                 public Batch ToBatch(Stream stream, StreamWriteOptions options)
                 {
                     var entity = stream.Entity();
-                    entity.Version += events.Count; 
+                    var lastVersion = events.Last().Version;
+                    entity.Version = lastVersion; 
                     return new Batch(entity, events, options);
                 }
             }

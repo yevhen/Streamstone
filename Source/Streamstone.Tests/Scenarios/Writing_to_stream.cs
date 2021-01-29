@@ -322,6 +322,78 @@ namespace Streamstone.Scenarios
             AssertStreamEntity(3, replaced);
         }
 
+        [Test]
+        public async Task When_writing_events_with_specified_stream_version()
+        {
+            var stream = new Stream(partition);
+
+            const int firstEventVersion = 3;
+            const int secondEventVersion = 5;
+
+            EventData[] events = {CreateEvent("e1", firstEventVersion), CreateEvent("e2", secondEventVersion)};
+            var result = await Stream.WriteAsync(stream, events);
+
+            const int lastEventVersion = secondEventVersion;
+            AssertModifiedStream(stream, result, version: lastEventVersion);
+            AssertStreamEntity(version: lastEventVersion);
+
+            var storedEvents = result.Events;
+            Assert.That(storedEvents.Length, Is.EqualTo(2));
+
+            AssertRecordedEvent(firstEventVersion, events[0], storedEvents[0]);
+            AssertRecordedEvent(secondEventVersion, events[1], storedEvents[1]);
+        }
+
+        [Test]
+        public async Task When_writing_events_with_partially_specified_stream_version()
+        {
+            var stream = new Stream(partition);
+
+            const int firstEventVersion = 3;
+            const int thirdEventVersion = 5;
+
+            EventData[] events = {CreateEvent("e1", firstEventVersion), CreateEvent("e2"), CreateEvent("e3", thirdEventVersion)};
+            var result = await Stream.WriteAsync(stream, events);
+
+            const int lastEventVersion = thirdEventVersion;
+            AssertModifiedStream(stream, result, version: lastEventVersion);
+            AssertStreamEntity(version: lastEventVersion);
+
+            var storedEvents = result.Events;
+            Assert.That(storedEvents.Length, Is.EqualTo(3));
+
+            AssertRecordedEvent(firstEventVersion, events[0], storedEvents[0]);
+            AssertRecordedEvent(firstEventVersion + 1, events[1], storedEvents[1]);
+            AssertRecordedEvent(thirdEventVersion, events[2], storedEvents[2]);
+        }
+
+        [Test]
+        public void When_writing_events_with_partially_specified_stream_version_with_negative_increment()
+        {
+            var stream = new Stream(partition);
+
+            EventData[] events = {CreateEvent("e1", 1), CreateEvent("e2", 2), CreateEvent("e3", 2)};
+            Assert.ThrowsAsync<InvalidOperationException>(async ()=> await Stream.WriteAsync(stream, events));
+
+            events = new[] {CreateEvent("e1", 1), CreateEvent("e2"), CreateEvent("e3", 2)};
+            Assert.ThrowsAsync<InvalidOperationException>(async ()=> await Stream.WriteAsync(stream, events));
+
+            events = new[] {CreateEvent("e1", 1), CreateEvent("e2", 3), CreateEvent("e3", 2)};
+            Assert.ThrowsAsync<InvalidOperationException>(async ()=> await Stream.WriteAsync(stream, events));
+        }
+
+        [Test]
+        public async Task When_writing_event_with_specified_version_which_is_less_than_or_equal_to_stream_version()
+        {
+            var result = await Stream.WriteAsync(partition, 0, CreateEvent("e1"), CreateEvent("e2"));
+
+            Assert.ThrowsAsync<InvalidOperationException>(async ()=> await 
+                Stream.WriteAsync(result.Stream, CreateEvent("e3", result.Stream.Version)));
+
+            Assert.ThrowsAsync<InvalidOperationException>(async ()=> await 
+                Stream.WriteAsync(result.Stream, CreateEvent("e3", result.Stream.Version - 1)));
+        }
+
         void AssertNewStream(StreamWriteResult actual, int version, object properties = null)
         {
             var newStream = actual.Stream;
@@ -400,7 +472,7 @@ namespace Streamstone.Scenarios
             expected.ToExpectedObject().ShouldMatch(actual);
         }
 
-        static EventData CreateEvent(string id = null)
+        static EventData CreateEvent(string id = null, int? version = null)
         {
             var properties = new Dictionary<string, EntityProperty>
             {
@@ -412,7 +484,7 @@ namespace Streamstone.Scenarios
                 ? EventId.From(id) 
                 : EventId.None;
 
-            return new EventData(eventId, EventProperties.From(properties));
+            return new EventData(eventId, EventProperties.From(properties), EventIncludes.None, version);
         }
 
         class TestEntity : TableEntity
