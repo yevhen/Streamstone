@@ -9,7 +9,7 @@ build_script:
     - npm ci
     - npm run build
     - npm install -g
-    - sh azurite -l ~/.data
+    - (exec azurite -l ~/.data &)
     - sleep 5
     - cd ..
     - Nake.bat AppVeyor=true pack
