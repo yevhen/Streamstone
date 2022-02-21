@@ -18,6 +18,7 @@ var ArtifactsPath = $@"{RootPath}\Artifacts";
 var ReleasePackagesPath = $@"{ArtifactsPath}\Release";
 
 var AppVeyorJobId = Var["APPVEYOR_JOB_ID"];
+var TargetFramework = "netcoreapp6.0";
 var Version = "2.0.0-dev";
 
 /// Installs dependencies and builds sources in Debug mode
@@ -28,12 +29,13 @@ var Version = "2.0.0-dev";
     await $@"dotnet build {CoreProject}.sln /p:Configuration={config} {(verbose ? "/v:d" : "")}";
 
 /// Runs unit tests 
-[Step] async Task Test(bool slow = false)
+// Runs unit tests 
+[Nake] async Task Test(bool slow = false)
 {
     await Build("Debug");
 
-    var tests = new FileSet{$@"{RootPath}\**\bin\Debug\**\*.Tests.dll"}.ToString(" ");
-    var results = $@"{ArtifactsPath}\nunit-test-results.xml";
+    var tests = new FileSet{$"{RootPath}/**/bin/Debug/{TargetFramework}/*.Tests.dll"}.ToString(" ");
+    var results = $@"{ArtifactsPath}/nunit-test-results.xml";    
 
     try
     {
@@ -44,7 +46,7 @@ var Version = "2.0.0-dev";
     {    	
         if (AppVeyorJobId != null)
         {
-            var workerApi = $"https://ci.appveyor.com/api/testresults/nunit/{AppVeyorJobId}";
+            var workerApi = $"https://ci.appveyor.com/api/testresults/mstest/{AppVeyorJobId}";
             Info($"Uploading {results} to {workerApi} using job id {AppVeyorJobId} ...");
             
             var response = new WebClient().UploadFile(workerApi, results);
