@@ -1,0 +1,3 @@
+[submodule "Azurite"]
+	path = Azurite
+	url = https://github.com/Azure/Azurite.git
