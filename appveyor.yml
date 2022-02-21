@@ -1,6 +1,11 @@
-version: 2.0.'{build}'
+skip_tags: true
+
+version: 2.0.{build}
 
 image: Ubuntu
+
+init:
+    - git config --global core.autocrlf input
 
 build_script:
     - git submodule init
@@ -14,8 +19,6 @@ build_script:
     - cd ..
     - dotnet tool restore
     - dotnet nake pack
-
-test: off
 
 artifacts:
 - path: Artifacts\Release\*.nupkg
