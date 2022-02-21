@@ -12,7 +12,7 @@ build_script:
     - (exec azurite -l ~/.data &)
     - sleep 5
     - cd ..
-    - Nake.bat AppVeyor=true pack
+    - dotnet nake pack
 
 test: off
 
