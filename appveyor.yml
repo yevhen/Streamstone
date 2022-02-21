@@ -6,6 +6,7 @@ build_script:
     - git submodule init
     - git submodule update
     - cd Azurite
+    - npm ci
     - npm run build
     - npm install -g
     - azurite -l ~/.data
