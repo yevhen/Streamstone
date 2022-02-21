@@ -1,9 +1,13 @@
 version: 2.0.'{build}'
 
-image: Visual Studio 2022
+image: Ubuntu
 
 build_script:
-    - call "C:\Program Files (x86)\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe" start   
+    - cd Azurite
+    - npm run build
+    - npm install -g
+    - azurite -l ~/.data
+    - cd ..
     - Nake.bat AppVeyor=true pack
 
 test: off
