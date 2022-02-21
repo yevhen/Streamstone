@@ -1,6 +1,6 @@
 version: 2.0.'{build}'
 
-image: Visual Studio 2017
+image: Visual Studio 2022
 
 build_script:
     - call "C:\Program Files (x86)\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe" start   
