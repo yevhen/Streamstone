@@ -1,10 +1,11 @@
-﻿#r "Packages/Nake/2.4.0/tools/net45/Meta.dll"
-#r "Packages/Nake/2.4.0/tools/net45/Utility.dll"
+﻿#r "nuget: Nake.Meta, 3.0.0"
+#r "nuget: Nake.Utility, 3.0.0"
 
 #r "System.Xml"
 #r "System.Xml.Linq"
 #r "System.IO.Compression"
 #r "System.IO.Compression.FileSystem"
+#r "System.Net.WebClient"
 
 using Nake;
 using static Nake.FS;
@@ -29,7 +30,7 @@ var AppVeyor = false;
 var Version = "2.0.0-dev";
 
 /// Installs dependencies and builds sources in Debug mode
-[Task] void Default()
+[Nake] void Default()
 {
     Restore();
     Build();
@@ -76,4 +77,4 @@ void Push(string package) => Exec("dotnet",
     "-k %NuGetApiKey% -s https://nuget.org/ --skip-duplicate");
 
 /// Installs binary dependencies 
-[Task] void Restore() => Exec("dotnet", "restore {CoreProject}.sln");
+[Nake] void Restore() => Exec("dotnet", "restore {CoreProject}.sln");
