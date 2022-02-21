@@ -44,7 +44,7 @@ var Version = "2.0.0-dev";
     {    	
         if (AppVeyorJobId != null)
         {
-            var workerApi = $"https://ci.appveyor.com/api/testresults/mstest/{AppVeyorJobId}";
+            var workerApi = $"https://ci.appveyor.com/api/testresults/nunit/{AppVeyorJobId}";
             Info($"Uploading {results} to {workerApi} using job id {AppVeyorJobId} ...");
             
             var response = new WebClient().UploadFile(workerApi, results);
