@@ -42,3 +42,6 @@ orleans.codegen.cs
 
 /.vs
 /.vscode
+/.idea
+/.azurit
+.DS_Store
