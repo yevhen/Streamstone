@@ -48,8 +48,8 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <LibProjectTargetFramework>netstandard2.0</LibProjectTargetFramework>
-        <ConsoleProjectTargetFramework>netcoreapp6.0</ConsoleProjectTargetFramework>
+        <LibProjectTargetFramework>netcoreapp7.0</LibProjectTargetFramework>
+        <ConsoleProjectTargetFramework>netcoreapp7.0</ConsoleProjectTargetFramework>
         <TestProjectTargetFramework>$(ConsoleProjectTargetFramework)</TestProjectTargetFramework>
     </PropertyGroup>
 
