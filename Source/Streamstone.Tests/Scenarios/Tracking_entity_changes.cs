@@ -31,6 +31,9 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_disabled()
         {
+            if (Storage.IsAzurite())
+                Assert.Ignore("Azurite use only the latest op for same entity in ETG");
+
             var entity = new TestEntity(EntityRowKey, "*");
 
             var insert = Include.Insert(entity);
@@ -167,6 +170,9 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_including_unconditional_replace_for_transient_entity()
         {
+            if (Storage.IsAzurite())
+                Assert.Ignore("Azurite doesn't fully support ETags");
+
             var entity = new TestEntity(EntityRowKey) { ETag = "*" };
 
             Assert.ThrowsAsync<StorageException>(() =>

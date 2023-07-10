@@ -13,6 +13,8 @@ namespace Streamstone
     {
         const string TableName = "Streams";
 
+        public static bool IsAzurite() => Environment.GetEnvironmentVariable("Streamstone-Azurite", EnvironmentVariableTarget.User) == "true";
+
         public static CloudTable SetUp()
         {
             var account = TestStorageAccount();
