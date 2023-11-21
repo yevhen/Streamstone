@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Linq;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 
 namespace Streamstone
 {
@@ -16,7 +15,7 @@ namespace Streamstone
         /// <summary>
         /// The table in which this partition resides
         /// </summary>
-        public readonly CloudTable Table;
+        public readonly TableClient Table;
 
         /// <summary>
         /// The partition key
@@ -39,7 +38,7 @@ namespace Streamstone
         /// <param name="table">The cloud table.</param>
         /// <param name="key">The full key.</param>
         /// <remarks>Use "partitionkey|rowkeyprefix" key syntax to create virtual partition</remarks>
-        public Partition(CloudTable table, string key)
+        public Partition(TableClient table, string key)
         {
             Requires.NotNull(table, nameof(table));
             Requires.NotNullOrEmpty(key, nameof(key));
@@ -62,7 +61,7 @@ namespace Streamstone
         /// <param name="table">The cloud table.</param>
         /// <param name="partitionKey">The partition's own key.</param>
         /// <param name="rowKeyPrefix">The row's key prefix.</param>
-        public Partition(CloudTable table, string partitionKey, string rowKeyPrefix)
+        public Partition(TableClient table, string partitionKey, string rowKeyPrefix)
         {
             Requires.NotNull(table, nameof(table));
             Requires.NotNullOrEmpty(partitionKey, nameof(partitionKey));
@@ -81,7 +80,7 @@ namespace Streamstone
         }
 
         internal string StreamRowKey() => string.Format("{0}{1}", RowKeyPrefix, StreamEntity.FixedRowKey);
-        internal string EventVersionRowKey(int version) => string.Format("{0}{1}{2:d10}", RowKeyPrefix, EventEntity.RowKeyPrefix, version);
+        internal string EventVersionRowKey(long version) => string.Format("{0}{1}{2:d10}", RowKeyPrefix, EventEntity.RowKeyPrefix, version);
         internal string EventIdRowKey(string id) => string.Format("{0}{1}{2}", RowKeyPrefix, EventIdEntity.RowKeyPrefix, id);
 
         /// <summary>

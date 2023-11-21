@@ -1,6 +1,6 @@
 ﻿using System;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 
 namespace Streamstone
 {

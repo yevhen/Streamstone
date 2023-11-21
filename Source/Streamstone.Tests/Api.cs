@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace Streamstone
+﻿namespace Streamstone
 {
     public static class Api
     {
@@ -11,7 +8,7 @@ namespace Streamstone
         public const string EventRowKeyPrefix = "SS-SE-";
         public const string EventIdRowKeyPrefix = "SS-UID-";
 
-        public static string FormatEventRowKey(this int version) => $"{EventRowKeyPrefix}{version:d10}";
+        public static string FormatEventRowKey(this long version) => $"{EventRowKeyPrefix}{version:d10}";
         public static string FormatEventIdRowKey(this string id) => $"{EventIdRowKeyPrefix}{id}";
     }
 }

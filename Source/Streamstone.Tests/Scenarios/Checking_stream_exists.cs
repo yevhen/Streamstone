@@ -1,7 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 
 using NUnit.Framework;
 
@@ -11,7 +10,7 @@ namespace Streamstone.Scenarios
     public class Checking_stream_exists
     {
         Partition partition;
-        CloudTable table;
+        TableClient table;
 
         [SetUp]
         public void SetUp()

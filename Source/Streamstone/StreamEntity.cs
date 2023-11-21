@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.Serialization;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure;
+using Azure.Data.Tables;
 
 namespace Streamstone
 {
-    class StreamEntity : TableEntity
+    class StreamEntity : ITableEntity
     {
         public const string FixedRowKey = "SS-HEAD";
 
@@ -15,7 +15,7 @@ namespace Streamstone
             Properties = StreamProperties.None;
         }
 
-        public StreamEntity(Partition partition, string etag, int version, StreamProperties properties)
+        public StreamEntity(Partition partition, ETag etag, long version, StreamProperties properties)
         {
             Partition = partition;
             PartitionKey = partition.PartitionKey;
@@ -25,23 +25,22 @@ namespace Streamstone
             Properties = properties;
         }
 
-        public int Version                  { get; set; }
-        public StreamProperties Properties  { get; set; }
+        public string PartitionKey { get; set; }
 
-        public override void ReadEntity(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
-        {
-            base.ReadEntity(properties, operationContext);
-            Properties = StreamProperties.ReadEntity(properties);
-        }
+        public string RowKey { get; set; }
 
-        public override IDictionary<string, EntityProperty> WriteEntity(OperationContext operationContext)
-        {
-            var result = base.WriteEntity(operationContext);
-            Properties.WriteTo(result);
-            return result;
-        }
+        public DateTimeOffset? Timestamp { get; set; }
 
-        public static StreamEntity From(DynamicTableEntity entity)
+        public ETag ETag { get; set; }
+
+        public long Version { get; set; }
+
+        public StreamProperties Properties { get; set; }
+
+        [IgnoreDataMember]
+        public Partition Partition { get; set; }
+
+        public static StreamEntity From(TableEntity entity)
         {
             return new StreamEntity
             {
@@ -49,14 +48,14 @@ namespace Streamstone
                 RowKey = entity.RowKey,
                 ETag = entity.ETag,
                 Timestamp = entity.Timestamp,
-                Version = (int)entity.Properties["Version"].PropertyAsObject,
+                Version = (long)entity.GetInt64("Version"),
                 Properties = StreamProperties.From(entity)
             };
         }
 
         public EntityOperation Operation()
         {
-            var isTransient = ETag == null;
+            var isTransient = string.IsNullOrEmpty(ETag.ToString());
             
             return isTransient ? Insert() : ReplaceOrMerge();
 
@@ -64,13 +63,7 @@ namespace Streamstone
 
             EntityOperation ReplaceOrMerge() => ReferenceEquals(Properties, StreamProperties.None)
                 ? new EntityOperation.UpdateMerge(this)
-                : (EntityOperation)new EntityOperation.Replace(this);
-        }
-
-        [IgnoreProperty]
-        public Partition Partition
-        {
-            get; set;
+                : new EntityOperation.Replace(this);
         }
     }
 }

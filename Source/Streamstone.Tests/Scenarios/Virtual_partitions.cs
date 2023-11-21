@@ -1,9 +1,7 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 
 using NUnit.Framework;
 
@@ -12,7 +10,7 @@ namespace Streamstone.Scenarios
     [TestFixture]
     public class Virtual_partitions
     {
-        CloudTable table;
+        TableClient table;
         
         Partition partition;
         Partition virtual1;
@@ -70,10 +68,10 @@ namespace Streamstone.Scenarios
 
         static EventData CreateEvent(string id)
         {
-            var properties = new Dictionary<string, EntityProperty>
+            var properties = new Dictionary<string, object>
             {
-                {"Type", new EntityProperty("StreamChanged")},
-                {"Data", new EntityProperty("{}")}
+                {"Type", "StreamChanged"},
+                {"Data", "{}"}
             };
 
             return new EventData(EventId.From(id), EventProperties.From(properties));

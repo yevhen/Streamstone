@@ -44,12 +44,12 @@
     <!-- Common project props -->
     <PropertyGroup>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <LangVersion>10</LangVersion>
+        <LangVersion>latest</LangVersion>
     </PropertyGroup>
 
     <PropertyGroup>
-        <LibProjectTargetFramework>net7.0</LibProjectTargetFramework>
-        <ConsoleProjectTargetFramework>net7.0</ConsoleProjectTargetFramework>
+        <LibProjectTargetFramework>net8.0</LibProjectTargetFramework>
+        <ConsoleProjectTargetFramework>net8.0</ConsoleProjectTargetFramework>
         <TestProjectTargetFramework>$(ConsoleProjectTargetFramework)</TestProjectTargetFramework>
     </PropertyGroup>
 
@@ -63,7 +63,7 @@
         <ExpectedObjectsVersion>2.3.4</ExpectedObjectsVersion>
 
         <!-- 3rd party packages -->
-        <MicrosoftAzureCosmosTableVersion>1.0.0</MicrosoftAzureCosmosTableVersion>
+        <AzureDataTablesVersion>12.8.2</AzureDataTablesVersion>
         <NewtonsoftJsonBson>1.0.2</NewtonsoftJsonBson>
 
         <!-- Tooling related packages -->

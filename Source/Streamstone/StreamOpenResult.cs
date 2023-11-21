@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace Streamstone
+﻿namespace Streamstone
 {
     /// <summary>
     /// Represent the result of stream open attempt.

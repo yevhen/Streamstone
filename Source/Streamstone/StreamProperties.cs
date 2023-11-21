@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 
 namespace Streamstone
 {
@@ -17,13 +17,22 @@ namespace Streamstone
         public static readonly StreamProperties None = new StreamProperties();
 
         StreamProperties()
-        {}
+        { }
 
-        StreamProperties(IDictionary<string, EntityProperty> properties) 
+        StreamProperties(IDictionary<string, object> properties)
             : base(properties)
-        {}
+        { }
 
-        internal static StreamProperties ReadEntity(IDictionary<string, EntityProperty> properties)
+        public override void CopyFrom(TableEntity entity)
+        {
+            Clear();
+            foreach (var property in Build(entity))
+            {
+                Add(property.Key, property.Value);
+            }
+        }
+
+        internal static StreamProperties ReadEntity(IDictionary<string, object> properties)
         {
             Requires.NotNull(properties, nameof(properties));
             return Build(properties);
@@ -37,10 +46,10 @@ namespace Streamstone
         /// <exception cref="ArgumentNullException">
         ///     If <paramref name="properties"/> is <c>null</c>
         /// </exception>
-        public static StreamProperties From(IDictionary<string, EntityProperty> properties)
+        public static StreamProperties From(IDictionary<string, object> properties)
         {
             Requires.NotNull(properties, nameof(properties));
-            return Build(Clone(properties));
+            return Build(properties);
         }
 
         /// <summary>
@@ -69,13 +78,13 @@ namespace Streamstone
         /// <exception cref="ArgumentNullException">
         ///     If <paramref name="entity"/> is <c>null</c>
         /// </exception>
-        public static StreamProperties From(ITableEntity entity)
+        public static StreamProperties From(TableEntity entity)
         {
             Requires.NotNull(entity, nameof(entity));
-            return Build(ToDictionary(entity));
+            return Build(entity.ToDictionary());
         }
 
-        static StreamProperties Build(IEnumerable<KeyValuePair<string, EntityProperty>> properties)
+        static StreamProperties Build(IEnumerable<KeyValuePair<string, object>> properties)
         {
             var filtered = properties
                 .Where(x => !IsReserved(x.Key))
@@ -86,17 +95,13 @@ namespace Streamstone
 
         static bool IsReserved(string propertyName)
         {
-            switch (propertyName)
-            {
-                case "PartitionKey":
-                case "RowKey":
-                case "ETag":
-                case "Timestamp":
-                case "Version":
-                    return true;
-                default:
-                    return false;
-            }
+            return propertyName
+                is nameof(StreamEntity.PartitionKey) 
+                or nameof(StreamEntity.RowKey)
+                or nameof(StreamEntity.ETag) 
+                or "odata.etag" 
+                or nameof(StreamEntity.Timestamp) 
+                or nameof(StreamEntity.Version);
         }
     }
 }

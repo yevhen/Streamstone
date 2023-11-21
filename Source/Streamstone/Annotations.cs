@@ -15,7 +15,6 @@
  */
 
 using System;
-using System.Linq;
 
 namespace Streamstone
 {

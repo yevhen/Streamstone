@@ -26,7 +26,7 @@
         /// </summary>
         public readonly bool IsEndOfStream;
 
-        internal StreamSlice(Stream stream, T[] events, int startVersion, int sliceSize)
+        internal StreamSlice(Stream stream, T[] events, long startVersion, long sliceSize)
         {
             Stream = stream;
             Events = events;

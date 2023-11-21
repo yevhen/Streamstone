@@ -51,7 +51,7 @@ namespace Streamstone
                 if (current == EntityOperation.None)
                     return null;
 
-                var transient = string.IsNullOrEmpty(current.Entity.ETag);
+                var transient = string.IsNullOrEmpty(current.Entity.ETag.ToString());
 
                 if (transient && current is EntityOperation.Replace)
                     throw new InvalidOperationException(

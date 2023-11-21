@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure;
+using Azure.Data.Tables;
 
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
@@ -17,7 +17,7 @@ namespace Streamstone.Scenarios
     {
         const string EntityRowKey = "INV-0001";
         Partition partition;
-        CloudTable table;
+        TableClient table;
         Stream stream;
 
         [SetUp]
@@ -34,7 +34,7 @@ namespace Streamstone.Scenarios
             if (Storage.IsAzurite())
                 Assert.Ignore("Azurite use only the latest op for same entity in ETG");
 
-            var entity = new TestEntity(EntityRowKey, "*");
+            var entity = new TestEntity(EntityRowKey);
 
             var insert = Include.Insert(entity);
             var replace = Include.Replace(entity);
@@ -47,7 +47,7 @@ namespace Streamstone.Scenarios
 
             var options = new StreamWriteOptions {TrackChanges = false};
 
-            Assert.ThrowsAsync<StorageException>(() => Stream.WriteAsync(stream, options, events),
+            Assert.ThrowsAsync<TableTransactionFailedException>(() => Stream.WriteAsync(stream, options, events),
                 "Should fail since there conflicting operations");
 
             var stored = RetrieveTestEntity(entity.RowKey);
@@ -136,12 +136,12 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_including_replace_with_empty_or_null_Etag()
         {
-            var entity = new TestEntity(EntityRowKey) { ETag = null };
+            var entity = new TestEntity(EntityRowKey) { ETag = new ETag(null) };
 
             Assert.ThrowsAsync<InvalidOperationException>(() =>
                 Stream.WriteAsync(stream, CreateEvent(Include.Replace(entity))));
 
-            entity.ETag = "";
+            entity.ETag = new ETag(string.Empty);
 
             Assert.ThrowsAsync<InvalidOperationException>(() =>
                 Stream.WriteAsync(stream, CreateEvent(Include.Replace(entity))));
@@ -156,7 +156,7 @@ namespace Streamstone.Scenarios
             entity = new TestEntity(EntityRowKey)
             {
                 Data = "456",
-                ETag = "*"
+                ETag = ETag.All
             };
 
             Assert.DoesNotThrowAsync(() => 
@@ -173,9 +173,9 @@ namespace Streamstone.Scenarios
             if (Storage.IsAzurite())
                 Assert.Ignore("Azurite doesn't fully support ETags");
 
-            var entity = new TestEntity(EntityRowKey) { ETag = "*" };
+            var entity = new TestEntity(EntityRowKey) { ETag = ETag.All };
 
-            Assert.ThrowsAsync<StorageException>(() =>
+            Assert.ThrowsAsync<TableTransactionFailedException>(() =>
                 Stream.WriteAsync(stream, CreateEvent(Include.Replace(entity))),
                     "Will be always executed and exception will be thrown by the storage");
         }
@@ -186,7 +186,7 @@ namespace Streamstone.Scenarios
             var entity = new TestEntity(EntityRowKey) { Data = "123" };
             InsertTestEntity(entity);
 
-            entity = new TestEntity(EntityRowKey) { ETag = "*" };
+            entity = new TestEntity(EntityRowKey) { ETag = ETag.All };
             Assert.DoesNotThrowAsync(() =>
                 Stream.WriteAsync(stream, CreateEvent(Include.Delete(entity))),
                     "Will be always executed and will delete row");
@@ -198,9 +198,9 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_including_unconditional_delete_for_transient_entity()
         {
-            var entity = new TestEntity(EntityRowKey) { ETag = "*" };
+            var entity = new TestEntity(EntityRowKey) { ETag = ETag.All };
 
-            Assert.ThrowsAsync<StorageException>(() =>
+            Assert.ThrowsAsync<TableTransactionFailedException>(() =>
                 Stream.WriteAsync(stream, CreateEvent(Include.Delete(entity))),
                         "Will be always executed and exception will be thrown by the storage");
         }
@@ -211,7 +211,7 @@ namespace Streamstone.Scenarios
             var entity = new TestEntity(EntityRowKey)
             {
                 Data = "911",
-                ETag = "*"
+                ETag = ETag.All
             };
 
             EventData[] events =
@@ -234,7 +234,7 @@ namespace Streamstone.Scenarios
             var entity = new TestEntity(EntityRowKey)
             {
                 Data = "911",
-                ETag = "*"
+                ETag = ETag.All
             };
 
             InsertTestEntity(entity);
@@ -624,7 +624,7 @@ namespace Streamstone.Scenarios
         void InsertTestEntity(ITableEntity entity)
         {
             entity.PartitionKey = partition.PartitionKey;
-            table.ExecuteAsync(TableOperation.Insert(entity)).Wait();
+            table.AddEntity(entity);
         }
 
         TestEntity RetrieveTestEntity(string rowKey)
@@ -633,14 +633,11 @@ namespace Streamstone.Scenarios
         }
 
         TEntity RetrieveEntity<TEntity>(string rowKey)
-            where TEntity : TableEntity, new()
+            where TEntity : class, ITableEntity, new()
         {
-            var filter = TableQuery.CombineFilters(
-                TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partition.PartitionKey),
-                TableOperators.And,
-                TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, rowKey));
+            var response = table.GetEntityIfExists<TEntity>(partition.PartitionKey, rowKey);
 
-            return table.ExecuteQuery<TEntity>(filter).SingleOrDefault();
+            return response.HasValue ? response.Value : null;
         }
 
         static EventData CreateEvent(params Include[] includes)
@@ -648,33 +645,49 @@ namespace Streamstone.Scenarios
             return new EventData(EventId.None, EventProperties.None, EventIncludes.From(includes));
         }
 
-        public class TestEntity : TableEntity
+        public class TestEntity : ITableEntity
         {
             public TestEntity()
-            {}
+            { }
 
-            public TestEntity(string rowKey, string etag = null)
+            public TestEntity(string rowKey, ETag? etag = null)
             {
                 RowKey = rowKey;
                 Data = DateTime.UtcNow.ToString();
-                ETag = etag;
+                ETag = etag ?? ETag.All;
             }
 
-            public string Data { get; set; }            
+            public string PartitionKey { get; set; }
+
+            public string RowKey { get; set; }
+
+            public DateTimeOffset? Timestamp { get; set; }
+
+            public ETag ETag { get; set; }
+
+            public string Data { get; set; }
         }
 
-        public class ExtendedTestEntity : TableEntity
+        public class ExtendedTestEntity : ITableEntity
         {
             public ExtendedTestEntity()
-            {
-            }
+            { }
 
             public ExtendedTestEntity(string rowKey)
             {
                 RowKey = rowKey;
             }
 
+            public string PartitionKey { get; set; }
+
+            public string RowKey { get; set; }
+
+            public DateTimeOffset? Timestamp { get; set; }
+
+            public ETag ETag { get; set; }
+
             public string Data { get; set; }
+
             public string AdditionalData { get; set; }
         }
     }

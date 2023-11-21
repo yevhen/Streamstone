@@ -1,16 +1,17 @@
 using System;
-using System.Linq;
+using System.Runtime.Serialization;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure;
+using Azure.Data.Tables;
 
 namespace Streamstone
 {
-    class EventIdEntity : TableEntity
+    class EventIdEntity : ITableEntity
     {
         public const string RowKeyPrefix = "SS-UID-";
 
         public EventIdEntity()
-        {}
+        { }
 
         public EventIdEntity(Partition partition, RecordedEvent @event)
         {
@@ -20,15 +21,17 @@ namespace Streamstone
             Version = @event.Version;
         }
 
-        public int Version
-        {
-            get; set;
-        }
+        public string PartitionKey { get; set; }
 
-        [IgnoreProperty]
-        public RecordedEvent Event
-        {
-            get; set;
-        }
+        public string RowKey { get; set; }
+
+        public DateTimeOffset? Timestamp { get; set; }
+
+        public ETag ETag { get; set; }
+
+        public long Version { get; set; }
+
+        [IgnoreDataMember]
+        public RecordedEvent Event { get; set; }
     }
 }

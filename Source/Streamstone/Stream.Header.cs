@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Azure;
+using Azure.Data.Tables;
+
 namespace Streamstone
 {
     /// <summary>
@@ -38,10 +41,10 @@ namespace Streamstone
         /// <exception cref="ArgumentException">
         ///     If <paramref name="version"/> is less than <c>0</c>
         /// </exception>
-        public static Stream From(Partition partition, string etag, int version, StreamProperties properties = null)
+        public static Stream From(Partition partition, ETag etag, long version, StreamProperties properties = null)
         {
             Requires.NotNull(partition, nameof(partition));
-            Requires.NotNullOrEmpty(etag, nameof(etag));
+            Requires.NotNullOrEmpty(etag.ToString(), nameof(etag));
             Requires.GreaterThanOrEqualToZero(version, nameof(version));
 
             return new Stream(partition, etag, version, properties ?? StreamProperties.None);
@@ -60,12 +63,12 @@ namespace Streamstone
         /// <summary>
         /// The latest etag
         /// </summary>
-        public readonly string ETag;
+        public readonly ETag ETag;
         
         /// <summary>
         /// The version of the stream. Sequential, monotonically increasing, no gaps.
         /// </summary>
-        public readonly int Version;
+        public readonly long Version;
 
         /// <summary>
         /// Constructs a new <see cref="Stream"/> instance which doesn't have any additional properties.
@@ -104,7 +107,7 @@ namespace Streamstone
             Properties = properties;
         }
 
-        internal Stream(Partition partition, string etag, int version, StreamProperties properties)
+        internal Stream(Partition partition, ETag etag, long version, StreamProperties properties)
         {
             Partition = partition;
             ETag = etag;
@@ -118,7 +121,7 @@ namespace Streamstone
         /// <value>
         /// <c>true</c> if this stream header was newed; otherwise, <c>false</c>.
         /// </value>
-        public bool IsTransient => ETag == null;
+        public bool IsTransient => string.IsNullOrEmpty(ETag.ToString());
 
         /// <summary>
         /// Gets a value indicating whether this stream header represents a persistent stream.
@@ -128,11 +131,21 @@ namespace Streamstone
         /// </value>
         public bool IsPersistent => !IsTransient;
 
+        StreamEntity ToStreamEntity()
+        {
+            return ToStreamEntity(Properties);
+        }
+
+        StreamEntity ToStreamEntity(StreamProperties properties)
+        {
+            return new StreamEntity(Partition, ETag, Version, properties);
+        }
+
         static Stream From(Partition partition, StreamEntity entity) => 
             new Stream(partition, entity.ETag, entity.Version, entity.Properties);
 
-        StreamEntity Entity() => 
-            new StreamEntity(Partition, ETag, Version, Properties);
+        static Stream From(Partition partition, TableEntity entity) =>
+            new Stream(partition, entity.ETag, (long)entity.GetInt64(nameof(Version)), StreamProperties.From(entity));
 
         IEnumerable<RecordedEvent> Record(IEnumerable<EventData> events) => 
             events.Select((e, i) => e.Record(Partition, Version + i + 1));

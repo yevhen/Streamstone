@@ -1,8 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 
 using NUnit.Framework;
 
@@ -12,7 +10,7 @@ namespace Streamstone.Scenarios
     public class Opening_stream
     {
         Partition partition;
-        CloudTable table;
+        TableClient table;
 
         [SetUp]
         public void SetUp()

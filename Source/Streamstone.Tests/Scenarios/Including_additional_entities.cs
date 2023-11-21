@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure;
+using Azure.Data.Tables;
 
 using NUnit.Framework;
 
@@ -15,7 +16,7 @@ namespace Streamstone.Scenarios
     public class Including_additional_entities
     {
         Partition partition;
-        CloudTable table;
+        TableClient table;
 
         [SetUp]
         public void SetUp()
@@ -46,9 +47,9 @@ namespace Streamstone.Scenarios
 
             Assert.That(result.Includes.Length, Is.EqualTo(2));
             Assert.That(result.Includes[0], Is.SameAs(entity1));
-            Assert.That(result.Includes[0].ETag, Is.Not.Null.Or.Empty);
+            Assert.That(result.Includes[0].ETag.ToString(), Is.Not.Null.And.Not.Empty);
             Assert.That(result.Includes[1], Is.SameAs(entity2));
-            Assert.That(result.Includes[1].ETag, Is.Not.Null.Or.Empty);            
+            Assert.That(result.Includes[1].ETag.ToString(), Is.Not.Null.And.Not.Empty);
         }
         
         [Test]
@@ -150,22 +151,16 @@ namespace Streamstone.Scenarios
 
         TestEntity RetrieveTestEntity(string rowKey)
         {
-            var filter = TableQuery.CombineFilters(
-                TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partition.PartitionKey),
-                TableOperators.And,
-                TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, rowKey));
-
-            return table.ExecuteQuery<TestEntity>(filter)
-                        .SingleOrDefault();
+            return table.GetEntityIfExists<TestEntity>(partition.PartitionKey, rowKey).Value;
         }
 
         static EventData CreateEvent(string id, params Include[] includes)
         {
-            var properties = new Dictionary<string, EntityProperty>
+            var properties = new Dictionary<string, object>
             {
-                {"Id",   new EntityProperty(id)},
-                {"Type", new EntityProperty("StreamChanged")},
-                {"Data", new EntityProperty("{}")}
+                {"Id",   id},
+                {"Type", "StreamChanged"},
+                {"Data", "{}"}
             };
 
             return new EventData(
@@ -174,7 +169,7 @@ namespace Streamstone.Scenarios
                             EventIncludes.From(includes));
         }
 
-        class TestEntity : TableEntity
+        class TestEntity : ITableEntity
         {
             public TestEntity()
             {}
@@ -185,7 +180,15 @@ namespace Streamstone.Scenarios
                 Data = DateTime.UtcNow.ToString();
             }
 
-            public string Data { get; set; }            
+            public string PartitionKey { get; set; }
+
+            public string RowKey { get; set; }
+
+            public DateTimeOffset? Timestamp { get; set; }
+
+            public ETag ETag { get; set; }
+
+            public string Data { get; set; }
         }
     }
 }

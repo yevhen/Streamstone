@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-
-using Microsoft.Azure.Cosmos.Table;
+using System.Runtime.Serialization;
 
 using NUnit.Framework;
 
@@ -16,7 +14,7 @@ namespace Streamstone.Scenarios
         public void When_passing_property_with_reserved_name()
         {
             var reserved = ReservedStreamProperties()
-                .ToDictionary(p => p, p => new EntityProperty(42));
+                .ToDictionary(p => p, _ => (object)42);
 
             var properties = StreamProperties.From(reserved);
 
@@ -28,8 +26,8 @@ namespace Streamstone.Scenarios
         {
             return typeof(StreamEntity)
                     .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                    .Where(p => !p.GetCustomAttributes<IgnorePropertyAttribute>(true).Any())
-                    .Where(p => p.Name != "Properties")
+                    .Where(p => p.GetCustomAttribute<IgnoreDataMemberAttribute>(true) == null)
+                    .Where(p => p.Name != nameof(StreamEntity.Properties))
                     .Select(p => p.Name);
         }
     }

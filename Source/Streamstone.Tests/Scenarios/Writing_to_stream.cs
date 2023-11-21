@@ -3,10 +3,12 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Azure;
+using Azure.Data.Tables;
+
 using ExpectedObjects;
 
-using Microsoft.Azure.Cosmos.Table;
+using NUnit.Framework;
 
 namespace Streamstone.Scenarios
 {
@@ -14,7 +16,7 @@ namespace Streamstone.Scenarios
     public class Writing_to_stream
     {
         Partition partition;
-        CloudTable table;
+        TableClient table;
 
         [SetUp]
         public void SetUp()
@@ -93,8 +95,8 @@ namespace Streamstone.Scenarios
             EventData[] events = {CreateEvent("e1"), CreateEvent("e2")};
             var result = await Stream.WriteAsync(stream, events);
 
-            AssertModifiedStream(stream, result, version: 2);
-            AssertStreamEntity(version: 2);
+            AssertModifiedStream(stream, result, version: 2L);
+            AssertStreamEntity(version: 2L);
 
             var storedEvents = result.Events;
             Assert.That(storedEvents.Length, Is.EqualTo(2));
@@ -322,7 +324,7 @@ namespace Streamstone.Scenarios
             AssertStreamEntity(3, replaced);
         }
 
-        void AssertNewStream(StreamWriteResult actual, int version, object properties = null)
+        void AssertNewStream(StreamWriteResult actual, long version, object properties = null)
         {
             var newStream = actual.Stream;
             var newStreamEntity = partition.RetrieveStreamEntity();
@@ -331,7 +333,7 @@ namespace Streamstone.Scenarios
             expectedStream.ToExpectedObject().ShouldEqual(newStream);
         }
 
-        void AssertModifiedStream(Stream previous, StreamWriteResult actual, int version)
+        void AssertModifiedStream(Stream previous, StreamWriteResult actual, long version)
         {
             var actualStream = actual.Stream;
             var actualStreamEntity = partition.RetrieveStreamEntity();
@@ -342,7 +344,7 @@ namespace Streamstone.Scenarios
             expectedStream.ToExpectedObject().ShouldEqual(actualStream);
         }
 
-        Stream CreateStream(int version, string etag, object properties = null)
+        Stream CreateStream(long version, ETag etag, object properties = null)
         {
             var props = properties != null  
                 ? StreamProperties.From(properties) 
@@ -351,7 +353,7 @@ namespace Streamstone.Scenarios
             return new Stream(partition, etag, version, props);
         }
 
-        void AssertStreamEntity(int version = 0, object properties = null)
+        void AssertStreamEntity(long version = 0, object properties = null)
         {
             var newStreamEntity = partition.RetrieveStreamEntity();
 
@@ -367,21 +369,21 @@ namespace Streamstone.Scenarios
             expectedEntity.ToExpectedObject().ShouldMatch(newStreamEntity);
         }
 
-        void AssertRecordedEvent(int version, EventData source, RecordedEvent actual)
+        void AssertRecordedEvent(long version, EventData source, RecordedEvent actual)
         {
             var expected = source.Record(partition, version);
             expected.ToExpectedObject().ShouldMatch(actual);
         }
 
-        static void AssertEventEntity(int version, EventEntity actual)
+        static void AssertEventEntity(long version, EventEntity actual)
         {
             var expected = new
             {
                 RowKey = version.FormatEventRowKey(),
-                Properties = EventProperties.From(new Dictionary<string, EntityProperty>
+                Properties = EventProperties.From(new Dictionary<string, object>
                 {
-                    {"Type", new EntityProperty("StreamChanged")},
-                    {"Data", new EntityProperty("{}")},
+                    {"Type", "StreamChanged"},
+                    {"Data", "{}"},
                 }),
                 Version = version,
             };
@@ -389,7 +391,7 @@ namespace Streamstone.Scenarios
             expected.ToExpectedObject().ShouldMatch(actual);
         }
 
-        static void AssertEventIdEntity(string id, int version, EventIdEntity actual)
+        static void AssertEventIdEntity(string id, long version, EventIdEntity actual)
         {
             var expected = new
             {
@@ -402,10 +404,10 @@ namespace Streamstone.Scenarios
 
         static EventData CreateEvent(string id = null)
         {
-            var properties = new Dictionary<string, EntityProperty>
+            var properties = new Dictionary<string, object>
             {
-                {"Type", new EntityProperty("StreamChanged")},
-                {"Data", new EntityProperty("{}")}
+                {"Type", "StreamChanged"},
+                {"Data", "{}"}
             };
 
             var eventId = id != null 
@@ -415,7 +417,15 @@ namespace Streamstone.Scenarios
             return new EventData(eventId, EventProperties.From(properties));
         }
 
-        class TestEntity : TableEntity
-        {}
+        class TestEntity : ITableEntity
+        {
+            public string PartitionKey { get; set; }
+
+            public string RowKey { get; set; }
+
+            public DateTimeOffset? Timestamp { get; set; }
+
+            public ETag ETag { get; set; }
+        }
     }
 }

@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Azure.Data.Tables;
+
 using ExpectedObjects;
 
-using Microsoft.Azure.Cosmos.Table;
+using NUnit.Framework;
 
 namespace Streamstone.Scenarios
 {
@@ -14,7 +14,7 @@ namespace Streamstone.Scenarios
     public class Provisioning_stream
     {
         Partition partition;
-        CloudTable table;
+        TableClient table;
 
         [SetUp]
         public void SetUp()
@@ -44,7 +44,7 @@ namespace Streamstone.Scenarios
             var expectedEntity = new
             {
                 RowKey = Api.StreamRowKey,
-                Version = 0
+                Version = 0L
             };
 
             expectedEntity.ToExpectedObject().ShouldMatch(entity);
@@ -53,10 +53,10 @@ namespace Streamstone.Scenarios
         [Test]
         public async Task When_provisioning_along_with_custom_properties()
         {
-            var properties = new Dictionary<string, EntityProperty>
+            var properties = new Dictionary<string, object>
             {
-                {"Created", new EntityProperty(DateTimeOffset.Now)},
-                {"Active",  new EntityProperty(true)}
+                {"Created", DateTimeOffset.Now},
+                {"Active",  true}
             };
 
             var stream = await Stream.ProvisionAsync(partition, StreamProperties.From(properties));
@@ -65,7 +65,8 @@ namespace Streamstone.Scenarios
             var expectedStream = new Stream
             (
                 partition,
-                entity.ETag, 0, 
+                entity.ETag, 
+                0L, 
                 StreamProperties.From(properties)
             );
 
@@ -75,7 +76,7 @@ namespace Streamstone.Scenarios
             {
                 RowKey = Api.StreamRowKey,
                 Properties = StreamProperties.From(properties),
-                Version = 0
+                Version = 0L
             };
 
             expectedEntity.ToExpectedObject().ShouldMatch(entity);

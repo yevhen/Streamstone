@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 
 namespace Streamstone
 {
@@ -17,13 +17,22 @@ namespace Streamstone
         public static readonly EventProperties None = new EventProperties();
 
         EventProperties()
-        {}
+        { }
 
-        EventProperties(IDictionary<string, EntityProperty> properties)
+        EventProperties(IDictionary<string, object> properties)
             : base(properties)
-        {}
+        { }
 
-        internal static EventProperties ReadEntity(IDictionary<string, EntityProperty> properties)
+        public override void CopyFrom(TableEntity entity)
+        {
+            Clear();
+            foreach (var property in Build(entity))
+            {
+                Add(property.Key, property.Value);
+            }
+        }
+
+        internal static EventProperties ReadEntity(IDictionary<string, object> properties)
         {
             Requires.NotNull(properties, nameof(properties));
             return Build(properties);
@@ -37,10 +46,10 @@ namespace Streamstone
         /// <exception cref="ArgumentNullException">
         ///     If <paramref name="properties"/> is <c>null</c>
         /// </exception>
-        public static EventProperties From(IDictionary<string, EntityProperty> properties)
+        public static EventProperties From(IDictionary<string, object> properties)
         {
             Requires.NotNull(properties, nameof(properties));
-            return Build(Clone(properties));
+            return Build(properties);
         }
 
         /// <summary>
@@ -61,7 +70,21 @@ namespace Streamstone
             return Build(ToDictionary(obj));
         }
 
-        static EventProperties Build(IEnumerable<KeyValuePair<string, EntityProperty>> properties)
+        /// <summary>
+        /// Creates new instance of <see cref="EventProperties"/> class using public properties of a given table entity.
+        /// </summary>
+        /// <param name="entity">The entity.</param>
+        /// <returns>New instance of <see cref="EventProperties"/> class</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     If <paramref name="entity"/> is <c>null</c>
+        /// </exception>
+        public static EventProperties From(TableEntity entity)
+        {
+            Requires.NotNull(entity, nameof(entity));
+            return Build(entity);
+        }
+
+        static EventProperties Build(IEnumerable<KeyValuePair<string, object>> properties)
         {
             var filtered = properties
                 .Where(x => !IsReserved(x.Key))
@@ -72,17 +95,13 @@ namespace Streamstone
 
         static bool IsReserved(string propertyName)
         {
-            switch (propertyName)
-            {
-                case "PartitionKey":
-                case "RowKey":
-                case "ETag":
-                case "Timestamp":
-                case "Version":
-                    return true;
-                default:
-                    return false;
-            }
+            return propertyName 
+                is nameof(EventEntity.PartitionKey) 
+                or nameof(EventEntity.RowKey)
+                or nameof(EventEntity.ETag) 
+                or "odata.etag" 
+                or nameof(EventEntity.Timestamp) 
+                or nameof(EventEntity.Version);
         }
     }
 }

@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 
 namespace Streamstone
 {
+    using Utility;
+
     public sealed partial class Stream
     {
         /// <summary>
@@ -328,8 +328,8 @@ namespace Streamstone
         /// </exception>
         public static Task<StreamSlice<T>> ReadAsync<T>(
             Partition partition, 
-            int startVersion = 1, 
-            int sliceSize = DefaultSliceSize) 
+            long startVersion = 1, 
+            long sliceSize = DefaultSliceSize) 
             where T : class, new()
         {
             Requires.NotNull(partition, nameof(partition));
@@ -337,7 +337,7 @@ namespace Streamstone
             Requires.GreaterThanOrEqualToOne(sliceSize, nameof(sliceSize));
 
             return new ReadOperation<T>(partition, startVersion, sliceSize)
-                .ExecuteAsync(BuildEntity<T>());
+                .ExecuteAsync(e => e.AsEntity<T>());
         }
 
         /// <summary>
@@ -372,36 +372,7 @@ namespace Streamstone
             Requires.GreaterThanOrEqualToOne(sliceSize, nameof(sliceSize));
 
             return new ReadOperation<EventProperties>(partition, startVersion, sliceSize)
-                .ExecuteAsync(BuildEventProperties);
-        }
-
-        static Func<DynamicTableEntity, T> BuildEntity<T>() where T : class, new()
-        {
-            if (typeof(T) == typeof(DynamicTableEntity))
-                return e => e as T;
-
-            return e =>
-            {
-                var t = new T();
-
-                if (t is ITableEntity entity)
-                {
-                    entity.ReadEntity(e.Properties, new OperationContext());
-                    entity.PartitionKey = e.PartitionKey;
-                    entity.RowKey = e.RowKey;
-                    entity.ETag = e.ETag;
-                    entity.Timestamp = e.Timestamp;
-                    return t;
-                }
-
-                TableEntity.ReadUserObject(t, e.Properties, new OperationContext());
-                return t;
-            };
-        }
-
-        static EventProperties BuildEventProperties(DynamicTableEntity e)
-        {
-            return EventProperties.ReadEntity(e.Properties);
+                .ExecuteAsync(EventProperties.ReadEntity);
         }
     }
 }

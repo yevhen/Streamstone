@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 
 namespace Streamstone
 {
@@ -35,7 +36,7 @@ namespace Streamstone
 
         internal StreamNotFoundException(Partition partition)
             : base("Stream header was not found in partition '{1}' which resides in '{0}' table located at {2}",
-                   partition.Table, partition, partition.Table.StorageUri)
+                   partition.Table, partition, partition.Table.Uri)
         {
             Partition = partition;
         }
@@ -58,7 +59,7 @@ namespace Streamstone
 
         internal DuplicateEventException(Partition partition, string id)
             : base("Found existing event with id '{3}' in partition '{1}' which resides in '{0}' table located at {2}",
-                   partition.Table, partition, partition.Table.StorageUri, id)
+                   partition.Table, partition, partition.Table.Uri, id)
         {
             Partition = partition;
             Id = id;
@@ -94,7 +95,7 @@ namespace Streamstone
             var message = string.Format(
                 "Included '{3}' operation had conflicts in partition '{1}' which resides in '{0}' table located at {2}\n" +
                 "Dump of conflicting [{5}] contents follows: \n\t{4}",
-                partition.Table, partition, partition.Table.StorageUri, 
+                partition.Table, partition, partition.Table.Uri, 
                 include.GetType().Name, dump, include.Entity.GetType());
 
             return new IncludedOperationConflictException(partition, include.Entity, message);
@@ -102,12 +103,13 @@ namespace Streamstone
 
         static string Dump(ITableEntity entity)
         {
-            var result = new StringBuilder();
-
-            foreach (var property in entity.WriteEntity(new OperationContext()))
-                result.Append($"\"{property.Key}\" : {property.Value}");
-
-            return result.ToString();
+            return JsonSerializer.Serialize(entity, new JsonSerializerOptions
+            {
+                IncludeFields = false,
+                WriteIndented = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+                Converters = { new JsonStringEnumConverter() }
+            });
         }
     }
 
@@ -123,12 +125,12 @@ namespace Streamstone
 
         internal ConcurrencyConflictException(Partition partition, string details)
             : base("Concurrent write detected for partition '{1}' which resides in table '{0}' located at {2}. See details below.\n{3}",
-                   partition.Table, partition, partition.Table.StorageUri, details)
+                   partition.Table, partition, partition.Table.Uri, details)
         {
             Partition = partition;
         }
 
-        internal static Exception EventVersionExists(Partition partition, int version)
+        internal static Exception EventVersionExists(Partition partition, long version)
         {
             return new ConcurrencyConflictException(partition, string.Format("Event with version '{0}' is already exists", version));            
         }
@@ -141,43 +143,6 @@ namespace Streamstone
         internal static Exception StreamChangedOrExists(Partition partition)
         {
             return new ConcurrencyConflictException(partition, "Stream header has been changed or already exists in a storage");
-        }
-    }
-
-    /// <summary>
-    /// This exception is thrown when Streamstone receives unexpected response from underlying WATS layer.
-    /// </summary>
-    public sealed class UnexpectedStorageResponseException : StreamstoneException
-    {
-        /// <summary>
-        /// The error information
-        /// </summary>
-        public readonly StorageExtendedErrorInformation Error;
-
-        UnexpectedStorageResponseException(StorageExtendedErrorInformation error, string details)
-            : base("Unexpected Table Storage response. Details: " + details)
-        {
-            Error = error;
-        }
-
-        internal static Exception ErrorCodeShouldBeEntityAlreadyExists(StorageExtendedErrorInformation error)
-        {
-            return new UnexpectedStorageResponseException(error, "Erorr code should be indicated as 'EntityAlreadyExists' but was: " + error.ErrorCode);
-        }
-
-        internal static Exception ConflictExceptionMessageShouldHaveExactlyThreeLines(StorageExtendedErrorInformation error)
-        {
-            return new UnexpectedStorageResponseException(error, "Conflict exception message should have exactly 3 lines");
-        }
-
-        internal static Exception ConflictExceptionMessageShouldHaveSemicolonOnFirstLine(StorageExtendedErrorInformation error)
-        {
-            return new UnexpectedStorageResponseException(error, "Conflict exception message should have semicolon on first line");
-        }
-
-        internal static Exception UnableToParseTextBeforeSemicolonToInteger(StorageExtendedErrorInformation error)
-        {
-            return new UnexpectedStorageResponseException(error, "Unable to parse text on first line before semicolon as integer");
         }
     }
 }
