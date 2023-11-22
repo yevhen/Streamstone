@@ -1,9 +1,11 @@
+using Azure;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 
 using Streamstone;
 using Streamstone.Utility;
@@ -36,11 +38,7 @@ namespace Example.Scenarios
             // the below code will scan all rows in a single physical partition
             // also, if there more than 1000 streams (header rows), pagination need to be utilized as per regular ATS limits
 
-            var filter = TableQuery.CombineFilters(
-                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, Partition.PartitionKey),
-                    TableOperators.And,
-                    TableQuery.GenerateFilterCondition(nameof(StreamHeaderEntity.RowType), QueryComparisons.Equal, "STREAM")
-                );
+            var filter = TableClient.CreateQueryFilter($"PartitionKey eq {Partition.PartitionKey} and {nameof(StreamHeaderEntity.RowType)} eq STREAM");
 
             var count = Partition.Table
                 .ExecuteQuery<StreamHeaderEntity>(filter)
@@ -71,7 +69,7 @@ namespace Example.Scenarios
             // also, if there more than 1000 streams (header rows), pagination need to be utilized as per regular ATS limits
 
             var count = Partition
-                .RowKeyPrefixQuery<DynamicTableEntity>(StreamHeaderEntity.Prefix)
+                .RowKeyPrefixQuery<TableEntity>(StreamHeaderEntity.Prefix)
                 .ToList()
                 .Count;
 
@@ -107,7 +105,7 @@ namespace Example.Scenarios
             return new Partition(Partition.Table, Partition.PartitionKey + "|" + stream);
         }
 
-        class StreamHeaderEntity : TableEntity
+        class StreamHeaderEntity : ITableEntity
         {
             public const string Prefix = "STREAM|";
 
@@ -118,6 +116,14 @@ namespace Example.Scenarios
             {
                 RowKey = Prefix + id;
             }
+
+            public string PartitionKey { get; set; }
+
+            public string RowKey { get; set; }
+
+            public DateTimeOffset? Timestamp { get; set; }
+
+            public ETag ETag { get; set; }
 
             public string RowType { get; set; }
         }
@@ -151,18 +157,18 @@ namespace Example.Scenarios
                 return await Stream.WriteAsync(stream, events);
             }
 
-            async Task Record(Partition partition)
+            Task Record(Partition partition)
             {
-                var header = new DynamicTableEntity(directory.PartitionKey, partition.ToString());
-                await directory.Table.ExecuteAsync(TableOperation.Insert(header));
+                var header = new TableEntity(directory.PartitionKey, partition.ToString());
+                return directory.Table.AddEntityAsync(header);
             }
 
             public IEnumerable<string> Streams()
             {
                 // NOTE: if there more than 1000 streams (header rows) in directory,
                 //       pagination need to be implemented as per regular ATS limits
-                var filter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, directory.PartitionKey);
-                return directory.Table.ExecuteQuery<DynamicTableEntity>(filter)
+                var filter = TableClient.CreateQueryFilter($"PartitionKey eq {directory.PartitionKey}");
+                return directory.Table.ExecuteQuery<TableEntity>(filter)
                                 .Select(x => x.RowKey);
             }
         }

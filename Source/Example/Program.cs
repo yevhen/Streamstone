@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 
 namespace Example
 {
@@ -47,14 +47,11 @@ namespace Example
             Console.ReadKey(true);
         }
 
-        static async Task<CloudTable> Prepare()
+        static async Task<TableClient> Prepare()
         {
-            var table = CloudStorageAccount
-                .DevelopmentStorageAccount
-                .CreateCloudTableClient()
-                .GetTableReference("Example");
+            var table = new TableClient("UseDevelopmentStorage=true", "Example");
 
-            await table.DeleteIfExistsAsync();
+            await table.DeleteAsync();
             await table.CreateIfNotExistsAsync();
 
             return table;

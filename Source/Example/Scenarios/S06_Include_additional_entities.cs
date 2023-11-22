@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Azure;
+
+using System;
 using System.Threading.Tasks;
 
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 
 using Newtonsoft.Json;
 
@@ -58,10 +60,20 @@ namespace Example.Scenarios
                             EventIncludes.From(includes));
         }
 
-        class InventoryItemShapshot : TableEntity
+        class InventoryItemShapshot : ITableEntity
         {
+            public string PartitionKey { get; set; }
+
+            public string RowKey { get; set; }
+
+            public DateTimeOffset? Timestamp { get; set; }
+
+            public ETag ETag { get; set; }
+
             public string Name { get; set; }
-            public int Count   { get; set; }
+
+            public int Count { get; set; }
+
             public int Version { get; set; }
         }
     }
