@@ -57,17 +57,14 @@
     <PropertyGroup>
 
         <!-- Testing packages -->
-        <NUnitVersion>3.10.0</NUnitVersion>
-        <NUnit3TestAdapterVersion>3.10.0</NUnit3TestAdapterVersion>
-        <MicrosoftNETTestSdkVersion>15.7.2</MicrosoftNETTestSdkVersion>
-        <ExpectedObjectsVersion>2.3.4</ExpectedObjectsVersion>
+        <NUnitVersion>3.14.0</NUnitVersion>
+        <NUnit3TestAdapterVersion>4.5.0</NUnit3TestAdapterVersion>
+        <MicrosoftNETTestSdkVersion>17.8.0</MicrosoftNETTestSdkVersion>
+        <ExpectedObjectsVersion>3.5.4</ExpectedObjectsVersion>
 
         <!-- 3rd party packages -->
         <AzureDataTablesVersion>12.8.2</AzureDataTablesVersion>
         <NewtonsoftJsonBson>1.0.2</NewtonsoftJsonBson>
-
-        <!-- Tooling related packages -->
-        <SourceLinkVersion>2.7.6</SourceLinkVersion>
 
     </PropertyGroup>
 
