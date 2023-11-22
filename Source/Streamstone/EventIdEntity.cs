@@ -33,9 +33,9 @@ namespace Streamstone
             {
                 PartitionKey = entity.PartitionKey,
                 RowKey = entity.RowKey,
-                ETag = entity.ETag,
                 Timestamp = entity.Timestamp,
-                Version = (long)entity.GetInt64(nameof(Version))!,
+                ETag = entity.ETag,
+                Version = (long)entity.GetInt64(nameof(Version)),
             };
         }
     }

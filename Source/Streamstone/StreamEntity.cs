@@ -49,8 +49,8 @@ namespace Streamstone
             {
                 PartitionKey = entity.PartitionKey,
                 RowKey = entity.RowKey,
-                ETag = entity.ETag,
                 Timestamp = entity.Timestamp,
+                ETag = entity.ETag,
                 Version = (long)entity.GetInt64(nameof(Version))!,
                 Properties = StreamProperties.From(entity)
             };

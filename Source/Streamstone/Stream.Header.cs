@@ -141,13 +141,19 @@ namespace Streamstone
             return new StreamEntity(Partition, ETag, Version, properties);
         }
 
-        static Stream From(Partition partition, StreamEntity entity) => 
-            new Stream(partition, entity.ETag, entity.Version, entity.Properties);
+        static Stream From(Partition partition, StreamEntity entity)
+        {
+            return new Stream(partition, entity.ETag, entity.Version, entity.Properties);
+        }
 
-        static Stream From(Partition partition, TableEntity entity) =>
-            new Stream(partition, entity.ETag, (long)entity.GetInt64(nameof(Version)), StreamProperties.From(entity));
+        static Stream From(Partition partition, TableEntity entity)
+        {
+            return new Stream(partition, entity.ETag, (long)entity.GetInt64(nameof(Version)), StreamProperties.From(entity));
+        }
 
-        IEnumerable<RecordedEvent> Record(IEnumerable<EventData> events) => 
-            events.Select((e, i) => e.Record(Partition, Version + i + 1));
+        IEnumerable<RecordedEvent> Record(IEnumerable<EventData> events)
+        {
+            return events.Select((e, i) => e.Record(Partition, Version + i + 1));
+        }
     }
 }

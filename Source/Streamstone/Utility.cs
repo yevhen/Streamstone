@@ -56,6 +56,9 @@ namespace Streamstone
         {
             public static T ToObject<T>(this TableEntity entity) where T : class, new()
             {
+                if (typeof(T) == typeof(TableEntity))
+                    return entity as T;
+
                 var obj = new T();
 
                 foreach (var property in typeof(T).GetTypeInfo().DeclaredProperties)
