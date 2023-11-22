@@ -234,8 +234,18 @@ namespace Streamstone
 
                 internal Stream Result(Response<IReadOnlyList<Response>> response)
                 {
-                    var streamIndex = operations.FindIndex(x => x.Entity.RowKey == stream.RowKey);
-                    stream.ETag = response.Value[streamIndex].Headers.ETag.Value;
+                    for (var i = 0; i < operations.Count; i++)
+                    {
+                        var entity = operations[i].Entity;
+                        var etag = response.Value[i].Headers.ETag;
+
+                        if (etag.HasValue)
+                            entity.ETag = etag.Value;
+
+                        if (entity.RowKey == stream.RowKey)
+                            stream.ETag = etag.Value;
+                    }
+
                     return From(partition, stream);
                 }
 
