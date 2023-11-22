@@ -263,12 +263,10 @@ namespace Streamstone
                         throw ConcurrencyConflictException.StreamChangedOrExists(partition);
 
                     if (conflicting.RowKey.StartsWith(EventIdEntity.RowKeyPrefix))
-                        //throw new DuplicateEventException(partition, id.Event.Id);
-                        throw new Exception();
+                        throw new DuplicateEventException(partition);
 
                     if (conflicting.RowKey.StartsWith(EventEntity.RowKeyPrefix))
-                        //throw ConcurrencyConflictException.EventVersionExists(partition, @event.Version);
-                        throw new Exception();
+                        throw ConcurrencyConflictException.EventVersionExists(partition);
 
                     var include = operations.Single(x => x.Entity.RowKey == conflicting.RowKey);
                     throw IncludedOperationConflictException.Create(partition, include);

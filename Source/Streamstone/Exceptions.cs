@@ -52,17 +52,11 @@ namespace Streamstone
         /// </summary>
         public readonly Partition Partition;
 
-        /// <summary>
-        /// The id of duplicate event
-        /// </summary>
-        public readonly string Id;
-
-        internal DuplicateEventException(Partition partition, string id)
-            : base("Found existing event with id '{3}' in partition '{1}' which resides in '{0}' table located at {2}",
-                   partition.Table, partition, partition.Table.Uri, id)
+        internal DuplicateEventException(Partition partition)
+            : base("Found existing event in partition '{1}' which resides in '{0}' table located at {2}",
+                   partition.Table, partition, partition.Table.Uri)
         {
             Partition = partition;
-            Id = id;
         }
     }
 
@@ -130,9 +124,9 @@ namespace Streamstone
             Partition = partition;
         }
 
-        internal static Exception EventVersionExists(Partition partition, long version)
+        internal static Exception EventVersionExists(Partition partition)
         {
-            return new ConcurrencyConflictException(partition, string.Format("Event with version '{0}' is already exists", version));            
+            return new ConcurrencyConflictException(partition, "Event version already exists");            
         }
 
         internal static Exception StreamChanged(Partition partition)
