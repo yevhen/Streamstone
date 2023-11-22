@@ -24,14 +24,14 @@ namespace Streamstone
         }
 
         [AssertionMethod]
-        public static void GreaterThanOrEqualToZero(long argument, [InvokerParameterName] string argumentName)
+        public static void GreaterThanOrEqualToZero(int argument, [InvokerParameterName] string argumentName)
         {
             if (argument < 0)
                 throw new ArgumentOutOfRangeException(argumentName, argumentName + " should be >= 0");
         }
 
         [AssertionMethod]
-        public static void GreaterThanOrEqualToOne(long argument, [InvokerParameterName] string argumentName)
+        public static void GreaterThanOrEqualToOne(int argument, [InvokerParameterName] string argumentName)
         {
             if (argument < 1)
                 throw new ArgumentOutOfRangeException(argumentName, argumentName + " should be >= 1");

@@ -80,7 +80,7 @@ namespace Streamstone
         }
 
         internal string StreamRowKey() => string.Format("{0}{1}", RowKeyPrefix, StreamEntity.FixedRowKey);
-        internal string EventVersionRowKey(long version) => string.Format("{0}{1}{2:d10}", RowKeyPrefix, EventEntity.RowKeyPrefix, version);
+        internal string EventVersionRowKey(int version) => string.Format("{0}{1}{2:d10}", RowKeyPrefix, EventEntity.RowKeyPrefix, version);
         internal string EventIdRowKey(string id) => string.Format("{0}{1}{2}", RowKeyPrefix, EventIdEntity.RowKeyPrefix, id);
 
         /// <summary>

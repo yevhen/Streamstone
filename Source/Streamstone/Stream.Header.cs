@@ -41,7 +41,7 @@ namespace Streamstone
         /// <exception cref="ArgumentException">
         ///     If <paramref name="version"/> is less than <c>0</c>
         /// </exception>
-        public static Stream From(Partition partition, ETag etag, long version, StreamProperties properties = null)
+        public static Stream From(Partition partition, ETag etag, int version, StreamProperties properties = null)
         {
             Requires.NotNull(partition, nameof(partition));
             Requires.NotNullOrEmpty(etag.ToString(), nameof(etag));
@@ -68,7 +68,7 @@ namespace Streamstone
         /// <summary>
         /// The version of the stream. Sequential, monotonically increasing, no gaps.
         /// </summary>
-        public readonly long Version;
+        public readonly int Version;
 
         /// <summary>
         /// Constructs a new <see cref="Stream"/> instance which doesn't have any additional properties.
@@ -107,7 +107,7 @@ namespace Streamstone
             Properties = properties;
         }
 
-        internal Stream(Partition partition, ETag etag, long version, StreamProperties properties)
+        internal Stream(Partition partition, ETag etag, int version, StreamProperties properties)
         {
             Partition = partition;
             ETag = etag;
@@ -148,7 +148,7 @@ namespace Streamstone
 
         static Stream From(Partition partition, TableEntity entity)
         {
-            return new Stream(partition, entity.ETag, (long)entity.GetInt64(nameof(Version)), StreamProperties.From(entity));
+            return new Stream(partition, entity.ETag, (int)entity.GetInt32(nameof(Version)), StreamProperties.From(entity));
         }
 
         IEnumerable<RecordedEvent> Record(IEnumerable<EventData> events)

@@ -87,7 +87,7 @@ namespace Streamstone
             return entity;
         }
 
-        public static StreamEntity UpdateStreamEntity(this Partition partition, long version = 0)
+        public static StreamEntity UpdateStreamEntity(this Partition partition, int version = 0)
         {
             var entity = RetrieveStreamEntity(partition);
             entity.Version = version;
@@ -105,7 +105,7 @@ namespace Streamstone
 
         public static void InsertEventEntities(this Partition partition, params string[] ids)
         {
-            for (long i = 0; i < ids.Length; i++)
+            for (var i = 0; i < ids.Length; i++)
             {
                 var e = new EventEntity
                 {

@@ -363,10 +363,10 @@ namespace Streamstone
             readonly Partition partition;
             readonly TableClient table;
 
-            readonly long startVersion;
-            readonly long sliceSize;
+            readonly int startVersion;
+            readonly int sliceSize;
 
-            public ReadOperation(Partition partition, long startVersion, long sliceSize)
+            public ReadOperation(Partition partition, int startVersion, int sliceSize)
             {
                 this.partition = partition;
                 this.startVersion = startVersion;

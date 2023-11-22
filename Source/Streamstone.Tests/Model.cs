@@ -39,6 +39,6 @@ namespace Streamstone
 
     class TestRecordedEventEntity : TestEventEntity
     {
-        public long Version { get; set; }
+        public int Version { get; set; }
     }
 }

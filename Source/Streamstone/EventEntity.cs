@@ -20,9 +20,9 @@ namespace Streamstone
             Version = @event.Version;
         }
 
-        public long Version
+        public int Version
         {
-            get => (long)this[nameof(Version)];
+            get => (int)this[nameof(Version)];
             set => this[nameof(Version)] = value;
         }
 
@@ -46,7 +46,7 @@ namespace Streamstone
                 RowKey = entity.RowKey,
                 Timestamp = entity.Timestamp,
                 ETag = entity.ETag,
-                Version = (long)entity.GetInt64(nameof(Version)),
+                Version = (int)entity.GetInt32(nameof(Version)),
                 Properties = EventProperties.From(entity)
             };
         }
