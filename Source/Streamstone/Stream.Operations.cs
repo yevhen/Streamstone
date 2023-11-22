@@ -234,14 +234,8 @@ namespace Streamstone
 
                 internal Stream Result(Response<IReadOnlyList<Response>> response)
                 {
-                    for (var i = 0; i < operations.Count; i++)
-                    {
-                        var etag = response.Value[i].Headers.ETag;
-
-                        if (etag.HasValue)
-                            operations[i].Entity.ETag = etag.Value;
-                    }
-
+                    var streamIndex = operations.FindIndex(x => x.Entity.RowKey == stream.RowKey);
+                    stream.ETag = response.Value[streamIndex].Headers.ETag.Value;
                     return From(partition, stream);
                 }
 
@@ -255,16 +249,18 @@ namespace Streamstone
 
                     var conflicting = operations[exception.FailedTransactionActionIndex.Value].Entity;
 
-                    if (conflicting.PartitionKey == stream.PartitionKey && conflicting.RowKey == stream.RowKey)
+                    if (conflicting.RowKey == stream.RowKey)
                         throw ConcurrencyConflictException.StreamChangedOrExists(partition);
 
-                    // if (conflicting is EventIdEntity id)
-                    //     throw new DuplicateEventException(partition, id.Event.Id);
-                    //
-                    // if (conflicting is EventEntity @event)
-                    //     throw ConcurrencyConflictException.EventVersionExists(partition, @event.Version);
+                    if (conflicting.RowKey.StartsWith(EventIdEntity.RowKeyPrefix))
+                        //throw new DuplicateEventException(partition, id.Event.Id);
+                        throw new Exception();
 
-                    var include = operations.Single(x => x.Entity == conflicting);
+                    if (conflicting.RowKey.StartsWith(EventEntity.RowKeyPrefix))
+                        //throw ConcurrencyConflictException.EventVersionExists(partition, @event.Version);
+                        throw new Exception();
+
+                    var include = operations.Single(x => x.Entity.RowKey == conflicting.RowKey);
                     throw IncludedOperationConflictException.Create(partition, include);
                 }
             }
