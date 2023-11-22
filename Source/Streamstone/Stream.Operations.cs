@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Azure;
 using Azure.Data.Tables;
 using Azure.Data.Tables.Models;
-using Streamstone.Utility;
 
 namespace Streamstone
 {
@@ -256,14 +255,14 @@ namespace Streamstone
 
                     var conflicting = operations[exception.FailedTransactionActionIndex.Value].Entity;
 
-                    if (conflicting == stream)
+                    if (conflicting.PartitionKey == stream.PartitionKey && conflicting.RowKey == stream.RowKey)
                         throw ConcurrencyConflictException.StreamChangedOrExists(partition);
 
-                    if (conflicting is EventIdEntity id)
-                        throw new DuplicateEventException(partition, id.Event.Id);
-
-                    if (conflicting is EventEntity @event)
-                        throw ConcurrencyConflictException.EventVersionExists(partition, @event.Version);
+                    // if (conflicting is EventIdEntity id)
+                    //     throw new DuplicateEventException(partition, id.Event.Id);
+                    //
+                    // if (conflicting is EventEntity @event)
+                    //     throw ConcurrencyConflictException.EventVersionExists(partition, @event.Version);
 
                     var include = operations.Single(x => x.Entity == conflicting);
                     throw IncludedOperationConflictException.Create(partition, include);

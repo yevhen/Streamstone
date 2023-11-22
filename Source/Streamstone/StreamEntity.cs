@@ -1,18 +1,16 @@
-﻿using System;
-using System.Runtime.Serialization;
-
-using Azure;
+﻿using Azure;
 using Azure.Data.Tables;
 
 namespace Streamstone
 {
-    class StreamEntity : ITableEntity
+    sealed class StreamEntity : DynamicTableEntity
     {
         public const string FixedRowKey = "SS-HEAD";
 
         public StreamEntity()
         {
             Properties = StreamProperties.None;
+            Version = 0;
         }
 
         public StreamEntity(Partition partition, ETag etag, long version, StreamProperties properties)
@@ -25,20 +23,25 @@ namespace Streamstone
             Properties = properties;
         }
 
-        public string PartitionKey { get; set; }
-
-        public string RowKey { get; set; }
-
-        public DateTimeOffset? Timestamp { get; set; }
-
-        public ETag ETag { get; set; }
-
-        public long Version { get; set; }
+        public long Version
+        {
+            get => (long)this[nameof(Version)];
+            set => this[nameof(Version)] = value;
+        }
 
         public StreamProperties Properties { get; set; }
 
-        [IgnoreDataMember]
         public Partition Partition { get; set; }
+
+        public override TableEntity ToTableEntity()
+        {
+            var entity = base.ToTableEntity();
+
+            foreach (var property in Properties)
+                entity.Add(property.Key, property.Value);
+
+            return entity;
+        }
 
         public static StreamEntity From(TableEntity entity)
         {
@@ -48,7 +51,7 @@ namespace Streamstone
                 RowKey = entity.RowKey,
                 ETag = entity.ETag,
                 Timestamp = entity.Timestamp,
-                Version = (long)entity.GetInt64("Version"),
+                Version = (long)entity.GetInt64(nameof(Version))!,
                 Properties = StreamProperties.From(entity)
             };
         }
@@ -56,14 +59,15 @@ namespace Streamstone
         public EntityOperation Operation()
         {
             var isTransient = string.IsNullOrEmpty(ETag.ToString());
-            
+            var entity = ToTableEntity();
+
             return isTransient ? Insert() : ReplaceOrMerge();
 
-            EntityOperation.Insert Insert() => new EntityOperation.Insert(this);
+            EntityOperation.Insert Insert() => new EntityOperation.Insert(entity);
 
             EntityOperation ReplaceOrMerge() => ReferenceEquals(Properties, StreamProperties.None)
-                ? new EntityOperation.UpdateMerge(this)
-                : new EntityOperation.Replace(this);
+                ? new EntityOperation.UpdateMerge(entity)
+                : new EntityOperation.Replace(entity);
         }
     }
 }

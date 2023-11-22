@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
+
+using Azure;
+using Azure.Data.Tables;
 
 using NUnit.Framework;
+
+using System;
 
 namespace Streamstone.Scenarios
 {
@@ -13,22 +15,19 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_passing_property_with_reserved_name()
         {
-            var reserved = ReservedStreamProperties()
-                .ToDictionary(p => p, _ => (object)42);
+            var reserved = new Dictionary<string, object>
+            {
+                { nameof(ITableEntity.PartitionKey), "MyPartitionKey" },
+                { nameof(ITableEntity.RowKey), "MyRowKey" },
+                { nameof(ITableEntity.Timestamp), DateTimeOffset.UtcNow },
+                { nameof(ITableEntity.ETag), new ETag() },
+                { "odata.etag", new ETag() }
+            };
 
             var properties = StreamProperties.From(reserved);
 
             Assert.That(properties.Count, Is.EqualTo(0), 
                 "Should skip all properties with reserved names, such as RowKey, Id, etc");
-        }
-        
-        static IEnumerable<string> ReservedStreamProperties()
-        {
-            return typeof(StreamEntity)
-                    .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                    .Where(p => p.GetCustomAttribute<IgnoreDataMemberAttribute>(true) == null)
-                    .Where(p => p.Name != nameof(StreamEntity.Properties))
-                    .Select(p => p.Name);
         }
     }
 }

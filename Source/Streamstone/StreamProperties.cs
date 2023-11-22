@@ -99,8 +99,8 @@ namespace Streamstone
                 is nameof(StreamEntity.PartitionKey) 
                 or nameof(StreamEntity.RowKey)
                 or nameof(StreamEntity.ETag) 
-                or "odata.etag" 
-                or nameof(StreamEntity.Timestamp) 
+                or nameof(StreamEntity.Timestamp)
+                or "odata.etag"
                 or nameof(StreamEntity.Version);
         }
     }

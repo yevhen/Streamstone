@@ -139,13 +139,13 @@ namespace Streamstone
         EntityOperation EventEntity(Partition partition)
         {
             var entity = new EventEntity(partition, this);
-            return new EntityOperation.Insert(entity);
+            return new EntityOperation.Insert(entity.ToTableEntity());
         }
 
         EntityOperation IdEntity(Partition partition)
         {
             var entity = new EventIdEntity(partition, this);
-            return new EntityOperation.Insert(entity);
+            return new EntityOperation.Insert(entity.ToTableEntity());
         }
 
         static IEnumerable<EntityOperation> Prepare(IEnumerable<Include> includes, Partition partition) => 

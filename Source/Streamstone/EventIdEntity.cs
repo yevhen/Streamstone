@@ -1,17 +1,15 @@
-using System;
-using System.Runtime.Serialization;
-
-using Azure;
 using Azure.Data.Tables;
 
 namespace Streamstone
 {
-    class EventIdEntity : ITableEntity
+    sealed class EventIdEntity : DynamicTableEntity
     {
         public const string RowKeyPrefix = "SS-UID-";
 
         public EventIdEntity()
-        { }
+        {
+            Version = 0;
+        }
 
         public EventIdEntity(Partition partition, RecordedEvent @event)
         {
@@ -21,17 +19,24 @@ namespace Streamstone
             Version = @event.Version;
         }
 
-        public string PartitionKey { get; set; }
+        public long Version
+        {
+            get => (long)this[nameof(Version)];
+            set => this[nameof(Version)] = value;
+        }
 
-        public string RowKey { get; set; }
-
-        public DateTimeOffset? Timestamp { get; set; }
-
-        public ETag ETag { get; set; }
-
-        public long Version { get; set; }
-
-        [IgnoreDataMember]
         public RecordedEvent Event { get; set; }
+
+        public static EventIdEntity From(TableEntity entity)
+        {
+            return new EventIdEntity
+            {
+                PartitionKey = entity.PartitionKey,
+                RowKey = entity.RowKey,
+                ETag = entity.ETag,
+                Timestamp = entity.Timestamp,
+                Version = (long)entity.GetInt64(nameof(Version))!,
+            };
+        }
     }
 }

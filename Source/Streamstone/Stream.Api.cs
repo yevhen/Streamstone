@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-using Azure.Data.Tables;
-
 namespace Streamstone
 {
     using Utility;
@@ -337,7 +335,7 @@ namespace Streamstone
             Requires.GreaterThanOrEqualToOne(sliceSize, nameof(sliceSize));
 
             return new ReadOperation<T>(partition, startVersion, sliceSize)
-                .ExecuteAsync(e => e.AsEntity<T>());
+                .ExecuteAsync(entity => entity.ToObject<T>());
         }
 
         /// <summary>

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
 
@@ -31,7 +30,7 @@ namespace Streamstone
 
                 foreach (var entity in pageable)
                 {
-                    yield return entity.AsEntity<TEntity>();
+                    yield return entity.ToObject<TEntity>();
                 }
             }
 
@@ -53,86 +52,22 @@ namespace Streamstone
             }
         }
 
-        public static class TableEntityExtensions
+        static class TableEntityExtensions
         {
-            public static TableEntity ToTableEntity(this ITableEntity entity)
+            public static T ToObject<T>(this TableEntity entity) where T : class, new()
             {
-                var tableEntity = new TableEntity
-                {
-                    PartitionKey = entity.PartitionKey,
-                    RowKey = entity.RowKey,
-                    ETag = entity.ETag,
-                    Timestamp = entity.Timestamp
-                };
+                var obj = new T();
 
-                foreach (var property in entity.GetType().GetTypeInfo().DeclaredProperties)
-                {
-                    if (property.Name
-                        is nameof(ITableEntity.PartitionKey)
-                        or nameof(ITableEntity.RowKey)
-                        or nameof(ITableEntity.Timestamp)
-                        or nameof(ITableEntity.ETag))
-                        continue;
-
-                    if (property.PropertyType.IsAssignableTo(typeof(PropertyMap)))
-                    {
-                        foreach (var mappedProperty in (PropertyMap)property.GetValue(entity))
-                        {
-                            tableEntity.Add(mappedProperty.Key, mappedProperty.Value);
-                        }
-                        continue;
-                    }
-
-                    if (property.GetCustomAttribute<IgnoreDataMemberAttribute>(true) != null)
-                        continue;
-
-                    tableEntity.Add(property.Name, property.GetValue(entity));
-                }
-
-                return tableEntity;
-            }
-
-            public static T AsEntity<T>(this TableEntity entity)
-                where T : class, new()
-            {
-                if (typeof(T) == typeof(TableEntity))
-                    return entity as T;
-
-                var t = new T();
-                entity.CopyTo(t);
-
-                return t;
-            }
-
-            public static void CopyTo(this TableEntity entity, object target)
-            {
-                foreach (var property in target.GetType().GetTypeInfo().DeclaredProperties)
+                foreach (var property in typeof(T).GetTypeInfo().DeclaredProperties)
                 {
                     if (property.GetCustomAttribute<IgnoreDataMemberAttribute>(true) != null)
                         continue;
 
-                    if (property.PropertyType.IsAssignableTo(typeof(PropertyMap)))
-                    {
-                        var propertyMap = (PropertyMap)property.GetValue(target);
-                        propertyMap.CopyFrom(entity);
-                        property.SetValue(target, propertyMap);
-                        continue;
-                    }
-
-                    if (property.Name == nameof(ITableEntity.ETag))
-                    {
-                        property.SetValue(target, entity.ETag);
-                        continue;
-                    }
-                    
                     if (entity.TryGetValue(property.Name, out var value))
-                    {
-                        property.SetValue(target, value);
-                        continue;
-                    }
-
-                    throw new Exception($"Failed to find value for property '{property.Name}' when copying TableEntity to {target.GetType().Name}");
+                        property.SetValue(obj, value);
                 }
+
+                return obj;
             }
         }
 

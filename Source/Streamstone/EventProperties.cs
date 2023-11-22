@@ -98,9 +98,9 @@ namespace Streamstone
             return propertyName 
                 is nameof(EventEntity.PartitionKey) 
                 or nameof(EventEntity.RowKey)
-                or nameof(EventEntity.ETag) 
-                or "odata.etag" 
-                or nameof(EventEntity.Timestamp) 
+                or nameof(EventEntity.Timestamp)
+                or nameof(EventEntity.ETag)
+                or "odata.etag"
                 or nameof(EventEntity.Version);
         }
     }

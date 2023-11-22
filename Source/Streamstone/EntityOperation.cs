@@ -1,7 +1,6 @@
 ﻿using System;
 
 using Azure.Data.Tables;
-using Streamstone.Utility;
 
 namespace Streamstone
 {
@@ -47,7 +46,7 @@ namespace Streamstone
 
             protected override TableTransactionAction AsTableTransactionAction()
             {
-                return new TableTransactionAction(TableTransactionActionType.Add, Entity.ToTableEntity(), Entity.ETag);
+                return new TableTransactionAction(TableTransactionActionType.Add, Entity, Entity.ETag);
             }
 
             public override EntityOperation Merge(EntityOperation other)
@@ -79,7 +78,7 @@ namespace Streamstone
 
             protected override TableTransactionAction AsTableTransactionAction()
             {
-                return new TableTransactionAction(TableTransactionActionType.UpdateReplace, Entity.ToTableEntity(), Entity.ETag);
+                return new TableTransactionAction(TableTransactionActionType.UpdateReplace, Entity, Entity.ETag);
             }
 
             public override EntityOperation Merge(EntityOperation other)
@@ -111,7 +110,7 @@ namespace Streamstone
 
             protected override TableTransactionAction AsTableTransactionAction()
             {
-                return new TableTransactionAction(TableTransactionActionType.Delete, Entity.ToTableEntity(), Entity.ETag);
+                return new TableTransactionAction(TableTransactionActionType.Delete, Entity, Entity.ETag);
             }
 
             public override EntityOperation Merge(EntityOperation other)
@@ -143,7 +142,7 @@ namespace Streamstone
 
             protected override TableTransactionAction AsTableTransactionAction()
             {
-                return new TableTransactionAction(TableTransactionActionType.UpsertMerge, Entity.ToTableEntity(), Entity.ETag);
+                return new TableTransactionAction(TableTransactionActionType.UpsertMerge, Entity, Entity.ETag);
             }
 
             public override EntityOperation Merge(EntityOperation other)
@@ -175,7 +174,7 @@ namespace Streamstone
 
             protected override TableTransactionAction AsTableTransactionAction()
             {
-                return new TableTransactionAction(TableTransactionActionType.UpsertReplace, Entity.ToTableEntity(), Entity.ETag);
+                return new TableTransactionAction(TableTransactionActionType.UpsertReplace, Entity, Entity.ETag);
             }
 
             public override EntityOperation Merge(EntityOperation other)
@@ -207,7 +206,7 @@ namespace Streamstone
 
             protected override TableTransactionAction AsTableTransactionAction()
             {
-                return new TableTransactionAction(TableTransactionActionType.UpdateMerge, Entity.ToTableEntity(), Entity.ETag);
+                return new TableTransactionAction(TableTransactionActionType.UpdateMerge, Entity, Entity.ETag);
             }
 
             public override EntityOperation Merge(EntityOperation other) => 

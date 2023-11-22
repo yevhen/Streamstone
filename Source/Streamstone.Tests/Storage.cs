@@ -9,6 +9,7 @@ using ExpectedObjects;
 namespace Streamstone
 {
     using Utility;
+
     static class Storage
     {
         const string TableName = "Streams";
@@ -118,26 +119,30 @@ namespace Streamstone
 
         public static EventEntity[] RetrieveEventEntities(this Partition partition)
         {
-            return partition.RowKeyPrefixQuery<EventEntity>(prefix: Api.EventRowKeyPrefix).ToArray();
+            return partition.RowKeyPrefixQuery<TableEntity>(prefix: Api.EventRowKeyPrefix)
+                .Select(EventEntity.From)
+                .ToArray();
         }
 
         public static void InsertEventIdEntities(this Partition partition, params string[] ids)
         {
             foreach (var id in ids)
             {
-                var e = new EventIdEntity
+                var entity = new EventIdEntity
                 {
                     PartitionKey = partition.PartitionKey,
                     RowKey = id.FormatEventIdRowKey(),
                 };
 
-                partition.Table.AddEntity(e);
+                partition.Table.AddEntity(entity.ToTableEntity());
             }
         }
 
         public static EventIdEntity[] RetrieveEventIdEntities(this Partition partition)
         {
-            return partition.RowKeyPrefixQuery<EventIdEntity>(prefix: Api.EventIdRowKeyPrefix).ToArray();
+            return partition.RowKeyPrefixQuery<TableEntity>(prefix: Api.EventIdRowKeyPrefix)
+                .Select(EventIdEntity.From)
+                .ToArray();
         }
 
         public static List<TableEntity> RetrieveAll(this Partition partition)
