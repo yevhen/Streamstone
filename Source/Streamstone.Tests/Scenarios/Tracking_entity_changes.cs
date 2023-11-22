@@ -34,7 +34,7 @@ namespace Streamstone.Scenarios
             if (Storage.IsAzurite())
                 Assert.Ignore("Azurite use only the latest op for same entity in ETG");
 
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
 
             var insert = Include.Insert(entity);
             var replace = Include.Replace(entity);
@@ -57,7 +57,7 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_normal_flow()
         {
-            var entity = new TestEntity(EntityRowKey) { Data = "12" };
+            var entity = new TestEntity(EntityRowKey, ETag.All) { Data = "12" };
             var insert = Include.Insert(entity);
 
             entity.Data = "34";
@@ -82,8 +82,8 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_including_different_entity_instances_for_the_same_entity_row_key()
         {
-            var e1 = new TestEntity(EntityRowKey);
-            var e2 = new TestEntity(EntityRowKey);
+            var e1 = new TestEntity(EntityRowKey, ETag.All);
+            var e2 = new TestEntity(EntityRowKey, ETag.All);
 
             EventData[] events =
             {
@@ -101,7 +101,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async Task When_including_mutually_soluble_operations()
         {
-            var entity = new TestEntity(EntityRowKey) { Data = "12" };
+            var entity = new TestEntity(EntityRowKey, ETag.All) { Data = "12" };
 
             EventData[] events =
             {
@@ -118,7 +118,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async Task When_including_mutually_soluble_operations_chained_indirectly()
         {
-            var entity = new TestEntity(EntityRowKey) { Data = "12" };
+            var entity = new TestEntity(EntityRowKey, ETag.All) { Data = "12" };
 
             EventData[] events =
             {
@@ -136,7 +136,7 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_including_replace_with_empty_or_null_Etag()
         {
-            var entity = new TestEntity(EntityRowKey) { ETag = new ETag(null) };
+            var entity = new TestEntity(EntityRowKey, ETag.All) { ETag = new ETag(null) };
 
             Assert.ThrowsAsync<InvalidOperationException>(() =>
                 Stream.WriteAsync(stream, CreateEvent(Include.Replace(entity))));
@@ -150,10 +150,10 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_including_unconditional_replace()
         {
-            var entity = new TestEntity(EntityRowKey) { Data = "123" };
+            var entity = new TestEntity(EntityRowKey, ETag.All) { Data = "123" };
             InsertTestEntity(entity);
 
-            entity = new TestEntity(EntityRowKey)
+            entity = new TestEntity(EntityRowKey, ETag.All)
             {
                 Data = "456",
                 ETag = ETag.All
@@ -173,7 +173,7 @@ namespace Streamstone.Scenarios
             if (Storage.IsAzurite())
                 Assert.Ignore("Azurite doesn't fully support ETags");
 
-            var entity = new TestEntity(EntityRowKey) { ETag = ETag.All };
+            var entity = new TestEntity(EntityRowKey, ETag.All) { ETag = ETag.All };
 
             Assert.ThrowsAsync<TableTransactionFailedException>(() =>
                 Stream.WriteAsync(stream, CreateEvent(Include.Replace(entity))),
@@ -183,10 +183,10 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_including_unconditional_delete()
         {
-            var entity = new TestEntity(EntityRowKey) { Data = "123" };
+            var entity = new TestEntity(EntityRowKey, ETag.All) { Data = "123" };
             InsertTestEntity(entity);
 
-            entity = new TestEntity(EntityRowKey) { ETag = ETag.All };
+            entity = new TestEntity(EntityRowKey, ETag.All) { ETag = ETag.All };
             Assert.DoesNotThrowAsync(() =>
                 Stream.WriteAsync(stream, CreateEvent(Include.Delete(entity))),
                     "Will be always executed and will delete row");
@@ -198,7 +198,7 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_including_unconditional_delete_for_transient_entity()
         {
-            var entity = new TestEntity(EntityRowKey) { ETag = ETag.All };
+            var entity = new TestEntity(EntityRowKey, ETag.All) { ETag = ETag.All };
 
             Assert.ThrowsAsync<TableTransactionFailedException>(() =>
                 Stream.WriteAsync(stream, CreateEvent(Include.Delete(entity))),
@@ -208,7 +208,7 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_including_unconditional_replace_after_insert()
         {
-            var entity = new TestEntity(EntityRowKey)
+            var entity = new TestEntity(EntityRowKey, ETag.All)
             {
                 Data = "911",
                 ETag = ETag.All
@@ -231,7 +231,7 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_inserting_entity_with_unconditional_Etag_and_entity_already_exists()
         {
-            var entity = new TestEntity(EntityRowKey)
+            var entity = new TestEntity(EntityRowKey, ETag.All)
             {
                 Data = "911",
                 ETag = ETag.All
@@ -274,7 +274,7 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_Insert_followed_by_Insert()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
 
             var events = new[]
             {
@@ -292,7 +292,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async Task When_Insert_followed_by_Replace()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
 
             var events = new[]
             {
@@ -309,7 +309,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async Task When_Insert_followed_by_Delete()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
 
             var events = new[]
             {
@@ -329,7 +329,7 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_Replace_followed_by_Insert()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
 
             var events = new[]
             {
@@ -347,7 +347,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async Task When_Replace_followed_by_Replace()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
             InsertTestEntity(entity);
 
             entity.Data = "zzz";
@@ -366,7 +366,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async Task When_Replace_followed_by_Delete()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
             InsertTestEntity(entity);
 
             var events = new[]
@@ -391,7 +391,7 @@ namespace Streamstone.Scenarios
             //  which means you either have Etag or * 
             //  that's why there is an asumption that entity exists
 
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
             InsertTestEntity(entity);
 
             entity.Data = "zzz";
@@ -410,7 +410,7 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_Delete_followed_by_Replace()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
 
             var events = new[]
             {
@@ -428,7 +428,7 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_Delete_followed_by_Delete()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
 
             var events = new[]
             {
@@ -448,7 +448,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async Task When_Null_followed_by_Insert()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
 
             var events = new[]
             {
@@ -467,7 +467,7 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_Null_followed_by_Replace()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
 
             var events = new[]
             {
@@ -487,7 +487,7 @@ namespace Streamstone.Scenarios
         [Test]
         public void When_Null_followed_by_Delete()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
 
             var events = new[]
             {
@@ -522,7 +522,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async Task When_Null_followed_by_Insert_Or_Merge()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
 
             var events = new[]
             {
@@ -541,7 +541,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async Task When_Null_followed_by_Insert_Or_Replace()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
 
             var events = new[]
             {
@@ -560,7 +560,7 @@ namespace Streamstone.Scenarios
         [Test]
         public async Task When_Insert_Or_Replace_followed_by_Insert_Or_Replace()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
             InsertTestEntity(entity);
 
             entity.Data = "zzz";
@@ -606,7 +606,7 @@ namespace Streamstone.Scenarios
 
         public static IEnumerable<ITestCaseData> GetThrowingOperationsForInsertOrMergeOrReplace()
         {
-            var entity = new TestEntity(EntityRowKey);
+            var entity = new TestEntity(EntityRowKey, ETag.All);
             var firstIncludeProducers = new Func<ITableEntity, Include>[] {Include.Insert, Include.Delete, Include.Replace};
             var secondIncludeProducers = new Func<ITableEntity, Include>[] { Include.InsertOrMerge, Include.InsertOrReplace };
 
@@ -650,11 +650,11 @@ namespace Streamstone.Scenarios
             public TestEntity()
             { }
 
-            public TestEntity(string rowKey, ETag? etag = null)
+            public TestEntity(string rowKey, ETag etag)
             {
                 RowKey = rowKey;
                 Data = DateTime.UtcNow.ToString();
-                ETag = etag ?? ETag.All;
+                ETag = etag;
             }
 
             public string PartitionKey { get; set; }
