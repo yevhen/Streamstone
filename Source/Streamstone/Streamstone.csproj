@@ -10,7 +10,7 @@
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DocumentationFile>$(OutDir)\Streamstone.xml</DocumentationFile>
-    <TargetFrameworks>$(LibProjectTargetFramework);net47</TargetFrameworks>
+    <TargetFrameworks>$(LibProjectTargetFramework)</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -22,6 +22,7 @@
   <PropertyGroup>
     <IsPackable>true</IsPackable>
     <SourceLinkCreate>true</SourceLinkCreate>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
