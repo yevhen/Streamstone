@@ -7,6 +7,10 @@ image: Ubuntu
 init:
     - git config --global core.autocrlf input
 
+before_build:
+    - sudo snap install dotnet-sdk --channel=8.0/stable --classic
+    - sudo snap alias dotnet-sdk.dotnet dotnet
+
 build_script:
     - git submodule init
     - git submodule update
