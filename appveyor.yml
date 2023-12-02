@@ -2,14 +2,14 @@ skip_tags: true
 
 version: 2.0.{build}
 
-image: Ubuntu
+image: Ubuntu2004
 
 init:
     - git config --global core.autocrlf input
 
 before_build:
-    - sudo snap install dotnet-sdk --channel=8.0/stable --classic
-    - sudo snap alias dotnet-sdk.dotnet dotnet
+    - sudo wget -O - https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg
+    - sudo gedit /etc/apt/sources.list.d/microsoft.sources
 
 build_script:
     - git submodule init
