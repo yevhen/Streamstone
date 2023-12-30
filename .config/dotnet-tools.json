@@ -5,7 +5,7 @@
     "nake": {
       "version": "3.0.0",
       "commands": [
-        "nake"
+        "Nake"
       ]
     }
   }

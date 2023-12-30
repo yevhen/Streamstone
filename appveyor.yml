@@ -8,16 +8,15 @@ init:
     - git config --global core.autocrlf input
 
 install:
-  - sh: wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-  - sh: sudo dpkg -i packages-microsoft-prod.deb
-  - sh: rm packages-microsoft-prod.deb
-  - sh: sudo apt-get update && sudo apt-get install -y dotnet-sdk-8.0
-
+  - wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+  - sudo dpkg -i packages-microsoft-prod.deb
+  - rm packages-microsoft-prod.deb
+  - sudo apt-get update && sudo apt-get install -y dotnet-sdk-8.0
+  - npm install -g azurite
+  
 build_script:
-    - npm install -g azurite
     - (exec azurite -l ~/.data &)
     - sleep 5
-    - cd ..
     - dotnet tool restore
     - dotnet nake pack
 
