@@ -15,7 +15,7 @@ namespace Streamstone
         const string TableName = "Streams";
         const string DevelopmentConnectionString = "UseDevelopmentStorage=true";
 
-        public static bool IsAzurite() => Environment.GetEnvironmentVariable("Streamstone-Azurite", EnvironmentVariableTarget.User) == "true";
+        public static bool IsAzurite() => TestStorageAccount() == DevelopmentConnectionString;
 
         public static TableClient SetUp()
         {
