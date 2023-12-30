@@ -18,8 +18,8 @@ var ArtifactsPath = $@"{RootPath}\Artifacts";
 var ReleasePackagesPath = $@"{ArtifactsPath}\Release";
 
 var AppVeyorJobId = Var["APPVEYOR_JOB_ID"];
-var TargetFramework = "netcoreapp6.0";
-var Version = "2.0.0-dev";
+var TargetFramework = "net8";
+var Version = "3.0.0-dev";
 
 /// Installs dependencies and builds sources in Debug mode
 [Nake] async Task Default() => await Build();

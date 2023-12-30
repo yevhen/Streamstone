@@ -48,8 +48,8 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <LibProjectTargetFramework>net8.0</LibProjectTargetFramework>
-        <ConsoleProjectTargetFramework>net8.0</ConsoleProjectTargetFramework>
+        <LibProjectTargetFramework>net8</LibProjectTargetFramework>
+        <ConsoleProjectTargetFramework>net8</ConsoleProjectTargetFramework>
         <TestProjectTargetFramework>$(ConsoleProjectTargetFramework)</TestProjectTargetFramework>
     </PropertyGroup>
 
