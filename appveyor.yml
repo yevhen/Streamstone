@@ -7,9 +7,11 @@ image: Ubuntu2004
 init:
     - git config --global core.autocrlf input
 
-before_build:
-    - sudo snap install dotnet-sdk --channel=8.0/stable --classic
-    - sudo snap alias dotnet-sdk.dotnet dotnet
+install:
+  - sh: wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+  - sh: sudo dpkg -i packages-microsoft-prod.deb
+  - sh: rm packages-microsoft-prod.deb
+  - sh: sudo apt-get update && sudo apt-get install -y dotnet-sdk-8.0
 
 build_script:
     - git submodule init
