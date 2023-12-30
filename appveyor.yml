@@ -14,12 +14,7 @@ install:
   - sh: sudo apt-get update && sudo apt-get install -y dotnet-sdk-8.0
 
 build_script:
-    - git submodule init
-    - git submodule update
-    - cd Azurite
-    - npm ci
-    - npm run build
-    - npm install -g
+    - npm install -g azurite
     - (exec azurite -l ~/.data &)
     - sleep 5
     - cd ..

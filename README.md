@@ -40,7 +40,14 @@ To build Streamstone binaries on Windows you will need to have Visual Studio 17 
 
 ## Running unit tests
 
-Unit tests require Azure Storage Emulator 5.2 or higher, which is currently available only on Windows. Alternatively, you could run against real Azure by setting storage account connection string to **Streamstone-Test-Storage** user-level environment variable.
+### Windows/Linux/MacOs
+
+Use Azurite [npm](https://www.npmjs.com/package/azurite#npm) package to run tests and example app against an emulated table storage service. 
+
+WARNING: Azurite doesn't fully emulate Azure Table Storage functionality so you may have some of the tests failing.
+
+NOTE: Alternatively, you could run against real Azure by setting storage account connection string to **Streamstone-Test-Storage** user-level environment variable.
+
 
 ## Design
 
