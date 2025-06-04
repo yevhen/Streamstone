@@ -44,7 +44,6 @@ const config = {
   presets: [
     [
       'classic',
-      /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
           sidebarPath: './sidebars.js',
@@ -55,17 +54,14 @@ const config = {
             type: ['rss', 'atom'],
             xslt: true,
           },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/yevhen/streamstone/tree/main/docs-site/blog/',
-          // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
           onUntruncatedBlogPosts: 'warn',
         },
         theme: {
-          customCss: './src/css/custom.css',
+          customCss: require.resolve('./src/css/customTheme.css'),
         },
       }),
     ],
