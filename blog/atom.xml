@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xsl" href="atom.xsl"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://yevhen.github.io/Streamstone/blog</id>
+    <title>Streamstone Blog</title>
+    <updated>2025-06-04T00:00:00.000Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://yevhen.github.io/Streamstone/blog"/>
+    <subtitle>Streamstone Blog</subtitle>
+    <icon>https://yevhen.github.io/Streamstone/img/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[I'm back]]></title>
+        <id>https://yevhen.github.io/Streamstone/blog/im-back</id>
+        <link href="https://yevhen.github.io/Streamstone/blog/im-back"/>
+        <updated>2025-06-04T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[I'm back. Expect new stuff here!]]></summary>
+        <content type="html"><![CDATA[<p>I'm back. Expect new stuff here!</p>]]></content>
+        <author>
+            <name>Yevhen</name>
+            <uri>https://github.com/yevhen</uri>
+        </author>
+    </entry>
+</feed>
