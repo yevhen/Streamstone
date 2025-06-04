@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "description": "Cursor BA dev environment for .NET 8 library with Azurite",
+  "name": "Streamstone Dev Env",
+  "install": "npm install",
+  "start": "echo 'Ready'",
+  "terminals": [
+    {
+      "name": "Azurite",
+      "command": "npm run azurite",
+      "description": "Starts Azurite for local Azure Storage emulation. Keep this running while testing."
+    },
+    {
+      "name": "NUnit Tests",
+      "command": "dotnet test",
+      "description": "Runs all NUnit tests. Ensure Azurite is running first."
+    }
+  ]
+} 

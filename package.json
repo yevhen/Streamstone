@@ -1,0 +1,11 @@
+{
+  "name": "streamstone-dev-env",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "azurite": "^3.34.0"
+  },
+  "scripts": {
+    "azurite": "azurite --location ./azurite --debug ./azurite/debug.log"
+  }
+} 
