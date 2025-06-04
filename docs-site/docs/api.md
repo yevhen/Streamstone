@@ -5,7 +5,7 @@ title: API Reference
 
 This section will provide detailed API documentation for Streamstone's main classes and methods.
 
-For now, please refer to the source code in [Source/Streamstone](../Source/Streamstone/) for detailed class and method definitions.
+For now, please refer to the source code in [Source/Streamstone](https://github.com/yevhen/Streamstone/tree/master/Source/Streamstone) for detailed class and method definitions.
 
 ---
 
