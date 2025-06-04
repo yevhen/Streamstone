@@ -48,3 +48,6 @@ orleans.codegen.cs
 /.azurite
 __azurite*
 .DS_Store
+
+# GitHub Actions
+.github/*.log
