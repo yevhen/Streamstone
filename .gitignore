@@ -40,6 +40,7 @@ _ReSharper*
 #ignore codegen stuff
 orleans.codegen.cs
 
+/.canvas
 /.vs
 /.vscode
 /.idea
