@@ -23,6 +23,11 @@ jobs:
           cd docs-site
           npm ci
 
+      - name: Sync scenario docs with source code
+        run: |
+          cd docs-site
+          npm run sync:scenarios
+
       - name: Build Docusaurus site
         run: |
           cd docs-site

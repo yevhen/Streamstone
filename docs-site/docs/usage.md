@@ -5,21 +5,21 @@ title: Usage
 
 ## Essentials
 
-- **Provisioning a stream:** [S01_Provision_new_stream.cs](../Source/Example/Scenarios/S01_Provision_new_stream.cs)
-- **Opening a stream:** [S02_Open_stream_for_writing.cs](../Source/Example/Scenarios/S02_Open_stream_for_writing.cs)
-- **Writing to a stream:** [S04_Write_to_stream.cs](../Source/Example/Scenarios/S04_Write_to_stream.cs)
-- **Reading from a stream:** [S05_Read_from_stream.cs](../Source/Example/Scenarios/S05_Read_from_stream.cs)
-- **Additional entity includes:** [S06_Include_additional_entities.cs](../Source/Example/Scenarios/S06_Include_additional_entities.cs)
-- **Optimistic concurrency:** [S08_Concurrency_conflicts.cs](../Source/Example/Scenarios/S08_Concurrency_conflicts.cs)
-- **Handling duplicate events:** [S09_Handling_duplicates.cs](../Source/Example/Scenarios/S09_Handling_duplicates.cs)
-- **Custom stream metadata:** [S07_Custom_stream_metadata.cs](../Source/Example/Scenarios/S07_Custom_stream_metadata.cs)
-- **Virtual partitions:** [Virtual_partitions.cs](../Source/Streamstone.Tests/Scenarios/Virtual_partitions.cs)
+- **Provisioning a stream:** [Provisioning a stream](scenarios/S01_Provision_new_stream)
+- **Opening a stream:** [Opening a stream](scenarios/S02_Open_stream_for_writing)
+- **Writing to a stream:** [Writing to a stream](scenarios/S04_Write_to_stream)
+- **Reading from a stream:** [Reading from a stream](scenarios/S05_Read_from_stream)
+- **Additional entity includes:** [Additional entity includes](scenarios/S06_Include_additional_entities)
+- **Optimistic concurrency:** [Optimistic concurrency](scenarios/S08_Concurrency_conflicts)
+- **Handling duplicate events:** [Handling duplicate events](scenarios/S09_Handling_duplicates)
+- **Custom stream metadata:** [Custom stream metadata](scenarios/S07_Custom_stream_metadata)
+- **Virtual partitions:** [Virtual partitions](scenarios/Virtual_partitions)
 
 ## Application Scenarios
 
-- **Implementing a stream directory:** [S10_Stream_directory.cs](../Source/Example/Scenarios/S10_Stream_directory.cs)
-- **Using snapshots:** [S06_Include_additional_entities.cs](../Source/Example/Scenarios/S06_Include_additional_entities.cs)
-- **Sharding streams:** [S11_Sharding_streams.cs](../Source/Example/Scenarios/S11_Sharding_streams.cs)
+- **Implementing a stream directory:** [Implementing a stream directory](scenarios/S10_Stream_directory)
+- **Using snapshots:** [Additional entity includes](scenarios/S06_Include_additional_entities)
+- **Sharding streams:** [Sharding streams](scenarios/S11_Sharding_streams)
 
 ## Demos
 
