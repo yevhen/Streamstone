@@ -3,6 +3,7 @@
 This scenario demonstrates how to handle optimistic concurrency conflicts in Streamstone.
 
 
+
 ```csharp title="S08_Concurrency_conflicts.cs"
 using System;
 using System.Threading.Tasks;

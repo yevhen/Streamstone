@@ -3,6 +3,7 @@
 This scenario demonstrates how to read from a stream in Streamstone.
 
 
+
 ```csharp title="S05_Read_from_stream.cs"
 using System;
 using System.Linq;

@@ -3,6 +3,7 @@
 This scenario demonstrates how to use virtual partitions in Streamstone.
 
 
+
 ```csharp title="Virtual_partitions.cs"
 using System.Collections.Generic;
 using System.Threading.Tasks;

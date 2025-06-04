@@ -3,6 +3,7 @@
 This scenario demonstrates how to include additional entities in a stream in Streamstone.
 
 
+
 ```csharp title="S06_Include_additional_entities.cs"
 using Azure;
 

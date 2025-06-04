@@ -3,6 +3,7 @@
 This scenario demonstrates how to implement a stream directory in Streamstone.
 
 
+
 ```csharp title="S10_Stream_directory.cs"
 using Azure;
 

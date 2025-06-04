@@ -3,6 +3,7 @@
 This scenario demonstrates how to use custom stream metadata in Streamstone.
 
 
+
 ```csharp title="S07_Custom_stream_metadata.cs"
 using System;
 using System.Collections.Generic;

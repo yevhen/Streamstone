@@ -3,6 +3,7 @@
 This scenario demonstrates how to handle duplicate events in Streamstone.
 
 
+
 ```csharp title="S09_Handling_duplicates.cs"
 using System;
 using System.Threading.Tasks;
