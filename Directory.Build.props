@@ -63,8 +63,8 @@
         <ExpectedObjectsVersion>3.5.4</ExpectedObjectsVersion>
 
         <!-- 3rd party packages -->
-        <AzureDataTablesVersion>12.8.2</AzureDataTablesVersion>
-        <NewtonsoftJsonBson>1.0.2</NewtonsoftJsonBson>
+        <AzureDataTablesVersion>12.11.0</AzureDataTablesVersion>
+        <NewtonsoftJsonBson>1.0.3</NewtonsoftJsonBson>
 
     </PropertyGroup>
 
