@@ -262,8 +262,11 @@ namespace Streamstone
                     if (conflicting.RowKey == stream.RowKey)
                         throw ConcurrencyConflictException.StreamChangedOrExists(partition);
 
-                    if (conflicting.RowKey.StartsWith(EventIdEntity.RowKeyPrefix))
-                        throw new DuplicateEventException(partition);
+                    if (conflicting.RowKey.StartsWith(partition.RowKeyPrefix + EventIdEntity.RowKeyPrefix))
+                    {
+                        var duplicateId = conflicting.RowKey.Substring(partition.RowKeyPrefix.Length + EventIdEntity.RowKeyPrefix.Length);
+                        throw new DuplicateEventException(partition, duplicateId);
+                    }
 
                     if (conflicting.RowKey.StartsWith(EventEntity.RowKeyPrefix))
                         throw ConcurrencyConflictException.EventVersionExists(partition);

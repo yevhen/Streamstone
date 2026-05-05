@@ -52,11 +52,17 @@ namespace Streamstone
         /// </summary>
         public readonly Partition Partition;
 
-        internal DuplicateEventException(Partition partition)
-            : base("Found existing event in partition '{1}' which resides in '{0}' table located at {2}",
-                   partition.Table, partition, partition.Table.Uri)
+        /// <summary>
+        /// The id of duplicate event
+        /// </summary>
+        public readonly string Id;
+
+        internal DuplicateEventException(Partition partition, string id)
+            : base("Found existing event with id '{3}' in partition '{1}' which resides in '{0}' table located at {2}",
+                   partition.Table, partition, partition.Table.Uri, id)
         {
             Partition = partition;
+            Id = id;
         }
     }
 
