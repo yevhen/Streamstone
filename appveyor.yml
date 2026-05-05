@@ -8,7 +8,9 @@ init:
     - git config --global core.autocrlf input
 
 install:
-  - sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0
+  - curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+  - chmod +x dotnet-install.sh
+  - sudo ./dotnet-install.sh --version 10.0.203 --install-dir /usr/share/dotnet
   - npm install -g azurite
   
 build_script:
