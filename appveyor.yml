@@ -2,16 +2,16 @@ skip_tags: true
 
 version: 2.0.{build}
 
-image: Ubuntu2004
+image: Ubuntu2404
 
 init:
     - git config --global core.autocrlf input
 
 install:
-  - wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+  - wget https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
   - sudo dpkg -i packages-microsoft-prod.deb
   - rm packages-microsoft-prod.deb
-  - sudo apt-get update && sudo apt-get install -y dotnet-sdk-8.0
+  - sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0
   - npm install -g azurite
   
 build_script:
