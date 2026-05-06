@@ -259,16 +259,13 @@ namespace Streamstone
 
                     var conflicting = operations[exception.FailedTransactionActionIndex.Value].Entity;
 
-                    if (conflicting.RowKey == stream.RowKey)
+                    if (partition.IsStreamRowKey(conflicting.RowKey))
                         throw ConcurrencyConflictException.StreamChangedOrExists(partition);
 
-                    if (conflicting.RowKey.StartsWith(partition.RowKeyPrefix + EventIdEntity.RowKeyPrefix))
-                    {
-                        var duplicateId = conflicting.RowKey.Substring(partition.RowKeyPrefix.Length + EventIdEntity.RowKeyPrefix.Length);
+                    if (partition.TryGetEventId(conflicting.RowKey, out var duplicateId))
                         throw new DuplicateEventException(partition, duplicateId);
-                    }
 
-                    if (conflicting.RowKey.StartsWith(EventEntity.RowKeyPrefix))
+                    if (partition.IsEventVersionRowKey(conflicting.RowKey))
                         throw ConcurrencyConflictException.EventVersionExists(partition);
 
                     var include = operations.Single(x => x.Entity.RowKey == conflicting.RowKey);

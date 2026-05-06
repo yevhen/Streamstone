@@ -83,6 +83,28 @@ namespace Streamstone
         internal string EventVersionRowKey(int version) => string.Format("{0}{1}{2:d10}", RowKeyPrefix, EventEntity.RowKeyPrefix, version);
         internal string EventIdRowKey(string id) => string.Format("{0}{1}{2}", RowKeyPrefix, EventIdEntity.RowKeyPrefix, id);
 
+        internal bool IsStreamRowKey(string rowKey) =>
+            string.Equals(rowKey, StreamRowKey(), StringComparison.Ordinal);
+
+        internal bool IsEventVersionRowKey(string rowKey) =>
+            rowKey?.StartsWith(RowKeyPrefix + EventEntity.RowKeyPrefix, StringComparison.Ordinal) == true;
+
+        internal bool IsEventIdRowKey(string rowKey) => TryGetEventId(rowKey, out _);
+
+        internal bool TryGetEventId(string rowKey, out string id)
+        {
+            var prefix = RowKeyPrefix + EventIdEntity.RowKeyPrefix;
+
+            if (rowKey?.StartsWith(prefix, StringComparison.Ordinal) == true)
+            {
+                id = rowKey.Substring(prefix.Length);
+                return true;
+            }
+
+            id = null;
+            return false;
+        }
+
         /// <summary>
         /// Returns a string that represents the current object.
         /// </summary>
