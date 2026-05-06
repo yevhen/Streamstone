@@ -80,10 +80,12 @@ namespace Streamstone.Scenarios
             {
                 var duplicate = CreateEvent("e2");
 
-                Assert.ThrowsAsync<DuplicateEventException>(
+                var exception = Assert.ThrowsAsync<DuplicateEventException>(
                     async () => await Stream.WriteAsync(stream, CreateEvent("e3"), duplicate));
 
-                contents.AssertNothingChanged();  
+                Assert.That(exception.Id, Is.EqualTo("e2"));
+
+                contents.AssertNothingChanged();
             });
         }
 
