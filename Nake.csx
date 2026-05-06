@@ -18,7 +18,7 @@ var ArtifactsPath = $@"{RootPath}\Artifacts";
 var ReleasePackagesPath = $@"{ArtifactsPath}\Release";
 
 var AppVeyorJobId = Var["APPVEYOR_JOB_ID"];
-var TargetFramework = "net8";
+var TargetFramework = "net10.0";
 var Version = "3.0.0-dev";
 
 /// Installs dependencies and builds sources in Debug mode

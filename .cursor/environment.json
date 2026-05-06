@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/schema",
-  "description": "Cursor BA dev environment for .NET 8 library with Azurite",
+  "description": "Cursor BA dev environment for .NET 10 library with Azurite",
   "name": "Streamstone Dev Env",
   "install": "npm install",
   "start": "echo 'Ready'",
