@@ -19,7 +19,7 @@ var ReleasePackagesPath = $@"{ArtifactsPath}\Release";
 
 var AppVeyorJobId = Var["APPVEYOR_JOB_ID"];
 var TargetFramework = "net10.0";
-var Version = "3.0.0-dev";
+var Version = "4.0.0-dev";
 
 /// Installs dependencies and builds sources in Debug mode
 [Nake] async Task Default() => await Build();
